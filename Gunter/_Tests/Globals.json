@@ -1,0 +1,9 @@
+{
+  "TEST_LOG": "data source=(local);initial catalog=TEST_LOG;integrated security=true",
+  "LogLevelsNone": "Count([LogLevel]) == 0",
+  "ErrorsOnly": "[LogLevel] IN ('error', 'fatal')",
+  "Message": "You can put a message here.",
+  "Columns.PrimaryKey": "Id",
+  "Columns.Timestamp": "Timestamp",
+  "Columns.Exception": "Exception"
+}

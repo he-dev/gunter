@@ -1,0 +1,76 @@
+// TestConfiguration
+{
+  "Locals": {
+    "MainLog": "[robots].[Gunter_MainLog]",
+    "Top1k": "1000",
+    "To":  "test@email.com"
+  },
+  "DataSources": [
+    {
+      "$type": "Gunter.Data.SqlClient.TableOrViewDataSource, Gunter",
+      "Id": 1,
+      "Name": "{MainLog}",
+      "ConnectionString": "{TEST_LOG}", // Mandatory
+      "Commands": {
+        "Main": {
+          "Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
+          "Parameters": { "@Environment": "{Environment}" }
+        },
+        "Debug": { "Text": "{DebugCommand}" }
+      }
+    }
+  ],
+  // Evaluation of the data selected by the query
+  "Tests": [
+    {
+      "Name": "Validate debug logging is off",
+      "Enabled": true, // [true|false|null = true]
+      "Severity": "Warning", // [Warning|Critical|null = Critical]
+      "Message": "Debug logging is on.",
+      "DataSources": [ 1 ],
+      "Filter": "[LogLevel] IN ('debug')", // Allows to further filter the results of the query - [Expression|null - no filter]
+      "Expression": "Count([LogLevel]) = 0", // Boolean expression - must contain an aggregate - Mandatory
+      "Assert": true, // [AssertThat = like unit tests -> notify if false|ThrowIf = like code -> notify if true|null = Assert]
+      "CanContinue": true, // [Break - don't execute other tests|Continue - execute other tests|null = Continue]
+      "Alerts": [ 1 ]
+    },
+    {
+      "Name": "Validate there are no errors",
+      "Enabled": true, // [true|false|null = true]
+      "Severity": "Critical", // [Warning|Critical|null = Critical]
+      "Message": "Errors found.",
+      "DataSources": [ 1 ],
+      "Filter": "[LogLevel] IN ('error', 'fatal')", // Allows to further filter the results of the query - [Expression|null - no filter]
+      "Expression": "Count([LogLevel]) > 0", // Boolean expression - must contain an aggregate - Mandatory
+      "Assert": false, // [AssertThat = like unit tests -> notify if false|ThrowIf = like code -> notify if true|null = Assert]
+      "CanContinue": false, // [Break - don't execute other tests|Continue - execute other tests|null = Continue]
+      "Alerts": [ 1 ]
+    }
+  ],
+  "Alerts": [
+    // IAlert
+    {
+      "$type": "Gunter.Alerting.Email.EmailAlert, Gunter", // {typeof(...).FullName}, {typeof(...).Namespace}
+      "Id": 1,
+      "Title": "{DataSourceName} - {Severity}",
+      // [string|null - no notification] Who should receive the notification
+      "To": "{To}",
+      "Sections": [
+        // IAlertSection
+        //{ "$type": "Gunter.Data.Sections.Message, Gunter" },
+        { "$type": "Gunter.Data.Sections.DataSourceSummary, Gunter" },
+        //{ "$type": "Gunter.Data.Sections.TestSummary, Gunter" },
+        {
+          "$type": "Gunter.Data.Sections.ExceptionSummary, Gunter",
+          "Columns": [ "Timestamp", "LogLevel", "Logger", "Message", "Exception" ],
+          "GroupBy": [ "Logger", "Message", "Exception" ]
+        }
+      ]
+    }
+  ],
+  // [array|null - all profiles] Allows to execute only selected assertions via command line
+  "Profiles": {
+    "normal": [],
+    "debug": [ "CheckDebugLevelEnabled" ]
+  }
+}
