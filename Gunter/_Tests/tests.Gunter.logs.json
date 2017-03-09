@@ -1,0 +1,70 @@
+{
+  "Locals": {
+    "MainLog": "[robots].[Gunter_MainLog]",
+    "Top1k": "1000",
+    "To": "test@email.com"
+  },
+  "DataSources": [
+    {
+      "$type": "Gunter.Data.SqlClient.TableOrViewDataSource, Gunter",
+      "Id": 1,
+      "Name": "{MainLog}",
+      "ConnectionString": "{TEST_LOG}",
+      "Commands": {
+        "Main": {
+          "Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
+          "Parameters": { "@Environment": "{Environment}" }
+        },
+        "Debug": { "Text": "{DebugCommand}" }
+      }
+    }
+  ],
+  "Tests": [
+    {
+      "Name": "Validate debug logging is off",
+      "Enabled": true,
+      "Severity": "Warning",
+      "Message": "Debug logging is on.",
+      "DataSources": [ 1 ],
+      "Filter": "[LogLevel] IN ('debug')",
+      "Expression": "Count([LogLevel]) = 0",
+      "Assert": true,
+      "CanContinue": true,
+      "Alerts": [ 1 ]
+    },
+    {
+      "Name": "Validate there are no errors",
+      "Enabled": true,
+      "Severity": "Critical",
+      "Message": "Errors found.",
+      "DataSources": [ 1 ],
+      "Filter": "[LogLevel] IN ('error', 'fatal')",
+      "Expression": "Count([LogLevel]) > 0",
+      "Assert": false,
+      "CanContinue": false,
+      "Alerts": [ 1 ]
+    }
+  ],
+  "Alerts": [
+    {
+      "$type": "Gunter.Alerting.Email.EmailAlert, Gunter",
+      "Id": 1,
+      "Title": "{DataSourceName} - {Severity}",
+      "To": "{To}",
+      "Sections": [
+        //{ "$type": "Gunter.Data.Sections.Message, Gunter" },
+        { "$type": "Gunter.Data.Sections.DataSourceSummary, Gunter" },
+        //{ "$type": "Gunter.Data.Sections.TestSummary, Gunter" },
+        {
+          "$type": "Gunter.Data.Sections.ExceptionSummary, Gunter",
+          "Columns": [ "Timestamp", "LogLevel", "Logger", "Message", "Exception" ],
+          "GroupBy": [ "Logger", "Message", "Exception" ]
+        }
+      ]
+    }
+  ],
+  "Profiles": {
+    "normal": [],
+    "debug": [ "CheckDebugLevelEnabled" ]
+  }
+}

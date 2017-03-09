@@ -8,10 +8,7 @@ namespace Gunter.Services
     {
         private readonly IContainer _container;
 
-        public AutofacContractResolver(IContainer container)
-        {
-            _container = container;
-        }       
+        public AutofacContractResolver(IContainer container) => _container = container ?? throw new ArgumentNullException(nameof(container));
 
         protected override JsonObjectContract CreateObjectContract(Type objectType)
         {

@@ -16,21 +16,17 @@ using Gunter.Data;
 using System.Reflection;
 using Gunter.Services;
 
-// ReSharper disable UseStringInterpolation
-
 namespace Gunter
 {
     internal class Program
     {
 #if DEBUG
-        public const string DefaultInstanceName = "Gunter.debug";
+        public const string InstanceName = "Gunter.debug";
 #else
-        public const string DefaultInstanceName = "Gunter";
+        public const string InstanceName = "Gunter";
 #endif        
 
         private static ILogger _logger;
-
-        private static IContainer _container;
 
         private static int Main(string[] args)
         {
@@ -38,19 +34,17 @@ namespace Gunter
             {
                 InitializeLogger();
 
-                LogEntry.New().Message("*** Gunter v3.0.0 ***").Log(_logger);
+                LogEntry.New().Message($"*** {InstanceName} v1.0.0 ***").Log(_logger);
 
                 InitializeConfiguration();
-                InitializeContainer();
+                var container = InitializeContainer();
 
+                var constants = ConfigurationReader.ReadGlobals();
+                var testConfigs = ConfigurationReader.ReadTests(container).ToArray();
 
-                using (var scope = _container.BeginLifetimeScope())
+                using (var scope = container.BeginLifetimeScope())
                 {
-                    var testRunner = scope.Resolve<TestRunner>();
-                    var testConfigs = ReadTestConfigs().ToArray();
-                    var constants = scope.Resolve<IConstantResolver>();
-
-                    testRunner.RunTests(testConfigs, constants);
+                    scope.Resolve<TestRunner>().RunTests(testConfigs, constants);
                 }
 
                 return 0;
@@ -76,11 +70,8 @@ namespace Gunter
 
         }
 
-        private static void InitializeContainer()
+        private static IContainer InitializeContainer()
         {
-            var globals = ReadGlobals();
-            globals["Environment"] = AppSettingsConfig.Environment;
-
             var containerBuilder = new ContainerBuilder();
 
             // Configure dependencies.
@@ -91,9 +82,9 @@ namespace Gunter
 
             //containerBuilder.RegisterInstance(new StateRepository(AppSettingsConfig.Environment));
 
-            containerBuilder
-                .RegisterInstance(new ConstantResolver(globals))
-                .As<IConstantResolver>();
+            //containerBuilder
+            //    .RegisterInstance(constants)
+            //    .As<IConstantResolver>();
 
             containerBuilder
                 .RegisterType<Data.SqlClient.TableOrViewDataSource>()
@@ -114,7 +105,7 @@ namespace Gunter
                 .RegisterType<TestRunner>()
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
 
-            _container = containerBuilder.Build();
+            return containerBuilder.Build();
         }
 
         private static void InitializeConfiguration()
@@ -147,73 +138,7 @@ namespace Gunter
                 }
             }
         }
-
-        private static Dictionary<string, object> ReadGlobals()
-        {
-            var testDirectoryName = AppSettingsConfig.TestsDirectoryName;
-
-            if (!Path.IsPathRooted(testDirectoryName))
-            {
-                testDirectoryName = Path.Combine(Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location), testDirectoryName);
-            }
-            var fileName = Path.Combine(testDirectoryName, "Globals.json");
-            if (!File.Exists(fileName))
-            {
-                return new Dictionary<string, object>();
-            }
-            var json = File.ReadAllText(fileName);
-            return JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-        }
-
-        private static IEnumerable<TestConfiguration> ReadTestConfigs()
-        {
-            var testFileNames = Directory.GetFiles(AppSettingsConfig.TestsDirectoryName, "tests.*.json");
-
-            var loadAudit = new Func<string, TestConfiguration>(fileName =>
-            {
-                using (var logger = LogEntry.New().AsAutoLog(_logger))
-                {
-                    try
-                    {
-                        var json = File.ReadAllText(fileName);
-                        var test = JsonConvert.DeserializeObject<TestConfiguration>(json, new JsonSerializerSettings
-                        {
-                            ContractResolver = new AutofacContractResolver(_container),
-                            DefaultValueHandling = DefaultValueHandling.Populate,
-                            TypeNameHandling = TypeNameHandling.Auto
-                        });
-                        logger.Message("Imported \"{fileName}\".".Format(new { fileName }));
-                        return test;
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Error().Message("Could not import \"{fileName}\".".Format(new { fileName })).Exception(ex);
-                        return null;
-                    }
-                }
-            });
-
-            return testFileNames.Select(loadAudit).Where(test => test != null);
-        }
-
-        internal static string CreateInstanceName(string[] args)
-        {
-
-            if (!args.Any())
-            {
-                return DefaultInstanceName;
-            }
-
-            // https://regex101.com/r/jj7uq4/1
-            // https://regex101.com/delete/cRFp0YnhCmRWG4ZYdvAJrnCz
-
-            var profileMatch = Regex.Match(args.First(), @"-profile:(?<profile>[a-z_][a-z0-9\-\.-]*)", RegexOptions.IgnoreCase);
-            return
-                profileMatch.Success
-                ? string.Format("{0}.{1}", DefaultInstanceName, profileMatch.Groups["profile"].Value)
-                : DefaultInstanceName;
-        }
-
+       
         //private static int Exit(ExitCode errorCode)
         //{
         //    _logger.Info().MessageFormat("*** Exited with error code {ErrorCode}.", new { ErrorCode = (int)errorCode }).Log();

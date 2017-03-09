@@ -5,7 +5,6 @@ using System.Linq;
 using Gunter.Data;
 using Gunter.Alerting;
 using Reusable.Logging;
-using Reusable;
 using Gunter.Services;
 
 namespace Gunter.Testing
@@ -33,8 +32,8 @@ namespace Gunter.Testing
             {
                 var constantsLocal = constants
                     .UnionWith(testConfig.Locals)
-                    .Add(nameof(Severity), test.Severity)
-                    .Add(nameof(Globals.FileName), testConfig.FileName);
+                    .Add(LogProperties.Severity, test.Severity)
+                    .Add(LogProperties.FileName, testConfig.FileName);
 
                 var dataSources = testConfig.DataSources.Where(x => test.DataSources.Contains(x.Id)).ToList();
                 if (!dataSources.Any())
@@ -44,7 +43,7 @@ namespace Gunter.Testing
                         .Warn()
                         .Message("Data source not found.")
                         .SetValue(nameof(TestProperties.Name), test.Name)
-                        .SetValue(nameof(Globals.FileName), constantsLocal.Resolve(Globals.FileName))
+                        .SetValue(LogProperties.FileName, constantsLocal.Resolve(Locals.FileName))
                         .Log(_logger);
                     continue;
                 }
@@ -52,7 +51,7 @@ namespace Gunter.Testing
                 foreach (var dataSource in dataSources)
                 {
                     using (var data = dataSource.GetData(constantsLocal))
-                    using (var logEntry = LogEntry.New().SetValue(nameof(TestProperties.Name), test.Name).SetValue(nameof(Globals.FileName), constantsLocal.Resolve(Globals.FileName)).AsAutoLog(_logger))
+                    using (var logEntry = LogEntry.New().SetValue(nameof(TestProperties.Name), test.Name).SetValue(LogProperties.FileName, constantsLocal.Resolve(Locals.FileName)).AsAutoLog(_logger))
                     {
                         switch (Assert(data, test, constantsLocal))
                         {
@@ -95,7 +94,7 @@ namespace Gunter.Testing
                     .Message("The expression requires an aggregate function.")
                     .SetValue(nameof(TestProperties.Name), test.Name)
                     .SetValue(nameof(TestProperties.Expression), test.Expression)
-                    .SetValue(nameof(Globals.FileName), constants.Resolve(Globals.FileName))
+                    .SetValue(LogProperties.FileName, constants.Resolve(Locals.FileName))
                     .Log(_logger);
                 return null;
             }

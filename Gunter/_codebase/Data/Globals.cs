@@ -8,7 +8,7 @@ namespace Gunter.Data
 {
     internal static class Globals
     {
-        public static string FileName = $"{nameof(Columns)}.{nameof(FileName)}";
+        //public static string FileName = $"{nameof(FileName)}";
 
         public static class Columns
         {
