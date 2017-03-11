@@ -25,19 +25,18 @@ namespace Gunter.Alerting
 
     public abstract class Alert : IAlert
     {
-        protected Alert(ILogger logger)
-        {
-            Logger = logger;
-            Sections = new List<ISectionFactory>();
-        }
+        protected Alert(ILogger logger) => Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         protected ILogger Logger { get; private set; }
 
+        [JsonRequired]
         public int Id { get; set; }
 
+        [JsonRequired]
         public string Title { get; set; }
 
-        public List<ISectionFactory> Sections { get; set; }
+        [JsonRequired]
+        public List<ISectionFactory> Sections { get; set; } = new List<ISectionFactory>();
 
         public void Publish(string message, IEnumerable<ISection> sections, IConstantResolver constants)
         {
@@ -47,7 +46,7 @@ namespace Gunter.Alerting
             }
             catch (Exception ex)
             {
-                LogEntry.New().Error().Exception(ex).Message("Could not publish alert.").Log(Logger);
+                LogEntry.New().Error().Exception(ex).Message("Error publishing alert.").Log(Logger);
             }
         }
 

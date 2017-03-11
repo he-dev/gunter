@@ -28,75 +28,6 @@ namespace Gunter.Tests
             }
         };
 
-        private TestProperties[] _tests = new TestProperties[]
-        {
-            new TestProperties
-            {
-                Name = "Data-source must not be empty.",
-                Enabled = true,
-                Severity = Severity.Warning,
-                Message = "Data-source is empty.",
-                DataSources = new [] { 1 },
-                Filter = null,
-                Assert = false,
-                Expression = "COUNT([Id]) = 0",
-                CanContinue = false,
-                Alerts = { 1 }
-            },
-            new TestProperties
-            {
-                Name = "This test is disabled.",
-                Enabled = false,
-                Severity = Severity.Critical,
-                Message = "This test shouldn't have been run.",
-                DataSources = new [] { 2 },
-                Filter = null,
-                Assert = false,
-                Expression = "COUNT([Id]) > 0",
-                CanContinue = false,
-                Alerts = { 1 }
-            },
-            new TestProperties
-            {
-                Name = "Debug logging should be disabled.",
-                Enabled = true,
-                Severity = Severity.Warning,
-                Message = "Debug logging is enabled.",
-                DataSources = new [] { 2 },
-                Filter = "[LogLevel] IN ('debug')",
-                Assert = true,
-                Expression = "COUNT([Id]) = 0",
-                CanContinue = true,
-                Alerts = { 1 }
-            },
-            new TestProperties
-            {
-                Name = "Elasped seconds can be aggregated.",
-                Enabled = true,
-                Severity = Severity.Warning,
-                Message = "Elapsed seconds not aggregated.",
-                DataSources = new [] { 2 },
-                Filter = "[ElapsedSeconds] NOT NULL",
-                Assert = false,
-                Expression = "SUM([ElapsedSeconds]) = 7.0",
-                CanContinue = true,
-                Alerts = { 1 }
-            },
-            new TestProperties
-            {
-                Name = "There should not be any errors.",
-                Enabled = true,
-                Severity = Severity.Critical,
-                Message = "Errors found.",
-                DataSources = new [] { 2 },
-                Filter = "[LogLevel] IN ('error')",
-                Assert = true,
-                Expression = "COUNT([Id]) = 0",
-                CanContinue = false,
-                Alerts = { 1 }
-            },
-        };
-
         private List<IAlert> _alerts;
 
         [TestInitialize]
@@ -109,10 +40,10 @@ namespace Gunter.Tests
                     Id = 1,
                     Sections =
                     {
-                        new Gunter.Data.Sections.DataSourceSummary(),
-                        new Gunter.Data.Sections.ExceptionSummary
+                        new Gunter.Data.Sections.DataSourceSummary(new NullLogger()),
+                        new Gunter.Data.Sections.Aggregation(new NullLogger())
                         {
-                        
+
                         },
                     }
                 }
@@ -120,64 +51,24 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
-        public void RunTests_EmptyDataSource_Fails()
+        public void RunTests_TestDisabled_NoAlert()
         {
             var testConfig = new Gunter.Testing.TestConfiguration
             {
                 DataSources = _dataSources,
-                Tests = { _tests[0] },
-                Alerts = _alerts
-            };
-
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count, "Test should trigger one alert.");
-        }
-
-        [TestMethod]
-        public void RunTests_LogWithoutErrors_Passes()
-        {
-            var testConfig = new Gunter.Testing.TestConfiguration
-            {
-                DataSources = _dataSources,
-                Tests = { _tests[0] },
-                Alerts = _alerts
-            };
-
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(0, (_alerts[0] as TestAlert).Messages.Count, "Test should not publish results.");
-        }
-
-        [TestMethod]
-        public void RunTests_LogWithErrors_OneAlert()
-        {
-            var testConfig = new Gunter.Testing.TestConfiguration
-            {
-                DataSources =
-                {
-                    new TestDataSource(1)
-                    {
-                        { "TEST", "info", 1f, "Msg1", null },
-                        { "TEST", "error", 1f, "Msg2", "This one went wrong." },
-                        { "TEST", "info", 1f, "Msg3", null },
-                    }
-                },
                 Tests =
                 {
-                    new Gunter.Testing.TestProperties
+                    new TestProperties
                     {
-                        Enabled = true,
+                        Enabled = false,
                         Severity = Severity.Critical,
-                        Message = "Data-source is not empty.",
-                        DataSources = new [] { 1 },
-                        Filter = "[LogLevel] IN ('error')",
-                        Assert = false,
+                        Message = "This test should not run.",
+                        DataSources = { 2 },
+                        Filter = null,
                         Expression = "COUNT([Id]) > 0",
+                        Assert = false,
                         CanContinue = false,
-                        //Publish = AlertWhen.Failed
+                        Alerts = { 1 }
                     }
                 },
                 Alerts = _alerts
@@ -186,7 +77,223 @@ namespace Gunter.Tests
             var testRunner = new TestRunner(new NullLogger());
             testRunner.RunTests(testConfig, ConstantResolver.Empty);
 
-            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count, "Test should publish results.");
+            Assert.AreEqual(0, (_alerts[0] as TestAlert).Messages.Count);
+        }
+
+        [TestMethod]
+        public void RunTests_AssertTrue_Fails()
+        {
+            // This tes verfies that the a data-source is empty with assert = true.
+
+            var testConfig = new Gunter.Testing.TestConfiguration
+            {
+                DataSources = _dataSources,
+                Tests =
+                {
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Data-source must be empty.",
+                        DataSources = { 2 },
+                        Filter = null,
+                        Assert = true,
+                        Expression = "COUNT([Id]) = 0",
+                        CanContinue = false,
+                        Alerts = { 1 }
+                    }
+                },
+                Alerts = _alerts
+            };
+
+            var testRunner = new TestRunner(new NullLogger());
+            testRunner.RunTests(testConfig, ConstantResolver.Empty);
+
+            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count);
+        }
+
+        [TestMethod]
+        public void RunTests_AssertFalse_Fails()
+        {
+            // This test verifies that a data-source is not empty by nagating the expression with assert = false.
+
+            var testConfig = new Gunter.Testing.TestConfiguration
+            {
+                DataSources = _dataSources,
+                Tests =
+                {
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Data-source must be empty.",
+                        DataSources = { 1 },
+                        Filter = null,
+                        Expression = "COUNT([Id]) = 0",
+                        Assert = false,
+                        CanContinue = false,
+                        Alerts = { 1 }
+                    }
+                },
+                Alerts = _alerts
+            };
+
+            var testRunner = new TestRunner(new NullLogger());
+            testRunner.RunTests(testConfig, ConstantResolver.Empty);
+
+            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count);
+        }
+
+        [TestMethod]
+        public void RunTests_CanContinueFalse_Breakes()
+        {
+            // This test verfies that the execution breaks as soon as the first test fails.
+
+            var testConfig = new Gunter.Testing.TestConfiguration
+            {
+                DataSources = _dataSources,
+                Tests =
+                {
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Data-source must be empty.",
+                        DataSources = { 2 },
+                        Filter = null,
+                        Assert = true,
+                        Expression = "COUNT([Id]) = 0",
+                        CanContinue = false,
+                        Alerts = { 1 }
+                    },
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Data-source must be empty.",
+                        DataSources = { 2 },
+                        Filter = null,
+                        Assert = true,
+                        Expression = "COUNT([Id]) = 0",
+                        CanContinue = false,
+                        Alerts = { 1 }
+                    }
+                },
+                Alerts = _alerts
+            };
+
+            var testRunner = new TestRunner(new NullLogger());
+            testRunner.RunTests(testConfig, ConstantResolver.Empty);
+
+            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count);
+        }
+
+        [TestMethod]
+        public void RunTests_CanContinueTrue_Continues()
+        {
+            // This test verfies that the execution continues even though the first test fails.
+
+            var testConfig = new Gunter.Testing.TestConfiguration
+            {
+                DataSources = _dataSources,
+                Tests =
+                {
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Data-source must be empty.",
+                        DataSources = { 2 },
+                        Filter = null,
+                        Assert = true,
+                        Expression = "COUNT([Id]) = 0",
+                        CanContinue = true,
+                        Alerts = { 1 }
+                    },
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Data-source must be empty.",
+                        DataSources = { 2 },
+                        Filter = null,
+                        Assert = true,
+                        Expression = "COUNT([Id]) = 0",
+                        CanContinue = false,
+                        Alerts = { 1 }
+                    }
+                },
+                Alerts = _alerts
+            };
+
+            var testRunner = new TestRunner(new NullLogger());
+            testRunner.RunTests(testConfig, ConstantResolver.Empty);
+
+            Assert.AreEqual(2, (_alerts[0] as TestAlert).Messages.Count);
+        }
+
+        [TestMethod]
+        public void RunTests_Filter_Passes()
+        {
+            // This test verfies that only filtered rows are tested.
+
+            var testConfig = new Gunter.Testing.TestConfiguration
+            {
+                DataSources = _dataSources,
+                Tests =
+                {
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Debug logging is enabled.",
+                        DataSources = { 2 },
+                        Filter = "[LogLevel] IN ('debug')",
+                        Assert = true,
+                        Expression = "COUNT([Id]) = 1",
+                        CanContinue = true,
+                        Alerts = { 1 }
+                    },
+                },
+                Alerts = _alerts
+            };
+
+            var testRunner = new TestRunner(new NullLogger());
+            testRunner.RunTests(testConfig, ConstantResolver.Empty);
+
+            Assert.AreEqual(0, (_alerts[0] as TestAlert).Messages.Count);
+        }
+
+        [TestMethod]
+        public void RunTests_InvalidExpression_Inconclusive()
+        {
+            // This test verfies that only filtered rows are tested.
+
+            var testConfig = new Gunter.Testing.TestConfiguration
+            {
+                DataSources = _dataSources,
+                Tests =
+                {
+                    new TestProperties
+                    {
+                        Enabled = true,
+                        Severity = Severity.Warning,
+                        Message = "Debug logging is enabled.",
+                        DataSources = { 2 },
+                        Filter = null,
+                        Assert = true,
+                        Expression = "[LogLevel] IN ('debug')",
+                        CanContinue = true,
+                        Alerts = { 1 }
+                    },
+                },
+                Alerts = _alerts
+            };
+
+            var testRunner = new TestRunner(new NullLogger());
+            testRunner.RunTests(testConfig, ConstantResolver.Empty);
+
+            Assert.AreEqual(0, (_alerts[0] as TestAlert).Messages.Count);
         }
     }
 }

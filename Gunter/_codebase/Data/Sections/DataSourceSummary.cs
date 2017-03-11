@@ -1,54 +1,41 @@
 ﻿using Gunter.Data.SqlClient;
 using Gunter.Services;
 using Reusable.Data;
+using Reusable.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 
 namespace Gunter.Data.Sections
 {
-    internal class DataSourceSummary : ISectionFactory
+    public class DataSourceSummary : SectionFactory
     {
-        public ISection Create(TestContext context, IConstantResolver constants)
+        public DataSourceSummary(ILogger logger) : base(logger) { }
+
+        protected override ISection CreateCore(TestContext context, IConstantResolver constants)
         {
-            var data = DataTableFactory.Create("Data source", new[] { "Property", "Value" });
+            var data = new DataTable("Data source")
+                .AddColumn("Property", c => c.DataType = typeof(string))
+                .AddColumn("Value", c => c.DataType = typeof(string));
 
             var timestampColumn = constants.Resolve(Globals.Columns.Timestamp);
 
-            data.AddRow("Query (Main)", GetMainQuery(context.DataSource));
-            data.AddRow("Query (Debug)", GetDebugQuery(context.DataSource));
+            data.AddRow($"Query ({DataSource.CommandName.Main})", context.DataSource.ToString(DataSource.CommandName.Main, CultureInfo.InvariantCulture));
+            data.AddRow($"Query ({DataSource.CommandName.Debug})", context.DataSource.ToString(DataSource.CommandName.Debug, CultureInfo.InvariantCulture));
             data.AddRow("Results", context.Data.Rows.Count);
             data.AddRow("CreatedOn", context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn)));
             data.AddRow("TimeSpan",
                 context.Data.AsEnumerable().Max(r => r.Field<DateTime>(timestampColumn)) -
                 context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn)));
+
             return new Section
             {
                 Heading = "Data source",
                 Data = data,
                 Orientation = Orientation.Horizontal
             };
-        }
-
-        // TODO those two are not the prettiest but no idea how to do it better.
-
-        private static string GetMainQuery(IDataSource dataSource)
-        {
-            switch (dataSource)
-            {
-                case TableOrViewDataSource x: return x.Commands[TableOrViewDataSource.CommandName.Main].Text;
-                default: return null;
-            }
-        }
-
-        private static string GetDebugQuery(IDataSource dataSource)
-        {
-            switch (dataSource)
-            {
-                case TableOrViewDataSource x: return x.Commands[TableOrViewDataSource.CommandName.Debug].Text;
-                default: return null;
-            }
         }
     }
 

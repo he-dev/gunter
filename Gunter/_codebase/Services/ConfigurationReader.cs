@@ -20,24 +20,28 @@ namespace Gunter.Services
         public static IConstantResolver ReadGlobals()
         {
             var fileName = PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, "Globals.json");
-
             return
                 File.Exists(fileName)
                     ? new ConstantResolver(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)))
-                        .Add("Environment", AppSettingsConfig.Environment)
+                    {
+                        { "Environment", AppSettingsConfig.Environment }
+                    }
                     : ConstantResolver.Empty;
         }
 
         public static IEnumerable<TestConfiguration> ReadTests(IContainer container)
         {
-            var testFileNames = Directory.GetFiles(AppSettingsConfig.TestsDirectoryName, "tests.*.json");
+            var testFileNames = Directory.GetFiles(AppSettingsConfig.TestsDirectoryName, "Gunter.Tests.*.json");
+            return ReadTests(testFileNames, container);
+        }
 
-
-            return testFileNames.Select(LoadTest).Where(test => test != null);
+        public static IEnumerable<TestConfiguration> ReadTests(IEnumerable<string> fileNames, IContainer container)
+        {
+            return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
 
             TestConfiguration LoadTest(string fileName)
             {
-                using (var logger = LogEntry.New().AsAutoLog(_logger))
+                using (var logEntry = LogEntry.New().Info().AsAutoLog(_logger))
                 {
                     try
                     {
@@ -48,12 +52,12 @@ namespace Gunter.Services
                             DefaultValueHandling = DefaultValueHandling.Populate,
                             TypeNameHandling = TypeNameHandling.Auto
                         });
-                        logger.Message("Imported \"{fileName}\".".Format(new { fileName }));
+                        logEntry.Message($"Read '{fileName}'.");
                         return test;
                     }
                     catch (Exception ex)
                     {
-                        logger.Error().Message("Could not import \"{fileName}\".".Format(new { fileName })).Exception(ex);
+                        logEntry.Error().Message($"Error reading '{fileName}'.").Exception(ex);
                         return null;
                     }
                 }

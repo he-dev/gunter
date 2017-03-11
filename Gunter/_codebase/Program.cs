@@ -15,16 +15,13 @@ using Reusable;
 using Gunter.Data;
 using System.Reflection;
 using Gunter.Services;
+using Gunter.Data.Sections;
 
 namespace Gunter
 {
     internal class Program
     {
-#if DEBUG
-        public const string InstanceName = "Gunter.debug";
-#else
-        public const string InstanceName = "Gunter";
-#endif        
+        public static readonly string InstanceName = Assembly.GetAssembly(typeof(Program)).GetName().Name;
 
         private static ILogger _logger;
 
@@ -33,18 +30,18 @@ namespace Gunter
             try
             {
                 InitializeLogger();
-
-                LogEntry.New().Message($"*** {InstanceName} v1.0.0 ***").Log(_logger);
-
                 InitializeConfiguration();
+
                 var container = InitializeContainer();
 
-                var constants = ConfigurationReader.ReadGlobals();
-                var testConfigs = ConfigurationReader.ReadTests(container).ToArray();
+                var globals = InitializeGlobals(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, $"{InstanceName}.Globals.json"));
+                var tests = InitializeTests(Directory.GetFiles(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, string.Empty), $"{InstanceName}.Tests.*.json"), container);
 
+                using (var logEntry = LogEntry.New().Info().Message("*** Finished in {ElapsedSeconds} sec. ***").AsAutoLog(_logger))
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    scope.Resolve<TestRunner>().RunTests(testConfigs, constants);
+                    LogEntry.New().Info().Message($"*** {InstanceName} v1.0.0 ***").Log(_logger);
+                    scope.Resolve<TestRunner>().RunTests(tests, globals);
                 }
 
                 return 0;
@@ -52,7 +49,7 @@ namespace Gunter
             // Exception should already be logged elsewhere and rethrown to exit the application.
             catch (Exception ex)
             {
-                LogEntry.New().Fatal().Message("Crashed.").Exception(ex).Log(_logger);
+                LogEntry.New().Fatal().Message("*** Crashed ***").Exception(ex).Log(_logger);
                 return 1;
             }
         }
@@ -62,50 +59,11 @@ namespace Gunter
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
             Reusable.Logging.NLog.Tools.DatabaseTargetQueryGenerator.GenerateInsertQueries();
 
-            Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting("Environment", "Environment"));
+            Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting(name: "Environment", key: $"{InstanceName}.Environment"));
             Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
 
             Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
             _logger = LoggerFactory.CreateLogger("Program");
-
-        }
-
-        private static IContainer InitializeContainer()
-        {
-            var containerBuilder = new ContainerBuilder();
-
-            // Configure dependencies.
-
-            //containerBuilder
-            //    .RegisterType<EmailAlert>()
-            //    .As<IAlert>();
-
-            //containerBuilder.RegisterInstance(new StateRepository(AppSettingsConfig.Environment));
-
-            //containerBuilder
-            //    .RegisterInstance(constants)
-            //    .As<IConstantResolver>();
-
-            containerBuilder
-                .RegisterType<Data.SqlClient.TableOrViewDataSource>()
-                .As<IDataSource>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrViewDataSource))));
-
-            //containerBuilder
-            //    .RegisterType<EmailService>()
-            //    .As<IEmailService>()
-            //    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.GetLogger<EmailService>()));
-
-            containerBuilder
-                .RegisterType<EmailAlert>()
-                .As<IAlert>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(EmailAlert))));
-
-            containerBuilder
-                .RegisterType<TestRunner>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
-
-            return containerBuilder.Build();
         }
 
         private static void InitializeConfiguration()
@@ -138,20 +96,76 @@ namespace Gunter
                 }
             }
         }
-       
-        //private static int Exit(ExitCode errorCode)
-        //{
-        //    _logger.Info().MessageFormat("*** Exited with error code {ErrorCode}.", new { ErrorCode = (int)errorCode }).Log();
-        //    _logger.Info().Message("*** Good bye!.").Log();
-        //    return (int)errorCode;
-        //}
+
+        private static IContainer InitializeContainer()
+        {
+            var containerBuilder = new ContainerBuilder();
+
+            containerBuilder
+                .RegisterType<Data.SqlClient.TableOrViewDataSource>()
+                //.As<IDataSource>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrViewDataSource))));
+
+            containerBuilder
+                .RegisterType<EmailAlert>()
+                //.As<IAlert>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(EmailAlert))));
+
+            containerBuilder
+                .RegisterType<TestRunner>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
+
+            containerBuilder
+                .RegisterType<DataSourceSummary>()
+                //.As<ISectionFactory>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(DataSourceSummary))));
+
+            containerBuilder
+                .RegisterType<Aggregation>()
+                //.As<ISectionFactory>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Aggregation))));
+
+            return containerBuilder.Build();
+        }
+
+        private static IConstantResolver InitializeGlobals(string fileName)
+        {
+            return
+                File.Exists(fileName)
+                    ? new ConstantResolver(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)))
+                    {
+                        { "Environment", AppSettingsConfig.Environment }
+                    }
+                    : ConstantResolver.Empty;
+        }
+
+        private static List<TestConfiguration> InitializeTests(IEnumerable<string> fileNames, IContainer container)
+        {
+            return fileNames.Select(LoadTest).Where(Conditional.IsNotNull).ToList();
+
+            TestConfiguration LoadTest(string fileName)
+            {
+                using (var logEntry = LogEntry.New().Info().AsAutoLog(_logger))
+                {
+                    try
+                    {
+                        var json = File.ReadAllText(fileName);
+                        var test = JsonConvert.DeserializeObject<TestConfiguration>(json, new JsonSerializerSettings
+                        {
+                            ContractResolver = new AutofacContractResolver(container),
+                            DefaultValueHandling = DefaultValueHandling.Populate,
+                            TypeNameHandling = TypeNameHandling.Auto
+                        });
+                        logEntry.Message($"Read '{fileName}'.");
+                        return test;
+                    }
+                    catch (Exception ex)
+                    {
+                        logEntry.Error().Message($"Error reading '{fileName}'.").Exception(ex);
+                        return null;
+                    }
+                }
+            }
+        }
     }
-
-    internal class FileName
-    {
-        public const string Globals = "Globals";
-        public const string Templates = "_Templates";
-    }
-
-
 }

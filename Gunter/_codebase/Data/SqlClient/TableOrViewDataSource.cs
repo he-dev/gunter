@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using Reusable;
 using Reusable.Logging;
 using Gunter.Services;
+using Newtonsoft.Json;
 
 namespace Gunter.Data.SqlClient
 {
@@ -12,8 +13,10 @@ namespace Gunter.Data.SqlClient
     {
         public TableOrViewDataSource(ILogger logger) : base(logger) { }
 
+        [JsonRequired]
         public string ConnectionString { get; set; }
 
+        [JsonRequired]
         public Dictionary<string, Command> Commands { get; set; } = new Dictionary<string, Command>();
 
         protected override DataTable GetDataCore(IConstantResolver constants)
@@ -44,23 +47,20 @@ namespace Gunter.Data.SqlClient
 
         public override string ToString(string format, IFormatProvider formatProvider)
         {
-            if (format.Equals(CommandName.Main, StringComparison.OrdinalIgnoreCase)) return Commands[CommandName.Main].Text;
-            if (format.Equals(CommandName.Debug, StringComparison.OrdinalIgnoreCase)) return Commands[CommandName.Debug].Text;
-
-            return base.ToString();
-        }
-
-        public static class CommandName
-        {
-            public const string Main = nameof(Main);
-            public const string Debug = nameof(Debug);
+            switch (format)
+            {
+                case string s when s.Equals(CommandName.Main, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Main].Text;
+                case string s when s.Equals(CommandName.Debug, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Debug].Text;
+                default: return base.ToString();
+            }
         }
     }
 
     public class Command
     {
+        [JsonRequired]
         public string Text { get; set; }
 
-        public Dictionary<string, string> Parameters { get; set; }
+        public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
     }
 }

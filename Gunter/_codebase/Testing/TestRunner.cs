@@ -28,14 +28,14 @@ namespace Gunter.Testing
 
         public void RunTests(TestConfiguration testConfig, IConstantResolver constants)
         {
-            foreach (var test in testConfig.Tests)
+            foreach (var test in testConfig.GetEnabledTests())
             {
                 var constantsLocal = constants
                     .UnionWith(testConfig.Locals)
                     .Add(LogProperties.Severity, test.Severity)
                     .Add(LogProperties.FileName, testConfig.FileName);
 
-                var dataSources = testConfig.DataSources.Where(x => test.DataSources.Contains(x.Id)).ToList();
+                var dataSources = testConfig.GetDataSources(test.DataSources).ToList();
                 if (!dataSources.Any())
                 {
                     LogEntry
@@ -61,7 +61,7 @@ namespace Gunter.Testing
 
                             case false:
                                 logEntry.Error().Message("Failed.");
-                                Alert(testConfig.Alerts.Where(x => test.Alerts.Contains(x.Id)), new TestContext
+                                Alert(testConfig.GetAlerts(test.Alerts), new TestContext
                                 {
                                     DataSource = dataSource,
                                     Data = data,
@@ -79,7 +79,7 @@ namespace Gunter.Testing
             }
         }
 
-        bool? Assert(DataTable data, TestProperties test, IConstantResolver constants)
+        private bool? Assert(DataTable data, TestProperties test, IConstantResolver constants)
         {
             try
             {
@@ -102,14 +102,12 @@ namespace Gunter.Testing
 
         private static void Alert(IEnumerable<IAlert> alerts, TestContext context, IConstantResolver constants)
         {
-            var alertCount = 0;
             foreach (var alert in alerts)
             {
                 var sections = alert.Sections.Select(factory => factory.Create(context, constants));
                 alert.Publish(context.Test.Message, sections, constants);
-                alertCount++;
+                //LogEntry.New().Warn().Message($"Send {alertCount} alert(s).").Log(Logger);
             }
-            //LogEntry.New().Warn().Message($"Send {alertCount} alert(s).").Log(Logger);
         }
     }
 }

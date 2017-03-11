@@ -10,17 +10,12 @@ namespace Gunter.Services
 {
     internal class PathResolver
     {
-        public static string Resolve(string subdirectoryName, string fileName)
-        {
-            return
-                Path.IsPathRooted(fileName)
-                    ? fileName
-                    : Path.Combine(
-                        Path.GetDirectoryName(Assembly.GetAssembly(typeof(Program)).Location),
-                        subdirectoryName,
-                        fileName
-                    );
-        }
+        public static string Resolve(string subdirectoryName, string fileName) =>
+            Path.IsPathRooted(fileName) ? fileName : Path.Combine(
+                Environment.CurrentDirectory,
+                subdirectoryName ?? throw new ArgumentNullException(nameof(subdirectoryName)),
+                fileName ?? throw new ArgumentNullException(nameof(fileName))
+            );
 
         public static string Resolve(string fileName) => Resolve(string.Empty, fileName);
     }

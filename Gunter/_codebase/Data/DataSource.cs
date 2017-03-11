@@ -39,5 +39,11 @@ namespace Gunter.Data
         protected abstract DataTable GetDataCore(IConstantResolver constants);
 
         public abstract string ToString(string format, IFormatProvider formatProvider);
+
+        public static class CommandName
+        {
+            public const string Main = nameof(Main);
+            public const string Debug = nameof(Debug);
+        }
     }
 }

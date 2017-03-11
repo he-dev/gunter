@@ -1,6 +1,7 @@
 ﻿using Gunter.Alerting.Email.Renderers;
 using Gunter.Data;
 using Gunter.Services;
+using Newtonsoft.Json;
 using Reusable;
 using Reusable.Logging;
 using System;
@@ -21,6 +22,7 @@ namespace Gunter.Alerting.Email
 
         public EmailAlert(ILogger logger) : base(logger) { }
 
+        [JsonRequired]
         public string To { get; set; }
 
         protected override void PublishCore(string message, IEnumerable<ISection> sections, IConstantResolver constants)

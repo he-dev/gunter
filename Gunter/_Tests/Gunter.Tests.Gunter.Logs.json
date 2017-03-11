@@ -12,7 +12,8 @@
       "ConnectionString": "{TEST_LOG}",
       "Commands": {
         "Main": {
-          "Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
+          //"Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
+          "Text": "SELECT * FROM {MainLog}",
           "Parameters": { "@Environment": "{Environment}" }
         },
         "Debug": { "Text": "{DebugCommand}" }
@@ -21,27 +22,14 @@
   ],
   "Tests": [
     {
-      "Name": "Validate debug logging is off",
       "Enabled": true,
       "Severity": "Warning",
-      "Message": "Debug logging is on.",
+      "Message": "Trace logging is on.",
       "DataSources": [ 1 ],
-      "Filter": "[LogLevel] IN ('debug')",
+      "Filter": "[LogLevel] IN ('error', 'fatal')",
       "Expression": "Count([LogLevel]) = 0",
       "Assert": true,
       "CanContinue": true,
-      "Alerts": [ 1 ]
-    },
-    {
-      "Name": "Validate there are no errors",
-      "Enabled": true,
-      "Severity": "Critical",
-      "Message": "Errors found.",
-      "DataSources": [ 1 ],
-      "Filter": "[LogLevel] IN ('error', 'fatal')",
-      "Expression": "Count([LogLevel]) > 0",
-      "Assert": false,
-      "CanContinue": false,
       "Alerts": [ 1 ]
     }
   ],
@@ -52,13 +40,10 @@
       "Title": "{DataSourceName} - {Severity}",
       "To": "{To}",
       "Sections": [
-        //{ "$type": "Gunter.Data.Sections.Message, Gunter" },
         { "$type": "Gunter.Data.Sections.DataSourceSummary, Gunter" },
-        //{ "$type": "Gunter.Data.Sections.TestSummary, Gunter" },
         {
-          "$type": "Gunter.Data.Sections.ExceptionSummary, Gunter",
-          "Columns": [ "Timestamp", "LogLevel", "Logger", "Message", "Exception" ],
-          "GroupBy": [ "Logger", "Message", "Exception" ]
+          "$type": "Gunter.Data.Sections.Aggregation, Gunter",
+          "Columns": [ "Timestamp", "LogLevel | key", "Logger | key", "ElapsedSeconds | sum", "Message", "Exception | key firstline" ]
         }
       ]
     }

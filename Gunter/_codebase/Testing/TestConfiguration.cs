@@ -2,6 +2,9 @@
 using Gunter.Data;
 using Gunter.Alerting;
 using Newtonsoft.Json;
+using System.Linq;
+using System;
+using System.ComponentModel;
 
 namespace Gunter.Testing
 {
@@ -31,29 +34,39 @@ namespace Gunter.Testing
         public List<IAlert> Alerts { get; set; }
 
         public Dictionary<string, string[]> Profiles { get; set; }
+
+        public IEnumerable<TestProperties> GetEnabledTests() => Tests.Where(x => x.Enabled);
+
+        public IEnumerable<IDataSource> GetDataSources(IEnumerable<int> ids) => DataSources.Where(x => (ids ?? throw new ArgumentNullException(nameof(ids))).Contains(x.Id));
+
+        public IEnumerable<IAlert> GetAlerts(IEnumerable<int> ids) => Alerts.Where(x => (ids ?? throw new ArgumentNullException(nameof(ids))).Contains(x.Id));
     }
 
     public class TestProperties
     {
         public string Name { get; set; }
 
+        [DefaultValue(true)]
         public bool Enabled { get; set; }
 
+        [DefaultValue(Severity.Warning)]
         public Severity Severity { get; set; }
 
         [JsonRequired]
         public string Message { get; set; }
 
         [JsonRequired]
-        public int[] DataSources { get; set; }
+        public List<int> DataSources { get; set; } = new List<int>();
 
         public string Filter { get; set; }
 
+        [DefaultValue(true)]
         public bool Assert { get; set; }
 
         [JsonRequired]
         public string Expression { get; set; }
 
+        [DefaultValue(true)]
         public bool CanContinue { get; set; }
 
         public List<int> Alerts { get; set; } = new List<int>();
@@ -63,23 +76,5 @@ namespace Gunter.Testing
     {
         Critical,
         Warning
-    }
-
-    //public enum AssertLogic
-    //{
-    //    IsTrue,
-    //    IsFalse
-    //}
-
-    //public enum OnFailure
-    //{
-    //    Break,
-    //    Continue
-    //}
-
-    //public enum AlertWhen
-    //{
-    //    Failed,
-    //    Passed
-    //}
+    }    
 }
