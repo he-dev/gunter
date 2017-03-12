@@ -12,11 +12,11 @@ namespace Gunter.Data.Sections
 {
     public class DataSourceInfo : SectionFactory
     {
-        public DataSourceInfo(ILogger logger) : base(logger) { }
+        public DataSourceInfo(ILogger logger) : base(logger) { Title = "Data-source"; }
 
         protected override ISection CreateCore(TestContext context, IConstantResolver constants)
         {
-            var data = new DataTable("Data source")
+            var data = new DataTable(Title)
                 .AddColumn("Property", c => c.DataType = typeof(string))
                 .AddColumn("Value", c => c.DataType = typeof(string));
 
@@ -32,7 +32,7 @@ namespace Gunter.Data.Sections
 
             return new Section
             {
-                Heading = "Data source",
+                Title = Title,
                 Data = data,
                 Orientation = Orientation.Horizontal
             };

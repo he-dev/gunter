@@ -1,5 +1,6 @@
 ﻿using Gunter.Services;
 using Gunter.Testing;
+using Newtonsoft.Json;
 using Reusable.Logging;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ namespace Gunter.Data.Sections
 {
     public interface ISectionFactory
     {
+        string Title { get; set; }
+
         ISection Create(TestContext context, IConstantResolver constants);
     }
 
@@ -17,6 +20,9 @@ namespace Gunter.Data.Sections
         protected SectionFactory(ILogger logger) => Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         protected ILogger Logger { get; }
+
+        [JsonRequired]
+        public string Title { get; set; }
 
         public ISection Create(TestContext context, IConstantResolver constants)
         {

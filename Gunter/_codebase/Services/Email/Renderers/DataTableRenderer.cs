@@ -38,11 +38,11 @@ namespace Gunter.Services.Email.Renderers
         { }
 
         public string Render(ISection section) => new StringBuilder()
-            .AppendLine(RenderHeading(section.Heading))
+            .AppendLine(RenderHeading(section.Title))
             .AppendLine(RenderDetailTable(section.Data, section.Orientation))
             .ToString();
 
-        private string RenderHeading(string text) => Html.h1(text).style(StyleName.h2).ToString();
+        private string RenderHeading(string text) => Html.h1(HtmlEncode(text)).style(StyleName.h2).ToString();
 
         private string RenderDetailTable(DataTable data, Orientation orientation)
         {
@@ -52,7 +52,7 @@ namespace Gunter.Services.Email.Renderers
             {
                 table.thead
                 (
-                    Html.tr(data.Columns.Cast<DataColumn>().Select(x => Html.td(x.ColumnName).style(StyleName.thead_td)))
+                    Html.tr(data.Columns.Cast<DataColumn>().Select(x => Html.td(HtmlEncode(x.ColumnName)).style(StyleName.thead_td)))
                 ).style(StyleName.thead);
             }
 
@@ -61,7 +61,7 @@ namespace Gunter.Services.Email.Renderers
                 data.AsEnumerable().Select(row =>
                     Html.tr(
                         data.Columns.Cast<DataColumn>().Select((c, i) =>
-                            Html.td(row.Field<string>(c.ColumnName)).style(
+                            Html.td(HtmlEncode(row.Field<string>(c.ColumnName))).style(
                             orientation == Orientation.Vertical && i == 0
                                 ? StyleName.tbody_td_property
                                 : StyleName.tbody_td_value

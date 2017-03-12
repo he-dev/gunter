@@ -9,7 +9,7 @@ namespace Gunter.Data
 {
     public interface ISection : IDisposable
     {
-        string Heading { get; }
+        string Title { get; }
 
         DataTable Data { get; }
 
@@ -18,7 +18,7 @@ namespace Gunter.Data
 
     public class Section : ISection
     {
-        public string Heading { get; set; }
+        public string Title { get; set; }
 
         public DataTable Data { get; set; }
 

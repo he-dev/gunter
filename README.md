@@ -9,7 +9,7 @@ Glitch Hunter
     "Top": "1000",
     "To": "example@email.com"
   },
-  // Allows to define data-sources.
+  // Data-sources used by the tests.
   "DataSources": [
     {
       "$type": "Gunter.Data.SqlClient.TableOrViewDataSource, Gunter", // {no}
@@ -39,17 +39,20 @@ Glitch Hunter
       "Profiles" : [] // [string[]] - optional - allows to define profiles and use this test only in specific scenarios.
     }   
   ],
+  // Alerts used by the tests.
   "Alerts": [
     {
-      "$type": "Gunter.Alerting.Email.EmailAlert, Gunter", // [string] - required - type specification of the alert. {no}
+      "$type": "Gunter.Alerts.EmailAlert, Gunter", // [string] - required - type specification of the alert. {no}
       "Id": 1, // [int[]] - The id of the alert.
       "Title": "{DataSourceName} - {Severity}", // [string] - requried {yes}
       "To": "{To}", // [string] - required, comma or semicolon separated {yes}
       // Specifies which sections an alert can contain.
       "Sections": [
         { "$type": "Gunter.Data.Sections.DataSourceInfo, Gunter" }, // [string] - required - type specification of the section. {no}        
+        { "$type": "Gunter.Data.Sections.TestInfo, Gunter" }, // [string] - required - type specification of the section. {no}        
         {
           "$type": "Gunter.Data.Sections.DataAggregate, Gunter", // [string] - required
+          "Title": "Exceptions",
           // [string[]] - required - Columns that the aggregate summary should contain.
           // Columns can be "decorated" with options: key, firstline, min, max, count, sum, avg
           // key - used to group the results.

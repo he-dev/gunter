@@ -2,6 +2,7 @@
 using Reusable.Markup.Extensions;
 using Reusable.Markup.Renderers;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Gunter.Services.Email
 {
@@ -19,6 +20,6 @@ namespace Gunter.Services.Email
 
         protected dynamic Html { get; }
 
-        protected static string HtmlEncode(string query) => System.Web.HttpUtility.HtmlEncode(query);
+        protected static string HtmlEncode(object value) => System.Web.HttpUtility.HtmlEncode(string.Format(CultureInfo.InvariantCulture, "{0}", value));
     }
 }

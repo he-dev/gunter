@@ -60,7 +60,7 @@ namespace Gunter.Data.Sections
 
             return new Section
             {
-                Heading = nameof(DataAggregate),
+                Title = Title,
                 Data = data,
                 Orientation = Orientation.Horizontal
             };

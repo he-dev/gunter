@@ -27,7 +27,7 @@ namespace Gunter.Services.Email.Renderers
 
         public string Render(string message) => new StringBuilder()
             .AppendLine(Html.h1("Glitch alert").style(StyleName.h1).ToString())
-            .AppendLine(Html.p(message).style(StyleName.p).ToString())
+            .AppendLine(Html.p(HtmlEncode(message)).style(StyleName.p).ToString())
             .AppendLine(Html.hr().style(StyleName.hr).ToString())
             .ToString();
     }
