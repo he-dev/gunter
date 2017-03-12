@@ -4,7 +4,7 @@ using System.Data;
 using System.Globalization;
 using System.Text;
 
-namespace Gunter.Alerting.Email.Renderers
+namespace Gunter.Services.Email.Renderers
 {
     internal class MessageRenderer : EmailSectionRenderer
     {

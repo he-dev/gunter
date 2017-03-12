@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
-using System.Dynamic;
 using System.Linq;
 
 namespace Gunter.Data.Sections
 {
-    public class Aggregation : SectionFactory
+    public class DataAggregate : SectionFactory
     {
         private delegate double AggregateCallback(IEnumerable<DataRow> aggregate, string columnName);
 
@@ -24,7 +23,7 @@ namespace Gunter.Data.Sections
             [Column.Option.Avg] = (rows, column) => rows.Average(row => row.Field<double>(column)),
         };
 
-        public Aggregation(ILogger logger) : base(logger) { }
+        public DataAggregate(ILogger logger) : base(logger) { }
 
         [JsonRequired]
         public List<string> Columns { get; set; }
@@ -44,10 +43,7 @@ namespace Gunter.Data.Sections
                     {
                         // Get either the field's value or its first line.
                         var value = x.Field<string>(column.Name);
-                        return
-                            column.Options.Contains("firstline", StringComparer.OrdinalIgnoreCase)
-                                ? GetFirstLine(value)
-                                : value;
+                        return column.Options.Contains(Column.Option.FirstLine) ? GetFirstLine(value) : value;
                     },
                     StringComparer.OrdinalIgnoreCase
                 ),
@@ -55,38 +51,41 @@ namespace Gunter.Data.Sections
             ).ToList();
 
             // Creates a data-table with the specified columns.
-            var data = new DataTable("Aggregation");
-            columns.ForEach(x => data.AddColumn(x.Name, c => c.DataType = typeof(string)));            
+            var data = new DataTable(nameof(DataAggregate));
+            foreach (var column in columns) data.AddColumn(column.Name, c => c.DataType = typeof(string));
 
-            // Aggregate the groups.
-            foreach (var g in groups)
-            {
-                var newRow = data.NewRow();
-
-                foreach (var column in columns)
-                {
-                    // Try to get an aggregate function.
-                    var aggregate = Aggregates.FirstOrDefault(x => column.Options.Contains(x.Key));
-                    newRow[column.Name] =
-                        aggregate.Key == null
-                            // If there is no aggregate function then either get the key value for this column or the first row from the group.
-                            ? g.Key.TryGetValue(column.Name, out string value) ? value : g.First().Field<object>(column.Name)
-                            // Calculate the aggregate.
-                            : aggregate.Value(g, column.Name);
-                }               
-
-                data.Rows.Add(newRow);
-            }
+            // Create aggregated rows and add them to the final data-table.
+            var rows = groups.Select(CreateRow);
+            foreach (var row in rows) data.Rows.Add(row);
 
             return new Section
             {
-                Heading = "Exceptions",
+                Heading = nameof(DataAggregate),
                 Data = data,
                 Orientation = Orientation.Horizontal
             };
+
+            DataRow CreateRow(IGrouping<IDictionary<string, string>, DataRow> group)
+            {
+                return SetValues(data.NewRow());
+
+                DataRow SetValues(DataRow row)
+                {
+                    foreach (var column in columns)
+                    {
+                        // Try to get an aggregate function.
+                        var aggregate = Aggregates.FirstOrDefault(x => column.Options.Contains(x.Key));
+                        row[column.Name] =
+                            aggregate.Key == null
+                                // If there is no aggregate function then either get the key value for this column or the first row from the group.
+                                ? group.Key.TryGetValue(column.Name, out string value) ? value : group.First().Field<object>(column.Name)
+                                // Calculate the aggregate.
+                                : aggregate.Value(group, column.Name);
+                    }
+                    return row;
+                }
+            }
         }
-
-
 
         private static string GetFirstLine(string value)
         {
@@ -127,6 +126,8 @@ namespace Gunter.Data.Sections
                 public static readonly string Count = nameof(Count);
                 public static readonly string Sum = nameof(Sum);
                 public static readonly string Avg = nameof(Avg);
+                public static readonly string First = nameof(First);
+                public static readonly string Last = nameof(Last);
             }
         }
     }

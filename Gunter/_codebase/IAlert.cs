@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
-namespace Gunter.Alerting
+namespace Gunter
 {
     public interface IAlert
     {

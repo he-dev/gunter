@@ -30,7 +30,8 @@
       "Expression": "Count([LogLevel]) = 0",
       "Assert": true,
       "CanContinue": true,
-      "Alerts": [ 1 ]
+      "Alerts": [ 1 ],
+      "Profiles":  [ "debug" ]
     }
   ],
   "Alerts": [
@@ -40,16 +41,12 @@
       "Title": "{DataSourceName} - {Severity}",
       "To": "{To}",
       "Sections": [
-        { "$type": "Gunter.Data.Sections.DataSourceSummary, Gunter" },
+        { "$type": "Gunter.Data.Sections.DataSourceInfo, Gunter" },
         {
-          "$type": "Gunter.Data.Sections.Aggregation, Gunter",
+          "$type": "Gunter.Data.Sections.DataAggregate, Gunter",
           "Columns": [ "Timestamp", "LogLevel | key", "Logger | key", "ElapsedSeconds | sum", "Message", "Exception | key firstline" ]
         }
       ]
     }
-  ],
-  "Profiles": {
-    "normal": [],
-    "debug": [ "CheckDebugLevelEnabled" ]
-  }
+  ]  
 }

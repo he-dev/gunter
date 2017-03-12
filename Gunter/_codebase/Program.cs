@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Autofac;
 using Gunter.Data.Configurations;
-using Gunter.Alerting;
-using Gunter.Alerting.Email;
+using Gunter.Alerts;
+using Gunter.Alerts.Email;
 using Gunter.Testing;
 using Newtonsoft.Json;
 using SmartConfig.DataStores.AppConfig;
@@ -116,14 +116,14 @@ namespace Gunter
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
 
             containerBuilder
-                .RegisterType<DataSourceSummary>()
+                .RegisterType<DataSourceInfo>()
                 //.As<ISectionFactory>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(DataSourceSummary))));
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(DataSourceInfo))));
 
             containerBuilder
-                .RegisterType<Aggregation>()
+                .RegisterType<DataAggregate>()
                 //.As<ISectionFactory>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Aggregation))));
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(DataAggregate))));
 
             return containerBuilder.Build();
         }

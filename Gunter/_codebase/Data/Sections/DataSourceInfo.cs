@@ -10,9 +10,9 @@ using System.Linq;
 
 namespace Gunter.Data.Sections
 {
-    public class DataSourceSummary : SectionFactory
+    public class DataSourceInfo : SectionFactory
     {
-        public DataSourceSummary(ILogger logger) : base(logger) { }
+        public DataSourceInfo(ILogger logger) : base(logger) { }
 
         protected override ISection CreateCore(TestContext context, IConstantResolver constants)
         {

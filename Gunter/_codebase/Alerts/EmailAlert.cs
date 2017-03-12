@@ -1,8 +1,8 @@
-﻿using Gunter.Alerting.Email.Renderers;
+﻿using Gunter.Services.Email.Renderers;
 using Gunter.Data;
 using Gunter.Services;
+using Gunter.Services.Email;
 using Newtonsoft.Json;
-using Reusable;
 using Reusable.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Gunter.Alerting.Email
+namespace Gunter.Alerts.Email
 {
     public class EmailAlert : Alert
     {
@@ -32,10 +32,10 @@ namespace Gunter.Alerting.Email
             body.AddRange(sections.Select(x => _sectionRenderer.Render(x)));
             body.Add(_footerRenderer.Render("Gunter", DateTime.UtcNow));
 
-            var email = new ErrorEmail
+            var email = new AlertEmail
             {
-                Subject = new EmailAlertSubject(constants.Resolve(Title)),
-                Body = new EmailAlertBody
+                Subject = new AlertEmailSubject(constants.Resolve(Title)),
+                Body = new AlertEmailBody
                 {
                     Sections = body
                 },
@@ -43,10 +43,5 @@ namespace Gunter.Alerting.Email
             };
             email.Send();
         }
-    }
-
-    internal class ErrorEmail : Email<EmailAlertSubject, EmailAlertBody>
-    {
-
     }
 }

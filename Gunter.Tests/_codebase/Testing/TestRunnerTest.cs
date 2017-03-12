@@ -8,7 +8,7 @@ using Gunter.Data;
 using Gunter.Services;
 using System;
 using System.Linq;
-using Gunter.Alerting;
+using Gunter.Alerts;
 
 namespace Gunter.Tests
 {
@@ -40,8 +40,8 @@ namespace Gunter.Tests
                     Id = 1,
                     Sections =
                     {
-                        new Gunter.Data.Sections.DataSourceSummary(new NullLogger()),
-                        new Gunter.Data.Sections.Aggregation(new NullLogger())
+                        new Gunter.Data.Sections.DataSourceInfo(new NullLogger()),
+                        new Gunter.Data.Sections.DataAggregate(new NullLogger())
                         {
 
                         },

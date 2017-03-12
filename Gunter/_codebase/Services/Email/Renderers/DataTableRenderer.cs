@@ -10,7 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Gunter.Alerting.Email.Renderers
+namespace Gunter.Services.Email.Renderers
 {
     internal class SectionRenderer : EmailSectionRenderer
     {
@@ -58,10 +58,10 @@ namespace Gunter.Alerting.Email.Renderers
 
             table.tbody
             (
-                data.AsEnumerable().Select(r =>
+                data.AsEnumerable().Select(row =>
                     Html.tr(
                         data.Columns.Cast<DataColumn>().Select((c, i) =>
-                            Html.td(r[c.ColumnName]).style(
+                            Html.td(row.Field<string>(c.ColumnName)).style(
                             orientation == Orientation.Vertical && i == 0
                                 ? StyleName.tbody_td_property
                                 : StyleName.tbody_td_value

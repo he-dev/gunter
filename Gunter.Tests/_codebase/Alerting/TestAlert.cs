@@ -1,4 +1,4 @@
-﻿using Gunter.Alerting;
+﻿using Gunter.Alerts;
 using Gunter.Data;
 using Gunter.Data.Sections;
 using Gunter.Services;

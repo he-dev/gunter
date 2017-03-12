@@ -3,7 +3,7 @@ using Reusable.Markup.Extensions;
 using Reusable.Markup.Renderers;
 using System.Collections.Generic;
 
-namespace Gunter.Alerting.Email
+namespace Gunter.Services.Email
 {
     internal abstract class EmailSectionRenderer
     {
@@ -19,6 +19,6 @@ namespace Gunter.Alerting.Email
 
         protected dynamic Html { get; }
 
-        private static string HtmlEncode(string query) => System.Web.HttpUtility.HtmlEncode(query);
+        protected static string HtmlEncode(string query) => System.Web.HttpUtility.HtmlEncode(query);
     }
 }

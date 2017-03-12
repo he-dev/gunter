@@ -4,18 +4,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Gunter.Alerting.Email
+namespace Gunter.Services.Email
 {
-    internal class EmailAlertBody : EmailBody
+    internal class AlertEmailBody : EmailBody
     {
-        public EmailAlertBody()
+        public AlertEmailBody()
         {
             IsHtml = true;
             Encoding = Encoding.UTF8;
-            Sections = new List<string>();
         }
 
-        public List<string> Sections { get; set; }        
+        public List<string> Sections { get; set; } = new List<string>();
 
         public override string ToString() => string.Join(Environment.NewLine, Sections);
     }

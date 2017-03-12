@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Gunter.Data;
-using Gunter.Alerting;
+using Gunter.Alerts;
 using Newtonsoft.Json;
 using System.Linq;
 using System;
@@ -70,6 +70,8 @@ namespace Gunter.Testing
         public bool CanContinue { get; set; }
 
         public List<int> Alerts { get; set; } = new List<int>();
+
+        public List<string> Profiles { get; set; } = new List<string>();
     }
 
     public enum Severity

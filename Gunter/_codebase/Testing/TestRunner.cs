@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Gunter.Data;
-using Gunter.Alerting;
+using Gunter.Alerts;
 using Reusable.Logging;
 using Gunter.Services;
 
