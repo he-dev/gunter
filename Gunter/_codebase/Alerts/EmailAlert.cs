@@ -44,4 +44,5 @@ namespace Gunter.Alerts.Email
             email.Send();
         }
     }
+
 }

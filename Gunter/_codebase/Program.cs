@@ -156,6 +156,7 @@ namespace Gunter
                             DefaultValueHandling = DefaultValueHandling.Populate,
                             TypeNameHandling = TypeNameHandling.Auto
                         });
+                        test.FileName = fileName;
                         logEntry.Message($"Read '{fileName}'.");
                         return test;
                     }

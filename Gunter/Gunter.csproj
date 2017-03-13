@@ -105,14 +105,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="_codebase\Extensions\StringExtensions.cs" />
     <Compile Include="_codebase\Services\Email\AlertEmail.cs" />
     <Compile Include="_codebase\Services\Email\EmailSectionRenderer.cs" />
     <Compile Include="_codebase\Services\Email\Renderers\FooterRenderer.cs" />
     <Compile Include="_codebase\Services\Email\Renderers\DataTableRenderer.cs" />
     <Compile Include="_codebase\Services\Email\Renderers\MessageRenderer.cs" />
     <Compile Include="_codebase\Data\ISection.cs" />
-    <Compile Include="_codebase\Data\Locals.cs" />
-    <Compile Include="_codebase\Data\LogProperties.cs" />
     <Compile Include="_codebase\Services\ConstantProvider.cs" />
     <Compile Include="_codebase\Data\Globals.cs" />
     <Compile Include="_codebase\Data\Sections\DataSourceInfo.cs" />
