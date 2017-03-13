@@ -1,7 +1,7 @@
 # Gunter
 Glitch Hunter
 
-```json
+```js
 {
   // Allows to define local constants and override globals.
   "Locals": {
