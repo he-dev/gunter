@@ -22,6 +22,8 @@ namespace Gunter.Data
 
         public DataTable Data { get; set; }
 
+        public DataTable Footer { get; set; }
+
         public Orientation Orientation { get; set; }
 
         public void Dispose() => Data?.Dispose();

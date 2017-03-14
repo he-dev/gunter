@@ -28,12 +28,12 @@ namespace Gunter.Services.Email.Renderers
 
         public SectionRenderer() : base(new Dictionary<string, string>
         {
-            [StyleName.h2] = "font-family: Sans-Serif; color: #2e72cc;",
-            [StyleName.table] = "border: 1px solid #742846; border-collapse: collapse; font-family: Segoe UI, Consolas, monospace, trebuchet ms, sans-serif;",
-            [StyleName.thead] = "background-color: #87CEFA; color: #303030;",
-            [StyleName.thead_td] = "border: 1px solid #808080; padding: 5px;",
-            [StyleName.tbody_td_property] = "border: 1px solid #808080; padding: 5px; background-color: #b6e1fc;",
-            [StyleName.tbody_td_value] = "border: 1px solid #808080; padding: 5px;"
+            [StyleName.h2] = "font-family: Sans-Serif; color: #247BA0; font-weight: normal;",
+            [StyleName.table] = "border: 1px solid #742846; border-collapse: collapse; font-family: Consolas, monospace, trebuchet ms, sans-serif;",
+            [StyleName.thead] = "background-color: #FFE066; color: #303030;",
+            [StyleName.thead_td] = "border: 1px solid #999999; padding: 5px;",
+            [StyleName.tbody_td_property] = "border: 1px solid #999999; padding: 5px; background-color: #b6e1fc;",
+            [StyleName.tbody_td_value] = "border: 1px solid #999999; padding: 5px;"
         })
         { }
 
@@ -42,7 +42,7 @@ namespace Gunter.Services.Email.Renderers
             .AppendLine(RenderDetailTable(section.Data, section.Orientation))
             .ToString();
 
-        private string RenderHeading(string text) => Html.h1(HtmlEncode(text)).style(StyleName.h2).ToString();
+        private string RenderHeading(string text) => Html.h2(HtmlEncode(text)).style(StyleName.h2).ToString();
 
         private string RenderDetailTable(DataTable data, Orientation orientation)
         {

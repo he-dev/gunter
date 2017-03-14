@@ -1,5 +1,6 @@
 # Gunter
-Glitch Hunter
+
+Is the ultimate Glitch Hunter.
 
 ```js
 {
@@ -52,7 +53,7 @@ Glitch Hunter
         { "$type": "Gunter.Data.Sections.TestInfo, Gunter" }, // [string] - required - type specification of the section. {no}        
         {
           "$type": "Gunter.Data.Sections.DataAggregate, Gunter", // [string] - required
-          "Title": "Exceptions",
+          "Title": "Exceptions", // {yes}
           // [string[]] - required - Columns that the aggregate summary should contain.
           // Columns can be "decorated" with options: key, firstline, min, max, count, sum, avg
           // key - used to group the results.

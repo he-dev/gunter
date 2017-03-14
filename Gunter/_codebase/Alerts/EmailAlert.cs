@@ -10,7 +10,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Gunter.Alerts.Email
+namespace Gunter.Alerts
 {
     public class EmailAlert : Alert
     {

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace Gunter.Services.Email.Renderers
 {
@@ -11,12 +12,14 @@ namespace Gunter.Services.Email.Renderers
         {
             public const string Author = nameof(Author);
             public const string Paragraph = nameof(Paragraph);
+            public const string hr = nameof(hr);
         }
 
         public FooterRenderer() : base(new Dictionary<string, string>
         {
-            [StyleName.Author] = "color: #0066cc;",
-            [StyleName.Paragraph] = "font-family: sans-serif; font-size: 12px; color: #A0A0A0;"
+            [StyleName.Author] = "color: #247BA0;",
+            [StyleName.Paragraph] = "font-family: sans-serif; font-size: 12px; color: #A0A0A0;",
+            [StyleName.hr] = "border: 0; border-bottom: 1px solid #ccc; background: #CCC"
         })
         { }
 
@@ -31,8 +34,10 @@ namespace Gunter.Services.Email.Renderers
                 })
             ).style(StyleName.Paragraph);
 
-            var result = p.ToString();
-            return result;
+            return new StringBuilder()
+                .AppendLine(Html.hr().style(StyleName.hr).ToString())
+                .AppendLine((string)p.ToString())
+                .ToString();
         }
     }
 }

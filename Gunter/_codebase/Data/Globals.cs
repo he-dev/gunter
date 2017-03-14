@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Gunter.Services;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,27 +12,47 @@ namespace Gunter.Data
     {
         public static class Columns
         {
-            public static string PrimaryKey = $"{nameof(Columns)}.{nameof(PrimaryKey)}";
-            public static string Timestamp = $"{nameof(Columns)}.{nameof(Timestamp)}";
-            public static string Exception = $"{nameof(Columns)}.{nameof(Exception)}";
-            public static string Message = $"{nameof(Columns)}.{nameof(Message)}";
+            //public static readonly string PrimaryKey = $"{nameof(Columns)}.{nameof(PrimaryKey)}";
+            public static readonly string Timestamp = $"{nameof(Columns)}.{nameof(Timestamp)}";
+            //public static readonly string Exception = $"{nameof(Columns)}.{nameof(Exception)}";
+            //public static readonly string Message = $"{nameof(Columns)}.{nameof(Message)}";
         }
 
         internal class Test
         {
-            public static string FileName = $"{nameof(Test)}.{nameof(FileName)}";
-            public static string Severity = $"{nameof(Test)}.{nameof(Severity)}";
+            public static readonly string FileName = $"{nameof(Test)}.{nameof(FileName)}";
+            public static readonly string Severity = $"{nameof(Test)}.{nameof(Severity)}";
         }
 
-        public static ImmutableList<string> ReservedNames = new[]
+        public static readonly string Environment = nameof(Environment);
+
+        public static readonly ImmutableList<string> ReservedNames = new[]
         {
-            Columns.PrimaryKey,
-            Columns.Timestamp,
-            Columns.Exception,
-            Columns.Exception,
             Test.FileName,
-            Test.Severity
+            Test.Severity,
+            Environment
         }
         .ToImmutableList();
+
+        public static readonly ImmutableDictionary<string, object> Default = new Dictionary<string, object>
+        {
+            //[Columns.PrimaryKey] = "Id",
+            [Columns.Timestamp] = "Timestamp",
+            //[Columns.Exception] = "Exception"
+        }
+        .ToImmutableDictionary();
+
+        public static void ValidateNames(IConstantResolver globals)
+        {
+            var duplicates = ReservedNames.Where(reservedName => globals.ContainsKey(reservedName)).ToList();
+            if (duplicates.Any()) throw new Exception();
+        }
+    }
+
+    internal class ReservedNameException : Exception
+    {
+        public ReservedNameException(IEnumerable<string> names)
+            : base(message: $"Reserved names found: [{string.Join(", ", names.Select(name => $"'{name}'"))}]")
+        { }
     }
 }

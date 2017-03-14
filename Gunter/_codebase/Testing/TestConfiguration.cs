@@ -16,7 +16,7 @@ namespace Gunter.Testing
             DataSources = new List<IDataSource>();
             Tests = new List<TestProperties>();
             Alerts = new List<IAlert>();
-            Profiles = new Dictionary<string, string[]>();
+            Profiles = new List<string>();
         }
 
         [JsonIgnore]
@@ -33,7 +33,9 @@ namespace Gunter.Testing
         [JsonRequired]
         public List<IAlert> Alerts { get; set; }
 
-        public Dictionary<string, string[]> Profiles { get; set; }
+        public List<string> Profiles { get; set; }
+
+        public bool ContainsProfile(string name) => string.IsNullOrEmpty(name) || Profiles?.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase)) == true;
 
         public IEnumerable<TestProperties> GetEnabledTests() => Tests.Where(x => x.Enabled);
 

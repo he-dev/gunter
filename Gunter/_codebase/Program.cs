@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using Autofac;
 using Gunter.Data.Configurations;
 using Gunter.Alerts;
-using Gunter.Alerts.Email;
 using Gunter.Testing;
 using Newtonsoft.Json;
 using SmartConfig.DataStores.AppConfig;
@@ -41,7 +40,7 @@ namespace Gunter
                 using (var scope = container.BeginLifetimeScope())
                 {
                     LogEntry.New().Info().Message($"*** {InstanceName} v1.0.0 ***").Log(_logger);
-                    scope.Resolve<TestRunner>().RunTests(tests, globals);
+                    scope.Resolve<TestRunner>().RunTests(tests, args.FirstOrDefault(), globals);
                 }
 
                 return 0;
@@ -130,13 +129,17 @@ namespace Gunter
 
         private static IConstantResolver InitializeGlobals(string fileName)
         {
-            return
-                File.Exists(fileName)
-                    ? new ConstantResolver(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)))
-                    {
-                        { "Environment", AppSettingsConfig.Environment }
-                    }
-                    : ConstantResolver.Empty;
+            var globals = new ConstantResolver(Globals.Default) as IConstantResolver;
+            Globals.ValidateNames(globals);
+
+            globals = globals.Add(Globals.Environment, AppSettingsConfig.Environment);
+
+            if (File.Exists(fileName))
+            {
+                globals = globals.UnionWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)));
+            }
+
+            return globals;
         }
 
         private static List<TestConfiguration> InitializeTests(IEnumerable<string> fileNames, IContainer container)

@@ -31,20 +31,21 @@
       "Assert": true,
       "CanContinue": true,
       "Alerts": [ 1 ],
-      "Profiles":  [ "debug" ]
+      "Profiles":  []
     }
   ],
   "Alerts": [
     {
-      "$type": "Gunter.Alerting.Email.EmailAlert, Gunter",
+      "$type": "Gunter.Alerts.EmailAlert, Gunter",
       "Id": 1,
-      "Title": "{DataSourceName} - {Severity}",
-      "To": "{To}",
+      "Title": "{MainLog} - {Test.Severity}",
+      "To": "stringbuilder.append@gmail.com",
       "Sections": [
-        { "$type": "Gunter.Data.Sections.DataSourceInfo, Gunter" },
+        { "$type": "Gunter.Data.Sections.DataSourceInfo, Gunter", "Title":  "Data-source" },
         {
           "$type": "Gunter.Data.Sections.DataAggregate, Gunter",
-          "Columns": [ "Timestamp", "LogLevel | key", "Logger | key", "ElapsedSeconds | sum", "Message", "Exception | key firstline" ]
+          "Columns": [ "Timestamp", "LogLevel | key", "Logger | key", "ElapsedSeconds | sum", "Message", "Exception | key firstline" ],
+          "Title": "Data-source"
         }
       ]
     }

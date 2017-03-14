@@ -19,9 +19,9 @@ namespace Gunter.Testing
             _logger = logger;
         }
 
-        public void RunTests(IList<TestConfiguration> testConfigs, IConstantResolver constants)
+        public void RunTests(IList<TestConfiguration> testConfigs, string profile, IConstantResolver constants)
         {
-            foreach (var testConfig in testConfigs)
+            foreach (var testConfig in testConfigs.Where(t => t.ContainsProfile(profile)))
             {
                 RunTests(testConfig, constants);
             }
