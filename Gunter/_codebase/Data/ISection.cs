@@ -13,6 +13,8 @@ namespace Gunter.Data
 
         DataTable Data { get; }
 
+        DataTable Footer { get; }
+
         Orientation Orientation { get; }
     }
 

@@ -119,7 +119,7 @@
     <Compile Include="_codebase\Services\Email\AlertEmail.cs" />
     <Compile Include="_codebase\Services\Email\EmailSectionRenderer.cs" />
     <Compile Include="_codebase\Services\Email\Renderers\FooterRenderer.cs" />
-    <Compile Include="_codebase\Services\Email\Renderers\DataTableRenderer.cs" />
+    <Compile Include="_codebase\Services\Email\Renderers\SectionRenderer.cs" />
     <Compile Include="_codebase\Services\Email\Renderers\MessageRenderer.cs" />
     <Compile Include="_codebase\Data\ISection.cs" />
     <Compile Include="_codebase\Services\ConstantProvider.cs" />

@@ -58,10 +58,15 @@ namespace Gunter.Data.Sections
             var rows = groups.Select(CreateRow);
             foreach (var row in rows) data.Rows.Add(row);
 
+            var footer = new DataTable(nameof(Section.Footer));
+            foreach (var column in columns) footer.AddColumn(column.Name, c => c.DataType = typeof(string));
+            footer.AddRow(columns.Select(column => string.Join(", ", column.Options)).ToArray());
+
             return new Section
             {
                 Title = Title,
                 Data = data,
+                Footer = footer,
                 Orientation = Orientation.Horizontal
             };
 

@@ -24,6 +24,7 @@ namespace Gunter.Services.Email.Renderers
             public const string thead_td = nameof(thead_td);
             public const string tbody_td_property = nameof(tbody_td_property);
             public const string tbody_td_value = nameof(tbody_td_value);
+            public const string tfoot = nameof(tfoot);
         }
 
         public SectionRenderer() : base(new Dictionary<string, string>
@@ -33,18 +34,19 @@ namespace Gunter.Services.Email.Renderers
             [StyleName.thead] = "background-color: #FFE066; color: #303030;",
             [StyleName.thead_td] = "border: 1px solid #999999; padding: 5px;",
             [StyleName.tbody_td_property] = "border: 1px solid #999999; padding: 5px; background-color: #b6e1fc;",
-            [StyleName.tbody_td_value] = "border: 1px solid #999999; padding: 5px;"
+            [StyleName.tbody_td_value] = "border: 1px solid #999999; padding: 5px;",
+            [StyleName.tfoot] = "font - style: italic; background-color: #FFEB9B; color: #50514F; font-size: 0.75em"
         })
         { }
 
         public string Render(ISection section) => new StringBuilder()
             .AppendLine(RenderHeading(section.Title))
-            .AppendLine(RenderDetailTable(section.Data, section.Orientation))
+            .AppendLine(RenderDetailTable(section.Data, section.Footer, section.Orientation))
             .ToString();
 
         private string RenderHeading(string text) => Html.h2(HtmlEncode(text)).style(StyleName.h2).ToString();
 
-        private string RenderDetailTable(DataTable data, Orientation orientation)
+        private string RenderDetailTable(DataTable data, DataTable footer, Orientation orientation)
         {
             var table = Html.table().style(StyleName.table);
 
@@ -53,7 +55,8 @@ namespace Gunter.Services.Email.Renderers
                 table.thead
                 (
                     Html.tr(data.Columns.Cast<DataColumn>().Select(x => Html.td(HtmlEncode(x.ColumnName)).style(StyleName.thead_td)))
-                ).style(StyleName.thead);
+                )
+                .style(StyleName.thead);
             }
 
             table.tbody
@@ -70,6 +73,21 @@ namespace Gunter.Services.Email.Renderers
                     )
                 )
             );
+
+            if (footer != null)
+            {
+                table.tfoot
+                (
+                    footer.AsEnumerable().Select(row =>
+                        Html.tr(
+                            data.Columns.Cast<DataColumn>().Select((c, i) =>
+                                Html.td(HtmlEncode(row.Field<string>(c.ColumnName))).style(StyleName.tbody_td_value)
+                            )
+                        )
+                    )
+                )
+                .style(StyleName.tfoot);
+            }
 
             return table.ToString();
         }

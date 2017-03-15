@@ -24,13 +24,18 @@ namespace Gunter.Data
             public static readonly string Severity = $"{nameof(Test)}.{nameof(Severity)}";
         }
 
+        internal static class DataSourceInfo
+        {
+            public static readonly string TimeSpanFormat = $"{nameof(DataSourceInfo)}.{nameof(TimeSpanFormat)}";
+        }
+
         public static readonly string Environment = nameof(Environment);
 
         public static readonly ImmutableList<string> ReservedNames = new[]
         {
             Test.FileName,
             Test.Severity,
-            Environment
+            Environment            
         }
         .ToImmutableList();
 
@@ -39,6 +44,9 @@ namespace Gunter.Data
             //[Columns.PrimaryKey] = "Id",
             [Columns.Timestamp] = "Timestamp",
             //[Columns.Exception] = "Exception"
+            
+            // Custom TimeSpan Format Strings https://msdn.microsoft.com/en-us/library/ee372287(v=vs.110).aspx
+            [DataSourceInfo.TimeSpanFormat] = @"dd\.hh\:mm\:ss"
         }
         .ToImmutableDictionary();
 
