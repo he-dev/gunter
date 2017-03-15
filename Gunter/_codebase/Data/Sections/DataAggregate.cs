@@ -101,6 +101,7 @@ namespace Gunter.Data.Sections
                     : value.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
         }
 
+        // Represents an aggregated column and its options.
         private class Column
         {
             private Column(string name, IEnumerable<string> options)

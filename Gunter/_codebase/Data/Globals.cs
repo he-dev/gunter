@@ -41,9 +41,7 @@ namespace Gunter.Data
 
         public static readonly ImmutableDictionary<string, object> Default = new Dictionary<string, object>
         {
-            //[Columns.PrimaryKey] = "Id",
             [Columns.Timestamp] = "Timestamp",
-            //[Columns.Exception] = "Exception"
             
             // Custom TimeSpan Format Strings https://msdn.microsoft.com/en-us/library/ee372287(v=vs.110).aspx
             [DataSourceInfo.TimeSpanFormat] = @"dd\.hh\:mm\:ss"
