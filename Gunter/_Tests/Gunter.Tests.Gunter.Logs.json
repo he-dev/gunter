@@ -39,7 +39,7 @@
       "$type": "Gunter.Alerts.EmailAlert, Gunter",
       "Id": 1,
       "Title": "{MainLog} - {Test.Severity}",
-      "To": "stringbuilder.append@gmail.com",
+      "To": "...",
       "Sections": [
         { "$type": "Gunter.Data.Sections.DataSourceInfo, Gunter", "Title":  "Data-source" },
         {
