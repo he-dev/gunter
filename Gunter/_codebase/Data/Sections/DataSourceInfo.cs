@@ -39,7 +39,7 @@ namespace Gunter.Data.Sections
             {
                 Title = Title,
                 Data = data,
-                Orientation = Orientation.Horizontal
+                Orientation = Orientation.Vertical
             };
         }
     }

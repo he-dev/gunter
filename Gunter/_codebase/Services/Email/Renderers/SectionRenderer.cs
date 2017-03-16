@@ -29,13 +29,13 @@ namespace Gunter.Services.Email.Renderers
 
         public SectionRenderer() : base(new Dictionary<string, string>
         {
-            [StyleName.h2] = "font-family: Sans-Serif; color: #247BA0; font-weight: normal;",
+            [StyleName.h2] = $"font-family: Sans-Serif; color: {Theme.SectionHeadingColor}; font-weight: normal;",
             [StyleName.table] = "border: 1px solid #742846; border-collapse: collapse; font-family: Consolas, monospace, trebuchet ms, sans-serif;",
-            [StyleName.thead] = "background-color: #FFE066; color: #303030;",
+            [StyleName.thead] = $"background-color: {Theme.TableHeaderBackgroundColor}; color: #303030;",
             [StyleName.thead_td] = "border: 1px solid #999999; padding: 5px;",
-            [StyleName.tbody_td_property] = "border: 1px solid #999999; padding: 5px; background-color: #b6e1fc;",
+            [StyleName.tbody_td_property] = $"border: 1px solid #999999; padding: 5px; background-color: {Theme.TableHeaderBackgroundColor};",
             [StyleName.tbody_td_value] = "border: 1px solid #999999; padding: 5px;",
-            [StyleName.tfoot] = "font - style: italic; background-color: #FFEB9B; color: #50514F; font-size: 0.75em"
+            [StyleName.tfoot] = $"font-style: italic; background-color: {Theme.TableFooterBackgroundColor}; color: #50514F; font-size: 0.75em"
         })
         { }
 

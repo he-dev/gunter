@@ -17,8 +17,8 @@ namespace Gunter.Services.Email.Renderers
 
         public MessageRenderer() : base(new Dictionary<string, string>
         {
-            [StyleName.h1] = "font-family: Sans-Serif; color: #50514F; font-weight: normal;",
-            [StyleName.p] = "font-family: Sans-Serif; color: #F25F5C;",
+            [StyleName.h1] = $"font-family: Sans-Serif; color: {Theme.GreetingColor}; font-weight: normal;",
+            [StyleName.p] = $"font-family: Sans-Serif; color: {Theme.MessageColor};",
             [StyleName.hr] = "border: 0; border-bottom: 1px solid #ccc; background: #CCC"
         })
         { }
