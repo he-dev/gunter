@@ -60,7 +60,12 @@ namespace Gunter.Data.Sections
 
             var footer = new DataTable(nameof(Section.Footer));
             foreach (var column in columns) footer.AddColumn(column.Name, c => c.DataType = typeof(string));
-            footer.AddRow(columns.Select(column => string.Join(", ", column.Options)).ToArray());
+            footer.AddRow(columns.Select(column =>
+            {
+                var options = string.Join(", ", column.Options);
+                return (string.IsNullOrEmpty(options) ? Column.Option.First : options).ToLower();
+            })
+            .ToArray());
 
             return new Section
             {

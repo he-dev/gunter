@@ -39,9 +39,9 @@ namespace Gunter.Alerts
                 {
                     Sections = body
                 },
-                To = Regex.Split(constants.Resolve(To), "[,;]").Where(x => !string.IsNullOrEmpty(x)).ToList()
             };
-            email.Send();
+            var to = constants.Resolve(To);
+            email.Send(to);
         }
     }
 

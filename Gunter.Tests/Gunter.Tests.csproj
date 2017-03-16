@@ -58,22 +58,22 @@
       <HintPath>..\packages\NLog.4.4.3\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Core.2.26.1\lib\net452\Reusable.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.Core.2.26.2\lib\net452\Reusable.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Email, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Email.2.26.1\lib\net452\Reusable.Email.dll</HintPath>
+      <HintPath>..\packages\Reusable.Email.2.26.2\lib\net452\Reusable.Email.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.2.26.1\lib\net452\Reusable.Logging.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.2.26.2\lib\net452\Reusable.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.Adapters.NLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.2.26.1\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.2.26.2\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.NLog.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.NLog.Tools.2.26.1\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.NLog.Tools.2.26.2\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Markup.MarkupBuilder, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Markup.MarkupBuilder.2.26.1\lib\net452\Reusable.Markup.MarkupBuilder.dll</HintPath>
+      <HintPath>..\packages\Reusable.Markup.MarkupBuilder.2.26.2\lib\net452\Reusable.Markup.MarkupBuilder.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
