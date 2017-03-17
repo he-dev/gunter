@@ -1,4 +1,6 @@
-﻿using Gunter.Services;
+﻿using Gunter.Data;
+using Gunter.Data.Sections;
+using Gunter.Services;
 using Newtonsoft.Json;
 using Reusable.Data;
 using Reusable.Logging;
@@ -8,7 +10,7 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
 
-namespace Gunter.Data.Sections
+namespace Gunter.Alerts.Sections
 {
     public class DataAggregate : SectionFactory
     {
@@ -51,14 +53,14 @@ namespace Gunter.Data.Sections
             ).ToList();
 
             // Creates a data-table with the specified columns.
-            var data = new DataTable(nameof(DataAggregate));
-            foreach (var column in columns) data.AddColumn(column.Name, c => c.DataType = typeof(string));
+            var body = new DataTable(nameof(DataAggregate));
+            foreach (var column in columns) body.AddColumn(column.Name, c => c.DataType = typeof(string));
 
             // Create aggregated rows and add them to the final data-table.
             var rows = groups.Select(CreateRow);
-            foreach (var row in rows) data.Rows.Add(row);
+            foreach (var row in rows) body.Rows.Add(row);
 
-            var footer = new DataTable(nameof(Section.Footer));
+            var footer = new DataTable(nameof(TableSection.Footer));
             foreach (var column in columns) footer.AddColumn(column.Name, c => c.DataType = typeof(string));
             footer.AddRow(columns.Select(column =>
             {
@@ -67,17 +69,17 @@ namespace Gunter.Data.Sections
             })
             .ToArray());
 
-            return new Section
+            return new TableSection
             {
-                Title = Title,
-                Data = data,
+                Heading = Heading,
+                Body = body,
                 Footer = footer,
                 Orientation = Orientation.Horizontal
             };
 
             DataRow CreateRow(IGrouping<IDictionary<string, string>, DataRow> group)
             {
-                return SetValues(data.NewRow());
+                return SetValues(body.NewRow());
 
                 DataRow SetValues(DataRow row)
                 {

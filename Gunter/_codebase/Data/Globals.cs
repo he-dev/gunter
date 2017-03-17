@@ -22,6 +22,7 @@ namespace Gunter.Data
         {
             public static readonly string FileName = $"{nameof(Test)}.{nameof(FileName)}";
             public static readonly string Severity = $"{nameof(Test)}.{nameof(Severity)}";
+            public static readonly string Message = $"{nameof(Test)}.{nameof(Message)}";
         }
 
         internal static class DataSourceInfo

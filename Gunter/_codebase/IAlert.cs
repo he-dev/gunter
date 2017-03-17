@@ -1,4 +1,5 @@
-﻿using Gunter.Data;
+﻿using Gunter.Alerts;
+using Gunter.Data;
 using Gunter.Data.Sections;
 using Gunter.Services;
 using Newtonsoft.Json;
@@ -6,6 +7,7 @@ using Reusable.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 
 namespace Gunter
 {
@@ -20,7 +22,7 @@ namespace Gunter
         [JsonRequired]
         List<ISectionFactory> Sections { get; }
 
-        void Publish(string message, IEnumerable<ISection> sections, IConstantResolver constants);
+        void Publish(TestContext testContext, IConstantResolver constants);
     }
 
     public abstract class Alert : IAlert
@@ -36,13 +38,14 @@ namespace Gunter
         public string Title { get; set; }
 
         [JsonRequired]
-        public List<ISectionFactory> Sections { get; set; } = new List<ISectionFactory>();
+        public List<ISectionFactory> Sections { get; set; } = new List<ISectionFactory>();        
 
-        public void Publish(string message, IEnumerable<ISection> sections, IConstantResolver constants)
+        public void Publish(TestContext testContext, IConstantResolver constants)
         {
             try
             {
-                PublishCore(message, sections, constants);
+                var sections = Sections.Select(factory => factory.Create(testContext, constants));
+                PublishCore(sections, constants);
             }
             catch (Exception ex)
             {
@@ -50,6 +53,6 @@ namespace Gunter
             }
         }
 
-        protected abstract void PublishCore(string message, IEnumerable<ISection> sections, IConstantResolver constants);
+        protected abstract void PublishCore(IEnumerable<ISection> sections, IConstantResolver constants);
     }
 }

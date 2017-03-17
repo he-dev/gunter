@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Gunter.Data
-{
+{    
     public class TestContext
     {
         public IDataSource DataSource { get; set; }

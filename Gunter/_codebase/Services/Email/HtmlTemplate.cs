@@ -1,4 +1,5 @@
-﻿using Reusable.Markup;
+﻿using Gunter.Data;
+using Reusable.Markup;
 using Reusable.Markup.Extensions;
 using Reusable.Markup.Renderers;
 using System.Collections.Generic;
@@ -6,9 +7,9 @@ using System.Globalization;
 
 namespace Gunter.Services.Email
 {
-    internal abstract class EmailSectionRenderer
+    internal abstract class HtmlTemplate
     {
-        protected EmailSectionRenderer(Dictionary<string, string> styles)
+        protected HtmlTemplate(Dictionary<string, string> styles)
         {
             Html = new MarkupBuilder(new HtmlRenderer());
             (Html as MarkupBuilder)
@@ -30,5 +31,15 @@ namespace Gunter.Services.Email
             public static readonly string TableHeaderBackgroundColor = "#C6DABF";
             public static readonly string TableFooterBackgroundColor = "#D5E4D0";
         }
+    }
+
+    internal interface ISectionTemplate
+    {
+        string Render(ISection section, IConstantResolver constants);
+    }
+
+    internal interface ISectionTemplate<in T> where T : ISection
+    {
+        string Render(T section, IConstantResolver constants);
     }
 }

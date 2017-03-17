@@ -99,7 +99,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="_codebase\Alerting\TestAlert.cs" />
     <Compile Include="_codebase\Data\Sections\DataSourceSummaryTest.cs" />
-    <Compile Include="_codebase\Data\TestDataSource.cs" />
+    <Compile Include="_codebase\Data\MockDataSource.cs" />
     <Compile Include="_codebase\Testing\TestRunnerTest.cs" />
   </ItemGroup>
   <ItemGroup>

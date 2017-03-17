@@ -17,8 +17,8 @@ namespace Gunter.Tests
     {
         private List<IDataSource> _dataSources = new List<IDataSource>
         {
-            new TestDataSource(1),
-            new TestDataSource(2)
+            new MockDataSource(1),
+            new MockDataSource(2)
             {
                 { "test1", "info", 0.0f, "Info message.", null },
                 { "test1", "info", 1.0f, "Info maessage.", null },
@@ -40,8 +40,8 @@ namespace Gunter.Tests
                     Id = 1,
                     Sections =
                     {
-                        new Gunter.Data.Sections.DataSourceInfo(new NullLogger()),
-                        new Gunter.Data.Sections.DataAggregate(new NullLogger())
+                        new Gunter.Alerts.Sections.DataSourceInfo(new NullLogger()),
+                        new Gunter.Alerts.Sections.DataAggregate(new NullLogger())
                         {
 
                         },

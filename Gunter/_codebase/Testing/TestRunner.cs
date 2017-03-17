@@ -31,10 +31,11 @@ namespace Gunter.Testing
         {
             foreach (var test in testConfig.GetEnabledTests())
             {
-                var constantsLocal = constants
+                var locals = constants
                     .UnionWith(testConfig.Locals)
                     .Add(Globals.Test.Severity, test.Severity)
-                    .Add(Globals.Test.FileName, testConfig.FileName);
+                    .Add(Globals.Test.FileName, testConfig.FileName)
+                    .Add(Globals.Test.Message, test.Message);
 
                 var dataSources = testConfig.GetDataSources(test.DataSources).ToList();
                 if (!dataSources.Any())
@@ -44,17 +45,17 @@ namespace Gunter.Testing
                         .Warn()
                         .Message("Data source not found.")
                         .SetValue(nameof(TestProperties.Name), test.Name)
-                        .SetValue(Globals.Test.FileName, constantsLocal.Resolve(Globals.Test.FileName.ToFormatString()))
+                        .SetValue(Globals.Test.FileName, locals.Resolve(Globals.Test.FileName.ToFormatString()))
                         .Log(_logger);
                     continue;
                 }
 
                 foreach (var dataSource in dataSources)
                 {
-                    using (var data = dataSource.GetData(constantsLocal))
-                    using (var logEntry = LogEntry.New().SetValue(nameof(TestProperties.Name), test.Name).SetValue(Globals.Test.FileName, constantsLocal.Resolve(Globals.Test.FileName.ToFormatString())).AsAutoLog(_logger))
+                    using (var data = dataSource.GetData(locals))
+                    using (var logEntry = LogEntry.New().SetValue(nameof(TestProperties.Name), test.Name).SetValue(Globals.Test.FileName, locals.Resolve(Globals.Test.FileName.ToFormatString())).AsAutoLog(_logger))
                     {
-                        switch (Assert(data, test, constantsLocal))
+                        switch (Assert(data, test, locals))
                         {
                             case true:
                                 logEntry.Info().Message("Passed.");
@@ -62,12 +63,14 @@ namespace Gunter.Testing
 
                             case false:
                                 logEntry.Error().Message("Failed.");
-                                Alert(testConfig.GetAlerts(test.Alerts), new TestContext
+
+                                foreach (var alert in testConfig.GetAlerts(test.Alerts)) alert.Publish(new TestContext
                                 {
                                     DataSource = dataSource,
                                     Data = data,
                                     Test = test
-                                }, constantsLocal);
+                                }, locals);
+
                                 if (!test.CanContinue) return;
                                 break;
 
@@ -98,16 +101,6 @@ namespace Gunter.Testing
                     .SetValue(Globals.Test.FileName, constants.Resolve(Globals.Test.FileName.ToFormatString()))
                     .Log(_logger);
                 return null;
-            }
-        }
-
-        private static void Alert(IEnumerable<IAlert> alerts, TestContext context, IConstantResolver constants)
-        {
-            foreach (var alert in alerts)
-            {
-                var sections = alert.Sections.Select(factory => factory.Create(context, constants));
-                alert.Publish(context.Test.Message, sections, constants);
-                //LogEntry.New().Warn().Message($"Send {alertCount} alert(s).").Log(Logger);
             }
         }
     }

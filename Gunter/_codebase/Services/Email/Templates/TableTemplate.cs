@@ -1,4 +1,5 @@
 using Gunter.Data;
+using Gunter.Data.Sections;
 using Gunter.Testing;
 using Reusable.Markup;
 using Reusable.Markup.Extensions;
@@ -10,9 +11,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace Gunter.Services.Email.Renderers
+namespace Gunter.Services.Email.Templates
 {
-    internal class SectionRenderer : EmailSectionRenderer
+    internal class TableTemplate : HtmlTemplate, ISectionTemplate, ISectionTemplate<TableSection>
     {
         private static readonly string DateTimeFormat = CultureInfo.InvariantCulture.DateTimeFormat.SortableDateTimePattern;
 
@@ -27,7 +28,7 @@ namespace Gunter.Services.Email.Renderers
             public const string tfoot = nameof(tfoot);
         }
 
-        public SectionRenderer() : base(new Dictionary<string, string>
+        public TableTemplate() : base(new Dictionary<string, string>
         {
             [StyleName.h2] = $"font-family: Sans-Serif; color: {Theme.SectionHeadingColor}; font-weight: normal;",
             [StyleName.table] = "border: 1px solid #742846; border-collapse: collapse; font-family: Consolas, monospace, trebuchet ms, sans-serif;",
@@ -39,9 +40,11 @@ namespace Gunter.Services.Email.Renderers
         })
         { }
 
-        public string Render(ISection section) => new StringBuilder()
-            .AppendLine(RenderHeading(section.Title))
-            .AppendLine(RenderDetailTable(section.Data, section.Footer, section.Orientation))
+        public string Render(ISection section, IConstantResolver constants) => Render((TableSection)section, constants);
+
+        public string Render(TableSection section, IConstantResolver constants) => new StringBuilder()
+            .AppendLine(string.IsNullOrEmpty(section.Heading) ? string.Empty : RenderHeading(section.Heading))
+            .AppendLine(RenderDetailTable(section.Body, section.Footer, section.Orientation))
             .ToString();
 
         private string RenderHeading(string text) => Html.h2(HtmlEncode(text)).style(StyleName.h2).ToString();

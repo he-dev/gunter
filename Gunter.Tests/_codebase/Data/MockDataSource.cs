@@ -8,12 +8,12 @@ using Gunter.Services;
 
 namespace Gunter.Tests.Data
 {
-    internal class TestDataSource : IDataSource, IEnumerable<DataRow>
+    internal class MockDataSource : IDataSource, IEnumerable<DataRow>
     {
         private readonly DataTable _data;
         private readonly DateTime _timestamp;
 
-        public TestDataSource(int id)
+        public MockDataSource(int id)
         {
             Id = id;
             _data = new DataTable("Log");

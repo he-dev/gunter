@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace Gunter.Services.Email.Renderers
+namespace Gunter.Services.Email.Templates
 {
-    internal class FooterRenderer : EmailSectionRenderer
+    internal class FooterTemplate : HtmlTemplate
     {
         public static class StyleName
         {
@@ -15,7 +15,7 @@ namespace Gunter.Services.Email.Renderers
             public const string hr = nameof(hr);
         }
 
-        public FooterRenderer() : base(new Dictionary<string, string>
+        public FooterTemplate() : base(new Dictionary<string, string>
         {
             [StyleName.Author] = "color: #247BA0;",
             [StyleName.Paragraph] = "font-family: sans-serif; font-size: 12px; color: #A0A0A0;",

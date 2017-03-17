@@ -18,9 +18,14 @@ namespace Gunter.Tests.Alerting
 
         public List<string> Messages { get; set; } = new List<string>();
 
-        public void Publish(string message, IEnumerable<ISection> sections, IConstantResolver constants)
+        public void Publish(IEnumerable<ISection> sections, IConstantResolver constants)
         {
-            Messages.Add(message);
+            //Messages.Add(message);
+        }
+
+        public void Publish(TestContext testContext, IConstantResolver constants)
+        {
+            throw new NotImplementedException();
         }
     }
 }

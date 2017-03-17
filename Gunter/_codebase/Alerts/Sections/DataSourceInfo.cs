@@ -1,4 +1,6 @@
-﻿using Gunter.Data.SqlClient;
+﻿using Gunter.Data;
+using Gunter.Data.Sections;
+using Gunter.Data.SqlClient;
 using Gunter.Extensions;
 using Gunter.Services;
 using Reusable.Data;
@@ -9,16 +11,16 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 
-namespace Gunter.Data.Sections
+namespace Gunter.Alerts.Sections
 {
     public class DataSourceInfo : SectionFactory
     {
-        public DataSourceInfo(ILogger logger) : base(logger) { Title = "Data-source"; }
+        public DataSourceInfo(ILogger logger) : base(logger) { Heading = "Data-source"; }
 
         protected override ISection CreateCore(TestContext context, IConstantResolver constants)
         {
             var data =
-                new DataTable(Title)
+                new DataTable(Heading)
                 .AddColumn("Property", c => c.DataType = typeof(string))
                 .AddColumn("Value", c => c.DataType = typeof(string))
                 .AddRow($"Query ({DataSource.CommandName.Main})", context.DataSource.ToString(DataSource.CommandName.Main, CultureInfo.InvariantCulture).Resolve(constants))
@@ -35,10 +37,10 @@ namespace Gunter.Data.Sections
                 data.AddRow("TimeSpan", timeSpan.ToString(Globals.DataSourceInfo.TimeSpanFormat.ToFormatString().Resolve(constants)));
             }
 
-            return new Section
+            return new TableSection
             {
-                Title = Title,
-                Data = data,
+                Heading = Heading,
+                Body = data,
                 Orientation = Orientation.Vertical
             };
         }

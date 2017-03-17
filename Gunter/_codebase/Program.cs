@@ -15,6 +15,7 @@ using Gunter.Data;
 using System.Reflection;
 using Gunter.Services;
 using Gunter.Data.Sections;
+using Gunter.Alerts.Sections;
 
 namespace Gunter
 {
@@ -114,6 +115,13 @@ namespace Gunter
                 .RegisterType<TestRunner>()
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
 
+            #region Register sections
+
+            containerBuilder
+                .RegisterType<Text>()
+                //.As<ISectionFactory>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Text))));
+
             containerBuilder
                 .RegisterType<DataSourceInfo>()
                 //.As<ISectionFactory>()
@@ -123,6 +131,8 @@ namespace Gunter
                 .RegisterType<DataAggregate>()
                 //.As<ISectionFactory>()
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(DataAggregate))));
+
+            #endregion
 
             return containerBuilder.Build();
         }

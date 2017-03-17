@@ -112,16 +112,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="_codebase\Alerts\Sections\Text.cs" />
+    <Compile Include="_codebase\Data\Sections\TableSection.cs" />
+    <Compile Include="_codebase\Data\Sections\TextSection.cs" />
     <Compile Include="_codebase\Extensions\StringExtensions.cs" />
     <Compile Include="_codebase\Services\Email\AlertEmail.cs" />
-    <Compile Include="_codebase\Services\Email\EmailSectionRenderer.cs" />
-    <Compile Include="_codebase\Services\Email\Renderers\FooterRenderer.cs" />
-    <Compile Include="_codebase\Services\Email\Renderers\SectionRenderer.cs" />
-    <Compile Include="_codebase\Services\Email\Renderers\MessageRenderer.cs" />
+    <Compile Include="_codebase\Services\Email\HtmlTemplate.cs" />
+    <Compile Include="_codebase\Services\Email\Templates\FooterTemplate.cs" />
+    <Compile Include="_codebase\Services\Email\Templates\TableTemplate.cs" />
+    <Compile Include="_codebase\Services\Email\Templates\TextTemplate.cs" />
     <Compile Include="_codebase\Data\ISection.cs" />
     <Compile Include="_codebase\Services\ConstantProvider.cs" />
     <Compile Include="_codebase\Data\Globals.cs" />
-    <Compile Include="_codebase\Data\Sections\DataSourceInfo.cs" />
+    <Compile Include="_codebase\Alerts\Sections\DataSourceInfo.cs" />
     <Compile Include="_codebase\Data\TestContext.cs" />
     <Compile Include="_codebase\Services\PathResolver.cs" />
     <Compile Include="_codebase\Testing\TestConfiguration.cs" />
@@ -129,12 +132,12 @@
     <Compile Include="_codebase\Services\AutofacContractResolver.cs" />
     <Compile Include="_codebase\Data\Configurations\AppSettingsConfig.cs" />
     <Compile Include="_codebase\Testing\TestRunner.cs" />
-    <Compile Include="_codebase\Data\Sections\DataAggregate.cs" />
+    <Compile Include="_codebase\Alerts\Sections\DataAggregate.cs" />
     <Compile Include="_codebase\Alerts\EmailAlert.cs" />
     <Compile Include="_codebase\Services\Email\AlertEmailBody.cs" />
     <Compile Include="_codebase\Services\Email\AlertEmailSubject.cs" />
     <Compile Include="_codebase\IAlert.cs" />
-    <Compile Include="_codebase\Services\ISectionFactory.cs" />
+    <Compile Include="_codebase\Alerts\ISectionFactory.cs" />
     <Compile Include="_codebase\Data\SqlClient\TableOrViewDataSource.cs" />
     <Compile Include="_codebase\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

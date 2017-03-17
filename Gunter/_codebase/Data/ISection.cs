@@ -1,34 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Gunter.Data
 {
-    public interface ISection : IDisposable
+    public interface ISection
     {
-        string Title { get; }
+        string Heading { get; }
 
-        DataTable Data { get; }
-
-        DataTable Footer { get; }
-
-        Orientation Orientation { get; }
-    }
-
-    public class Section : ISection
-    {
-        public string Title { get; set; }
-
-        public DataTable Data { get; set; }
-
-        public DataTable Footer { get; set; }
-
-        public Orientation Orientation { get; set; }
-
-        public void Dispose() => Data?.Dispose();
+        string Text { get; }
     }
 
     public enum Orientation
