@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Autofac;
 using Gunter.Data.Configurations;
 using Gunter.Alerts;
@@ -13,42 +12,56 @@ using Reusable;
 using Gunter.Data;
 using System.Reflection;
 using Gunter.Services;
-using Gunter.Data.Sections;
-using Gunter.Alerts.Sections;
 
 namespace Gunter
 {
     internal class Program
     {
         public static readonly string InstanceName = Assembly.GetAssembly(typeof(Program)).GetName().Name;
+        public static readonly string InstanceVersion = "1.0.0";
 
-        private static ILogger _logger;
+        private static readonly ILogger Logger;
+
+        static Program()
+        {
+            InitializeLogging();
+            Logger = LoggerFactory.CreateLogger("Program");
+            LogEntry.New().Trace().Message("Logging initialized. Starting...").Log(Logger);
+        }
 
         private static int Main(string[] args)
         {
             try
             {
-                InitializeLogger();
                 InitializeConfiguration();
 
                 var container = InitializeContainer();
 
-                var globals = InitializeGlobals(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, $"{InstanceName}.Globals.json"));
+                var globals = InitializeGlobals(
+                    PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName,
+                    $"{InstanceName}.Globals.json")
+                );
+
                 var profile = args.FirstOrDefault();
-                if (!string.IsNullOrEmpty(profile)) globals = globals.Add(Globals.Profile, profile);
+                if (!string.IsNullOrEmpty(profile)) globals = globals.Add(Globals.TestCase.Profile, profile);
 
-                var tests = InitializeTests(Directory.GetFiles(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, string.Empty), $"{InstanceName}.Tests.*.json"), container).ToList();
+                var tests = InitializeTests(
+                    Directory.GetFiles(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, string.Empty),
+                    $"{InstanceName}.Tests.*.json"),
+                    container
+                ).ToList();
 
+                LogEntry.New().Trace().Message("Validating test configurations.").Log(Logger);
                 foreach (var config in tests)
                 {
-                    TestConfigurationValidator.ValidateDataSources(config, _logger);
-                    TestConfigurationValidator.ValidateAlerts(config, _logger);
+                    TestConfigurationValidator.ValidateDataSources(config, Logger);
+                    TestConfigurationValidator.ValidateAlerts(config, Logger);
                 }
 
-                using (var logEntry = LogEntry.New().Info().Message("*** Finished in {ElapsedSeconds} sec. ***").AsAutoLog(_logger))
+                using (var logEntry = LogEntry.New().Info().Message($"***{InstanceName} v{InstanceVersion} finished. ({{ElapsedSeconds}} sec) ***").AsAutoLog(Logger))
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    LogEntry.New().Info().Message($"*** {InstanceName} v1.0.0 ***").Log(_logger);
+                    LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} started. ***").Log(Logger);
                     scope.Resolve<TestRunner>().RunTests(tests, globals);
                 }
 
@@ -57,26 +70,25 @@ namespace Gunter
             // Exception should already be logged elsewhere and rethrown to exit the application.
             catch (Exception ex)
             {
-                LogEntry.New().Fatal().Message("*** Crashed ***").Exception(ex).Log(_logger);
+                LogEntry.New().Fatal().Message($"***{InstanceName} v{InstanceVersion} crashed. ({{ElapsedSeconds}} sec) ***").Exception(ex).Log(Logger);
                 return 1;
             }
         }
 
-        private static void InitializeLogger()
+        private static void InitializeLogging()
         {
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
             Reusable.Logging.NLog.Tools.DatabaseTargetQueryGenerator.GenerateInsertQueries();
 
-            Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting(name: "Environment", key: $"{InstanceName}.Environment"));
-            Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
+            Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting(name: "Environment", key: $"{InstanceName}.Environment"));
+            Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
 
             Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
-            _logger = LoggerFactory.CreateLogger("Program");
         }
 
         private static void InitializeConfiguration()
         {
-            using (var entry = LogEntry.New().Stopwatch(sw => sw.Start()).AsAutoLog(_logger))
+            using (var entry = LogEntry.New().Stopwatch(sw => sw.Start()).AsAutoLog(Logger))
             {
                 try
                 {
@@ -94,12 +106,11 @@ namespace Gunter
                     //    .Register<JsonToObjectConverter<LogInfo>>()
                     //    .Select(typeof(MainConfig));
 
-                    entry.Message("Loaded configuration in {ElapsedSeconds} seconds.");
-
+                    entry.Message("Configuration initialized. ({ElapsedSeconds} sec)");
                 }
                 catch (Exception ex)
                 {
-                    entry.Error().Exception(ex).Message("Could not load configuration in {ElapsedSeconds} seconds.");
+                    entry.Error().Exception(ex).Message("Error initializing configuration. ({ElapsedSeconds} sec)");
                     throw;
                 }
             }
@@ -110,35 +121,30 @@ namespace Gunter
             var containerBuilder = new ContainerBuilder();
 
             containerBuilder
+                .RegisterType<TestRunner>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
+
+            containerBuilder
                 .RegisterType<Data.SqlClient.TableOrViewDataSource>()
-                //.As<IDataSource>()
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrViewDataSource))));
 
             containerBuilder
                 .RegisterType<EmailAlert>()
-                //.As<IAlert>()
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(EmailAlert))));
-
-            containerBuilder
-                .RegisterType<TestRunner>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
 
             #region Register sections
 
             containerBuilder
-                .RegisterType<Text>()
-                //.As<ISectionFactory>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Text))));
+                .RegisterType<Alerts.Sections.Text>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.Text))));
 
             containerBuilder
-                .RegisterType<DataSourceInfo>()
-                //.As<ISectionFactory>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(DataSourceInfo))));
+                .RegisterType<Alerts.Sections.DataSourceInfo>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataSourceInfo))));
 
             containerBuilder
-                .RegisterType<DataAggregate>()
-                //.As<ISectionFactory>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(DataAggregate))));
+                .RegisterType<Alerts.Sections.DataAggregate>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataAggregate))));
 
             #endregion
 
@@ -162,11 +168,13 @@ namespace Gunter
 
         private static IEnumerable<TestConfiguration> InitializeTests(IEnumerable<string> fileNames, IContainer container)
         {
+            LogEntry.New().Trace().Message("Initializing tests...").Log(Logger);
+
             return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
 
             TestConfiguration LoadTest(string fileName)
             {
-                using (var logEntry = LogEntry.New().Info().AsAutoLog(_logger))
+                using (var logEntry = LogEntry.New().Info().AsAutoLog(Logger))
                 {
                     try
                     {
@@ -178,12 +186,12 @@ namespace Gunter
                             TypeNameHandling = TypeNameHandling.Auto
                         });
                         test.FileName = fileName;
-                        logEntry.Message($"Read '{fileName}'.");
+                        logEntry.Message($"Loaded '{fileName}'. ({{ElapsedSeconds}} sec)");
                         return test;
                     }
                     catch (Exception ex)
                     {
-                        logEntry.Error().Message($"Error reading '{fileName}'.").Exception(ex);
+                        logEntry.Error().Message($"Error loading '{fileName}'. ({{ElapsedSeconds}} sec)").Exception(ex);
                         return null;
                     }
                 }

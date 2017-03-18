@@ -31,7 +31,7 @@ namespace Gunter.Data
             }
             catch (Exception ex)
             {
-                LogEntry.New().Error().Exception(ex).Message("Could not get data.").Log(Logger);
+                LogEntry.New().Error().Exception(ex).Message("Error getting data.").Log(Logger);
                 return new DataTable();
             }
         }

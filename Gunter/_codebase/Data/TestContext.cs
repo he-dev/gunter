@@ -9,7 +9,7 @@ namespace Gunter.Data
     {
         private DataTable _data;
 
-        public TestProperties Test { get; set; }
+        public TestCase Test { get; set; }
 
         public IDataSource DataSource { get; set; }
 

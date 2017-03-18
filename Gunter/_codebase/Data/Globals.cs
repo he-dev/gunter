@@ -1,8 +1,10 @@
 ﻿using Gunter.Services;
+using Reusable;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,52 +12,58 @@ namespace Gunter.Data
 {
     internal static class Globals
     {
-        public static class Columns
+        public static readonly string Environment = nameof(Environment);
+
+        public static class Column
         {
-            //public static readonly string PrimaryKey = $"{nameof(Columns)}.{nameof(PrimaryKey)}";
-            public static readonly string Timestamp = $"{nameof(Columns)}.{nameof(Timestamp)}";
-            //public static readonly string Exception = $"{nameof(Columns)}.{nameof(Exception)}";
-            //public static readonly string Message = $"{nameof(Columns)}.{nameof(Message)}";
+            public static readonly string Timestamp = $"{nameof(Column)}.{nameof(Timestamp)}";
         }
 
-        internal class Test
+        public class TestConfiguration
         {
-            public static readonly string FileName = $"{nameof(Test)}.{nameof(FileName)}";
-            public static readonly string Severity = $"{nameof(Test)}.{nameof(Severity)}";
-            public static readonly string Message = $"{nameof(Test)}.{nameof(Message)}";
+            [Reserved]
+            public static readonly string FileName = $"{nameof(TestConfiguration)}.{nameof(FileName)}";
         }
 
-        internal static class DataSourceInfo
+        public class TestCase
+        {
+            [Reserved]
+            public static readonly string Severity = $"{nameof(TestCase)}.{nameof(Severity)}";
+            [Reserved]
+            public static readonly string Message = $"{nameof(TestCase)}.{nameof(Message)}";
+            [Reserved]
+            public static readonly string Profile = $"{nameof(TestCase)}.{nameof(Profile)}";
+        }
+
+        public static class DataSourceInfo
         {
             public static readonly string TimeSpanFormat = $"{nameof(DataSourceInfo)}.{nameof(TimeSpanFormat)}";
         }
 
-        public static readonly string Environment = nameof(Environment);
-
-        public static readonly string Profile = nameof(Profile);
-
-        public static readonly ImmutableList<string> ReservedNames = new[]
+        public static IEnumerable<string> GetReservedNames()
         {
-            Test.FileName,
-            Test.Severity,
-            Environment            
-        }
-        .ToImmutableList();
+            return
+                typeof(Globals)
+                .NestedTypes().Select(t =>
+                    t.GetFields(BindingFlags.Public | BindingFlags.Static)
+                    .Where(f => f.GetCustomAttribute<ReservedAttribute>() != null)
+                )
+                .SelectMany(fields => fields)
+                .Select(f => (string)f.GetValue(null));
+        }        
 
         public static readonly ImmutableDictionary<string, object> Default = new Dictionary<string, object>
         {
-            [Columns.Timestamp] = "Timestamp",
-            
+            [Column.Timestamp] = "Timestamp",
+
             // Custom TimeSpan Format Strings https://msdn.microsoft.com/en-us/library/ee372287(v=vs.110).aspx
             [DataSourceInfo.TimeSpanFormat] = @"dd\.hh\:mm\:ss"
         }
         .ToImmutableDictionary();
 
-        
-
         public static void ValidateNames(IConstantResolver globals)
         {
-            var duplicates = ReservedNames.Where(reservedName => globals.ContainsKey(reservedName)).ToList();
+            var duplicates = GetReservedNames().Where(reservedName => globals.ContainsKey(reservedName)).ToList();
             if (duplicates.Any()) throw new Exception();
         }
     }
@@ -66,4 +74,7 @@ namespace Gunter.Data
             : base(message: $"Reserved names found: [{string.Join(", ", names.Select(name => $"'{name}'"))}]")
         { }
     }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    internal class ReservedAttribute : Attribute { }
 }

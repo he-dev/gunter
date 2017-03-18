@@ -62,7 +62,7 @@ namespace Gunter.Tests
                 DataSources = _dataSources,
                 Tests =
                 {
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = false,
                         Severity = TestSeverity.Critical,
@@ -71,7 +71,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Expression = "COUNT([Id]) > 0",
                         Assert = false,
-                        CanContinue = false,
+                        BreakOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -94,7 +94,7 @@ namespace Gunter.Tests
                 DataSources = _dataSources,
                 Tests =
                 {
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -103,7 +103,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        CanContinue = false,
+                        BreakOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -126,7 +126,7 @@ namespace Gunter.Tests
                 DataSources = _dataSources,
                 Tests =
                 {
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -135,7 +135,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Expression = "COUNT([Id]) = 0",
                         Assert = false,
-                        CanContinue = false,
+                        BreakOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -158,7 +158,7 @@ namespace Gunter.Tests
                 DataSources = _dataSources,
                 Tests =
                 {
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -167,10 +167,10 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        CanContinue = false,
+                        BreakOnFailure = false,
                         Alerts = { 1 }
                     },
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -179,7 +179,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        CanContinue = false,
+                        BreakOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -202,7 +202,7 @@ namespace Gunter.Tests
                 DataSources = _dataSources,
                 Tests =
                 {
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -211,10 +211,10 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        CanContinue = true,
+                        BreakOnFailure = true,
                         Alerts = { 1 }
                     },
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -223,7 +223,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        CanContinue = false,
+                        BreakOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -246,7 +246,7 @@ namespace Gunter.Tests
                 DataSources = _dataSources,
                 Tests =
                 {
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -255,7 +255,7 @@ namespace Gunter.Tests
                         Filter = "[LogLevel] IN ('debug')",
                         Assert = true,
                         Expression = "COUNT([Id]) = 1",
-                        CanContinue = true,
+                        BreakOnFailure = true,
                         Alerts = { 1 }
                     },
                 },
@@ -278,7 +278,7 @@ namespace Gunter.Tests
                 DataSources = _dataSources,
                 Tests =
                 {
-                    new TestProperties
+                    new TestCase
                     {
                         Enabled = true,
                         Severity = TestSeverity.Warning,
@@ -287,7 +287,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "[LogLevel] IN ('debug')",
-                        CanContinue = true,
+                        BreakOnFailure = true,
                         Alerts = { 1 }
                     },
                 },

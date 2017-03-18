@@ -40,8 +40,8 @@ namespace Gunter.Services
             foreach (var context in tests)
             {
                 var logEntry = LogEntry.New()
-                    .SetValue(nameof(TestProperties.Expression), context.Test.Expression)
-                    .SetValue(Globals.Test.FileName, context.Constants.Resolve(Globals.Test.FileName.ToFormatString()));
+                    .SetValue(nameof(TestCase.Expression), context.Test.Expression)
+                    .SetValue(Globals.TestConfiguration.FileName, context.Constants.Resolve(Globals.TestConfiguration.FileName.ToFormatString()));
 
                 try
                 {
@@ -56,7 +56,7 @@ namespace Gunter.Services
                         case false:
                             logEntry.Error().Message("Failed.");
                             foreach (var alert in context.Alerts) alert.Publish(context);
-                            if (!context.Test.CanContinue) return;
+                            if (context.Test.BreakOnFailure) return;
                             break;
 
                         default:

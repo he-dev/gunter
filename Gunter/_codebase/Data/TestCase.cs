@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace Gunter.Data
 {
-    public class TestProperties
+    public class TestCase
     {
         [DefaultValue(true)]
         public bool Enabled { get; set; }
@@ -26,8 +26,8 @@ namespace Gunter.Data
         [JsonRequired]
         public string Expression { get; set; }
 
-        [DefaultValue(true)]
-        public bool CanContinue { get; set; }
+        [DefaultValue(false)]
+        public bool BreakOnFailure { get; set; }
 
         public List<int> Alerts { get; set; } = new List<int>();
 

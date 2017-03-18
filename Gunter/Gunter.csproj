@@ -117,7 +117,7 @@
     <Compile Include="_codebase\Data\Sections\TextSection.cs" />
     <Compile Include="_codebase\Services\TestComposer.cs" />
     <Compile Include="_codebase\Data\TestContext.cs" />
-    <Compile Include="_codebase\Data\TestProperties.cs" />
+    <Compile Include="_codebase\Data\TestCase.cs" />
     <Compile Include="_codebase\Data\TestSeverity.cs" />
     <Compile Include="_codebase\Extensions\StringExtensions.cs" />
     <Compile Include="_codebase\Services\Email\AlertEmail.cs" />

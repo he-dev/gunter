@@ -15,7 +15,7 @@ namespace Gunter.Data
         {
             Locals = new Dictionary<string, object>();
             DataSources = new List<IDataSource>();
-            Tests = new List<TestProperties>();
+            Tests = new List<TestCase>();
             Alerts = new List<IAlert>();
         }
 
@@ -28,7 +28,7 @@ namespace Gunter.Data
         public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
 
         [JsonRequired]
-        public List<TestProperties> Tests { get; set; } = new List<TestProperties>();
+        public List<TestCase> Tests { get; set; } = new List<TestCase>();
 
         [JsonRequired]
         public List<IAlert> Alerts { get; set; }

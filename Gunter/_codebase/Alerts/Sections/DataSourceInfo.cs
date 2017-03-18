@@ -27,7 +27,7 @@ namespace Gunter.Alerts.Sections
                 .AddRow($"Query ({DataSource.CommandName.Debug})", context.DataSource.ToString(DataSource.CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
                 .AddRow("Results", context.Data.Rows.Count);
 
-            var timestampColumn = Globals.Columns.Timestamp.ToFormatString().Resolve(context.Constants);
+            var timestampColumn = Globals.Column.Timestamp.ToFormatString().Resolve(context.Constants);
             if (context.Data.Columns.Contains(timestampColumn))
             {
                 body.AddRow("CreatedOn", context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn)));
