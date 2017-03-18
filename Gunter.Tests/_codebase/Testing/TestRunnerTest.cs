@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Gunter.Testing;
 using Gunter.Tests.Data;
 using Gunter.Tests.Alerting;
 using Reusable.Logging;
@@ -20,26 +19,31 @@ namespace Gunter.Tests
             new MockDataSource(1),
             new MockDataSource(2)
             {
-                { "test1", "info", 0.0f, "Info message.", null },
-                { "test1", "info", 1.0f, "Info maessage.", null },
-                { "test1", "debug", null, "Debug message.", null },
-                { "test2", "error", 2.0f, "Error message.", new Func<Exception>(() => { return new Exception(); })().ToString() },
-                { "test2", "error", 4.0f, "Error message.", new Func<Exception>(() => { return new Exception(); })().ToString() },
+                { "debug", "info", 0.0f, "Info message ABC.", null },
+                { "debug", "info", 1.0f, "Info maessage ABC.", null },
+                { "debug", "debug", null, "Debug message JKL.", null },
+                { "release", "error", 2.0f, "Error message ABC.", new Func<Exception>(() => { return new ArgumentException(); })().ToString() },
+                { "release", "error", 4.0f, "Error message XYZ.", new Func<Exception>(() => { return new DivideByZeroException(); })().ToString() },
+                { "release", "error", 3.0f, "Error message ABC.", null },
+                { "release", "error", 3.0f, "Error message ABC.", new Func<Exception>(() => { return new ArgumentException(); })().ToString() },
             }
         };
 
         private List<IAlert> _alerts;
+
+        private readonly TestRunner _testRunner = new TestRunner(new NullLogger());
 
         [TestInitialize]
         public void TestInitialize()
         {
             _alerts = new List<IAlert>
             {
-                new TestAlert
+                new MockAlert
                 {
                     Id = 1,
                     Sections =
                     {
+                        new Gunter.Alerts.Sections.Text(new NullLogger()),
                         new Gunter.Alerts.Sections.DataSourceInfo(new NullLogger()),
                         new Gunter.Alerts.Sections.DataAggregate(new NullLogger())
                         {
@@ -53,7 +57,7 @@ namespace Gunter.Tests
         [TestMethod]
         public void RunTests_TestDisabled_NoAlert()
         {
-            var testConfig = new Gunter.Testing.TestConfiguration
+            var testConfig = new Gunter.Data.TestConfiguration
             {
                 DataSources = _dataSources,
                 Tests =
@@ -74,18 +78,18 @@ namespace Gunter.Tests
                 Alerts = _alerts
             };
 
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(0, (_alerts[0] as TestAlert).Messages.Count);
+            _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
+            var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
+            Assert.IsNotNull(mockAlert);
+            Assert.AreEqual(0, mockAlert.Data.Count);
         }
 
         [TestMethod]
-        public void RunTests_AssertTrue_Fails()
+        public void RunTests_AssertTrue_TestFails()
         {
-            // This tes verfies that the a data-source is empty with assert = true.
+            // This test verifies that the data-source is empty but it isn't so it fails.
 
-            var testConfig = new Gunter.Testing.TestConfiguration
+            var testConfig = new Gunter.Data.TestConfiguration
             {
                 DataSources = _dataSources,
                 Tests =
@@ -106,18 +110,18 @@ namespace Gunter.Tests
                 Alerts = _alerts
             };
 
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count);
+            _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
+            var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
+            Assert.IsNotNull(mockAlert);
+            Assert.AreEqual(1, mockAlert.Data.Count);
         }
 
         [TestMethod]
-        public void RunTests_AssertFalse_Fails()
+        public void RunTests_AssertFalse_FailsFails()
         {
-            // This test verifies that a data-source is not empty by nagating the expression with assert = false.
+            // This test verifies that a data-source is not empty but it is so it fails.
 
-            var testConfig = new Gunter.Testing.TestConfiguration
+            var testConfig = new Gunter.Data.TestConfiguration
             {
                 DataSources = _dataSources,
                 Tests =
@@ -138,18 +142,18 @@ namespace Gunter.Tests
                 Alerts = _alerts
             };
 
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count);
+            _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
+            var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
+            Assert.IsNotNull(mockAlert);
+            Assert.AreEqual(1, mockAlert.Data.Count);
         }
 
         [TestMethod]
-        public void RunTests_CanContinueFalse_Breakes()
+        public void RunTests_CanContinueFalse_ExecutionBreakes()
         {
-            // This test verfies that the execution breaks as soon as the first test fails.
+            // This test verfies with two identical tests that the execution breaks as soon as the first test fails.
 
-            var testConfig = new Gunter.Testing.TestConfiguration
+            var testConfig = new Gunter.Data.TestConfiguration
             {
                 DataSources = _dataSources,
                 Tests =
@@ -182,18 +186,18 @@ namespace Gunter.Tests
                 Alerts = _alerts
             };
 
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(1, (_alerts[0] as TestAlert).Messages.Count);
+            _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
+            var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
+            Assert.IsNotNull(mockAlert);
+            Assert.AreEqual(1, mockAlert.Data.Count);
         }
 
         [TestMethod]
-        public void RunTests_CanContinueTrue_Continues()
+        public void RunTests_CanContinueTrue_ExcutionContinues()
         {
-            // This test verfies that the execution continues even though the first test fails.
+            // This test verfies with two identical tests that the execution continues even though the first test fails.
 
-            var testConfig = new Gunter.Testing.TestConfiguration
+            var testConfig = new Gunter.Data.TestConfiguration
             {
                 DataSources = _dataSources,
                 Tests =
@@ -226,18 +230,18 @@ namespace Gunter.Tests
                 Alerts = _alerts
             };
 
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(2, (_alerts[0] as TestAlert).Messages.Count);
+            _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
+            var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
+            Assert.IsNotNull(mockAlert);
+            Assert.AreEqual(2, mockAlert.Data.Count);
         }
 
         [TestMethod]
-        public void RunTests_Filter_Passes()
+        public void RunTests_WithFilter_TestPasses()
         {
             // This test verfies that only filtered rows are tested.
 
-            var testConfig = new Gunter.Testing.TestConfiguration
+            var testConfig = new Gunter.Data.TestConfiguration
             {
                 DataSources = _dataSources,
                 Tests =
@@ -258,10 +262,10 @@ namespace Gunter.Tests
                 Alerts = _alerts
             };
 
-            var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
-
-            Assert.AreEqual(0, (_alerts[0] as TestAlert).Messages.Count);
+            _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
+            var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
+            Assert.IsNotNull(mockAlert);
+            Assert.AreEqual(0, mockAlert.Data.Count);
         }
 
         [TestMethod]
@@ -269,7 +273,7 @@ namespace Gunter.Tests
         {
             // This test verfies that only filtered rows are tested.
 
-            var testConfig = new Gunter.Testing.TestConfiguration
+            var testConfig = new Gunter.Data.TestConfiguration
             {
                 DataSources = _dataSources,
                 Tests =
@@ -291,9 +295,9 @@ namespace Gunter.Tests
             };
 
             var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTests(testConfig, ConstantResolver.Empty);
+            testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
 
-            Assert.AreEqual(0, (_alerts[0] as TestAlert).Messages.Count);
+            Assert.AreEqual(0, (_alerts[0] as MockAlert).Data.Count);
         }
     }
 }

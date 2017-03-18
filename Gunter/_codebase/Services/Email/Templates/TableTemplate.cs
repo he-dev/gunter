@@ -1,6 +1,5 @@
 using Gunter.Data;
 using Gunter.Data.Sections;
-using Gunter.Testing;
 using Reusable.Markup;
 using Reusable.Markup.Extensions;
 using Reusable.Markup.Renderers;

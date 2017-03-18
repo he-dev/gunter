@@ -15,12 +15,12 @@ namespace Gunter.Alerts.Sections
     {
         public Text(ILogger logger) : base(logger) { }
 
-        protected override ISection CreateCore(TestContext context, IConstantResolver constants)
+        protected override ISection CreateCore(TestContext context)
         {
             return new TextSection
             {
-                Heading = Heading.Resolve(constants),
-                Text = Text.Resolve(constants)
+                Heading = Heading.Resolve(context.Constants),
+                Text = Text.Resolve(context.Constants)
             };
         }
     }

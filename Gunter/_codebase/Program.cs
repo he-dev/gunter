@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using Autofac;
 using Gunter.Data.Configurations;
 using Gunter.Alerts;
-using Gunter.Testing;
 using Newtonsoft.Json;
 using SmartConfig.DataStores.AppConfig;
 using Reusable.Logging;
@@ -35,13 +34,16 @@ namespace Gunter
                 var container = InitializeContainer();
 
                 var globals = InitializeGlobals(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, $"{InstanceName}.Globals.json"));
+                var profile = args.FirstOrDefault();
+                if (!string.IsNullOrEmpty(profile)) globals = globals.Add(Globals.Profile, profile);
+
                 var tests = InitializeTests(Directory.GetFiles(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, string.Empty), $"{InstanceName}.Tests.*.json"), container);
 
                 using (var logEntry = LogEntry.New().Info().Message("*** Finished in {ElapsedSeconds} sec. ***").AsAutoLog(_logger))
                 using (var scope = container.BeginLifetimeScope())
                 {
                     LogEntry.New().Info().Message($"*** {InstanceName} v1.0.0 ***").Log(_logger);
-                    scope.Resolve<TestRunner>().RunTests(tests, args.FirstOrDefault(), globals);
+                    scope.Resolve<TestRunner>().RunTests(tests, globals);
                 }
 
                 return 0;

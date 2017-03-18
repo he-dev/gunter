@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace Gunter
+namespace Gunter.Services
 {
     public interface IAlert
     {
@@ -22,7 +22,7 @@ namespace Gunter
         [JsonRequired]
         List<ISectionFactory> Sections { get; }
 
-        void Publish(TestContext testContext, IConstantResolver constants);
+        void Publish(TestContext testContext);
     }
 
     public abstract class Alert : IAlert
@@ -40,12 +40,12 @@ namespace Gunter
         [JsonRequired]
         public List<ISectionFactory> Sections { get; set; } = new List<ISectionFactory>();        
 
-        public void Publish(TestContext testContext, IConstantResolver constants)
+        public void Publish(TestContext testContext)
         {
             try
             {
-                var sections = Sections.Select(factory => factory.Create(testContext, constants));
-                PublishCore(sections, constants);
+                var sections = Sections.Select(factory => factory.Create(testContext));
+                PublishCore(sections, testContext.Constants);
             }
             catch (Exception ex)
             {

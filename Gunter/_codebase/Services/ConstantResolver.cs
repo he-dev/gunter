@@ -17,6 +17,7 @@ namespace Gunter.Services
         IConstantResolver UnionWith(IEnumerable<KeyValuePair<string, object>> other);
         IConstantResolver Add(string name, object value);
         bool ContainsKey(string name);
+        bool TryGetValue(string key, out object value);
     }
 
     public class ConstantResolver : IConstantResolver
@@ -42,6 +43,8 @@ namespace Gunter.Services
         public IConstantResolver Add(string name, object value) => new ConstantResolver(_constants.Add(name, value));
 
         public bool ContainsKey(string key) => !string.IsNullOrEmpty(key) && _constants.ContainsKey(key);
+
+        public bool TryGetValue(string key, out object value) => _constants.TryGetValue(key, out value);
 
         #region IEnumerable
 

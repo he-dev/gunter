@@ -1,13 +1,12 @@
 ﻿using Gunter.Data;
 using Gunter.Services;
-using Gunter.Testing;
 using Newtonsoft.Json;
 using Reusable.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
 
-namespace Gunter.Alerts
+namespace Gunter.Services
 {
     public interface ISectionFactory
     {
@@ -15,7 +14,7 @@ namespace Gunter.Alerts
 
         string Text { get; set; }
 
-        ISection Create(TestContext context, IConstantResolver constants);
+        ISection Create(TestContext context);
     }
 
     public abstract class SectionFactory : ISectionFactory
@@ -29,11 +28,11 @@ namespace Gunter.Alerts
 
         public string Text { get; set; }
 
-        public ISection Create(TestContext context, IConstantResolver constants)
+        public ISection Create(TestContext context)
         {
             try
             {
-                return CreateCore(context, constants);
+                return CreateCore(context);
             }
             catch (Exception ex)
             {
@@ -42,6 +41,6 @@ namespace Gunter.Alerts
             }
         }
 
-        protected abstract ISection CreateCore(TestContext context, IConstantResolver constants);
+        protected abstract ISection CreateCore(TestContext context);
     }
 }

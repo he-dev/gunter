@@ -36,10 +36,10 @@ namespace Gunter.Tests.Data.Sections
                         ["Debug"] =new Command { Text = "SELECT * FROM [Debug]" }
                     }
                 },
-                Data = testData
+                //Data = testData
             };
 
-            var section = new DataSourceInfo(new NullLogger()).Create(testContext, ConstantResolver.Empty);
+            //var section = new DataSourceInfo(new NullLogger()).Create(testContext, ConstantResolver.Empty);
 
             //Assert.AreEqual(section.Data.Rows[0]["Value"], "SELECT * FROM [Main]");
             //Assert.AreEqual(section.Data.Rows[1]["Value"], "SELECT * FROM [Debug]");

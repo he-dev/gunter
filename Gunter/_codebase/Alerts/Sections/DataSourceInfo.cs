@@ -17,30 +17,32 @@ namespace Gunter.Alerts.Sections
     {
         public DataSourceInfo(ILogger logger) : base(logger) { Heading = "Data-source"; }
 
-        protected override ISection CreateCore(TestContext context, IConstantResolver constants)
+        protected override ISection CreateCore(TestContext context)
         {
-            var data =
+            var data = context.DataSource.GetData(context.Constants);
+
+            var body =
                 new DataTable(Heading)
                 .AddColumn("Property", c => c.DataType = typeof(string))
                 .AddColumn("Value", c => c.DataType = typeof(string))
-                .AddRow($"Query ({DataSource.CommandName.Main})", context.DataSource.ToString(DataSource.CommandName.Main, CultureInfo.InvariantCulture).Resolve(constants))
-                .AddRow($"Query ({DataSource.CommandName.Debug})", context.DataSource.ToString(DataSource.CommandName.Debug, CultureInfo.InvariantCulture).Resolve(constants))
-                .AddRow("Results", context.Data.Rows.Count);
+                .AddRow($"Query ({DataSource.CommandName.Main})", context.DataSource.ToString(DataSource.CommandName.Main, CultureInfo.InvariantCulture).Resolve(context.Constants))
+                .AddRow($"Query ({DataSource.CommandName.Debug})", context.DataSource.ToString(DataSource.CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
+                .AddRow("Results", data.Rows.Count);
 
-            var timestampColumn = Globals.Columns.Timestamp.ToFormatString().Resolve(constants);
-            if (context.Data.Columns.Contains(timestampColumn))
+            var timestampColumn = Globals.Columns.Timestamp.ToFormatString().Resolve(context.Constants);
+            if (data.Columns.Contains(timestampColumn))
             {
-                data.AddRow("CreatedOn", context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn)));
+                body.AddRow("CreatedOn", data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn)));
                 var timeSpan =
-                    context.Data.AsEnumerable().Max(r => r.Field<DateTime>(timestampColumn)) -
-                    context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn));
-                data.AddRow("TimeSpan", timeSpan.ToString(Globals.DataSourceInfo.TimeSpanFormat.ToFormatString().Resolve(constants)));
+                    data.AsEnumerable().Max(r => r.Field<DateTime>(timestampColumn)) -
+                    data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn));
+                body.AddRow("TimeSpan", timeSpan.ToString(Globals.DataSourceInfo.TimeSpanFormat.ToFormatString().Resolve(context.Constants)));
             }
 
             return new TableSection
             {
                 Heading = Heading,
-                Body = data,
+                Body = body,
                 Orientation = Orientation.Vertical
             };
         }

@@ -32,6 +32,8 @@ namespace Gunter.Data
 
         public static readonly string Environment = nameof(Environment);
 
+        public static readonly string Profile = nameof(Profile);
+
         public static readonly ImmutableList<string> ReservedNames = new[]
         {
             Test.FileName,
@@ -48,6 +50,8 @@ namespace Gunter.Data
             [DataSourceInfo.TimeSpanFormat] = @"dd\.hh\:mm\:ss"
         }
         .ToImmutableDictionary();
+
+        
 
         public static void ValidateNames(IConstantResolver globals)
         {
