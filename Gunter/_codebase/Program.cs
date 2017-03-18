@@ -37,7 +37,13 @@ namespace Gunter
                 var profile = args.FirstOrDefault();
                 if (!string.IsNullOrEmpty(profile)) globals = globals.Add(Globals.Profile, profile);
 
-                var tests = InitializeTests(Directory.GetFiles(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, string.Empty), $"{InstanceName}.Tests.*.json"), container);
+                var tests = InitializeTests(Directory.GetFiles(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, string.Empty), $"{InstanceName}.Tests.*.json"), container).ToList();
+
+                foreach (var config in tests)
+                {
+                    TestConfigurationValidator.ValidateDataSources(config, _logger);
+                    TestConfigurationValidator.ValidateAlerts(config, _logger);
+                }
 
                 using (var logEntry = LogEntry.New().Info().Message("*** Finished in {ElapsedSeconds} sec. ***").AsAutoLog(_logger))
                 using (var scope = container.BeginLifetimeScope())
@@ -154,9 +160,9 @@ namespace Gunter
             return globals;
         }
 
-        private static List<TestConfiguration> InitializeTests(IEnumerable<string> fileNames, IContainer container)
+        private static IEnumerable<TestConfiguration> InitializeTests(IEnumerable<string> fileNames, IContainer container)
         {
-            return fileNames.Select(LoadTest).Where(Conditional.IsNotNull).ToList();
+            return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
 
             TestConfiguration LoadTest(string fileName)
             {

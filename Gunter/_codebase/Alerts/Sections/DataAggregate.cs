@@ -38,8 +38,7 @@ namespace Gunter.Alerts.Sections
             var keys = columns.Where(x => x.Options.Contains(Column.Option.Key)).ToList();
 
             // Group-by keyed columns.
-            var data = context.DataSource.GetData(context.Constants);
-            var groups = data.Select(context.Test.Filter).GroupBy(x =>
+            var groups = context.Data.Select(context.Test.Filter).GroupBy(x =>
                 keys.ToDictionary(
                     column => column.Name,
                     column =>

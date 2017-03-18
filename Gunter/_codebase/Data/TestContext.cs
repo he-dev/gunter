@@ -1,17 +1,27 @@
-﻿using Gunter.Testing;
+﻿using System.Collections.Generic;
 using System;
-using System.Collections.Generic;
+using Gunter.Services;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gunter.Data
-{    
-    public class TestContext
+{
+    public class TestContext : IDisposable
     {
-        public IDataSource DataSource { get; set; }
-        public DataTable Data { get; set; }
+        private DataTable _data;
+
         public TestProperties Test { get; set; }
+
+        public IDataSource DataSource { get; set; }
+
+        public IEnumerable<IAlert> Alerts { get; set; }
+
+        public IConstantResolver Constants { get; set; }
+
+        public DataTable Data => _data ?? (_data = DataSource.GetData(Constants));
+
+        public void Dispose()
+        {
+            _data?.Dispose();
+        }
     }
 }

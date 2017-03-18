@@ -7,6 +7,7 @@ using Gunter.Alerts;
 using Reusable.Logging;
 using Gunter.Services;
 using Gunter.Extensions;
+using System.Threading.Tasks;
 
 namespace Gunter.Services
 {
@@ -14,27 +15,37 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
 
-        public TestRunner(ILogger logger)
-        {
-            _logger = logger;
-        }
+        public TestRunner(ILogger logger) => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         public void RunTests(IEnumerable<TestConfiguration> testConfigs, IConstantResolver constants)
         {
-            foreach (var context in testConfigs.Select(testConfig => testConfig.ComposeTests(constants)).SelectMany(tests => tests))
-            {
-                RunTest(context);
-            }
+            var testGroups = testConfigs.Select(testConfig => TestComposer.ComposeTests(testConfig, constants));
+
+#if DEBUG
+            const int maxDegreeOfParallelism = 1;
+#else
+            const int maxDegreeOfParallelism = Environment.ProcessorCount;
+#endif
+
+            Parallel.ForEach
+            (
+                source: testGroups,
+                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism },
+                body: RunTest
+            );
         }
 
-        public void RunTest(TestContext context)
+        public void RunTest(IEnumerable<TestContext> tests)
         {
-            using (var data = context.DataSource.GetData(context.Constants))
-            using (var logEntry = LogEntry.New().SetValue(Globals.Test.FileName, context.Constants.Resolve(Globals.Test.FileName.ToFormatString())).AsAutoLog(_logger))
+            foreach (var context in tests)
             {
+                var logEntry = LogEntry.New()
+                    .SetValue(nameof(TestProperties.Expression), context.Test.Expression)
+                    .SetValue(Globals.Test.FileName, context.Constants.Resolve(Globals.Test.FileName.ToFormatString()));
+
                 try
                 {
-                    var result = data.Compute(context.Test.Expression, context.Test.Filter) is bool testResult && testResult == context.Test.Assert;
+                    var result = context.Data.Compute(context.Test.Expression, context.Test.Filter) is bool testResult && testResult == context.Test.Assert;
 
                     switch (result)
                     {
@@ -44,14 +55,12 @@ namespace Gunter.Services
 
                         case false:
                             logEntry.Error().Message("Failed.");
-
                             foreach (var alert in context.Alerts) alert.Publish(context);
-
                             if (!context.Test.CanContinue) return;
                             break;
 
                         default:
-                            throw new InvalidOperationException($"Test result must be a {typeof(bool).Name}.");
+                            throw new InvalidOperationException($"Test expression must evaluate to {typeof(bool).Name}.");
                     }
                 }
                 catch (Exception ex)
@@ -59,9 +68,12 @@ namespace Gunter.Services
                     logEntry
                         .Error()
                         .Exception(ex)
-                        .Message($"Inconclusive. The expression must evaluate to {typeof(bool).Name}.")
-                        .SetValue(Globals.Test.FileName, context.Constants.Resolve(Globals.Test.FileName.ToFormatString()))
-                        .SetValue(nameof(TestProperties.Expression), context.Test.Expression);
+                        .Message($"Inconclusive. The expression must evaluate to {typeof(bool).Name}.");
+                }
+                finally
+                {
+                    context.Dispose();
+                    logEntry.Log(_logger);
                 }
             }
         }

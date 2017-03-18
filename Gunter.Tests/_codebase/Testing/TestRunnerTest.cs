@@ -65,7 +65,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = false,
-                        Severity = Severity.Critical,
+                        Severity = TestSeverity.Critical,
                         Message = "This test should not run.",
                         DataSources = { 2 },
                         Filter = null,
@@ -97,7 +97,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -129,7 +129,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Data-source must be empty.",
                         DataSources = { 1 },
                         Filter = null,
@@ -161,7 +161,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -173,7 +173,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -205,7 +205,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -217,7 +217,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -249,7 +249,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Debug logging is enabled.",
                         DataSources = { 2 },
                         Filter = "[LogLevel] IN ('debug')",
@@ -281,7 +281,7 @@ namespace Gunter.Tests
                     new TestProperties
                     {
                         Enabled = true,
-                        Severity = Severity.Warning,
+                        Severity = TestSeverity.Warning,
                         Message = "Debug logging is enabled.",
                         DataSources = { 2 },
                         Filter = null,

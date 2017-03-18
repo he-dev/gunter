@@ -115,6 +115,10 @@
     <Compile Include="_codebase\Alerts\Sections\Text.cs" />
     <Compile Include="_codebase\Data\Sections\TableSection.cs" />
     <Compile Include="_codebase\Data\Sections\TextSection.cs" />
+    <Compile Include="_codebase\Services\TestComposer.cs" />
+    <Compile Include="_codebase\Data\TestContext.cs" />
+    <Compile Include="_codebase\Data\TestProperties.cs" />
+    <Compile Include="_codebase\Data\TestSeverity.cs" />
     <Compile Include="_codebase\Extensions\StringExtensions.cs" />
     <Compile Include="_codebase\Services\Email\AlertEmail.cs" />
     <Compile Include="_codebase\Services\Email\HtmlTemplate.cs" />
@@ -130,6 +134,7 @@
     <Compile Include="_codebase\Data\DataSource.cs" />
     <Compile Include="_codebase\Services\AutofacContractResolver.cs" />
     <Compile Include="_codebase\Data\Configurations\AppSettingsConfig.cs" />
+    <Compile Include="_codebase\Services\TestConfigurationValidator.cs" />
     <Compile Include="_codebase\Services\TestRunner.cs" />
     <Compile Include="_codebase\Alerts\Sections\DataAggregate.cs" />
     <Compile Include="_codebase\Alerts\EmailAlert.cs" />
