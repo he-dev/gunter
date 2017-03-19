@@ -1,4 +1,4 @@
-#Gunter v1.0.0
+# Gunter v1.0.0
 
 `Gunter` the ultimate Glitch Hunter is a tool for _unit-testing_ data and publishing alerts when a test fails.
 
@@ -37,7 +37,7 @@ To use `Gunter` you'll need a service that will run it.
 </system.net>
 ```
 
-###Tests
+### Tests
 
 Test are configured 
 
