@@ -6,7 +6,7 @@
 
 To use `Gunter` you'll need a service that will run it.
 
-##Configuration
+## Configuration
 
 ### General
 
@@ -39,7 +39,7 @@ To use `Gunter` you'll need a service that will run it.
 
 ### Tests
 
-Test are configured 
+_Writing..._
 
 ```js
 {
