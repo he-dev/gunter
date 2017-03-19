@@ -44,9 +44,12 @@ namespace Gunter.Data
         {
             return
                 typeof(Globals)
-                .NestedTypes().Select(t =>
+                .NestedTypes()
+                .Select(t =>
                     t.GetFields(BindingFlags.Public | BindingFlags.Static)
-                    .Where(f => f.GetCustomAttribute<ReservedAttribute>() != null)
+                    .Where(f => 
+                        f.GetCustomAttribute<ReservedAttribute>() != null
+                    )
                 )
                 .SelectMany(fields => fields)
                 .Select(f => (string)f.GetValue(null));
@@ -61,11 +64,7 @@ namespace Gunter.Data
         }
         .ToImmutableDictionary();
 
-        public static void ValidateNames(IConstantResolver globals)
-        {
-            var duplicates = GetReservedNames().Where(reservedName => globals.ContainsKey(reservedName)).ToList();
-            if (duplicates.Any()) throw new Exception();
-        }
+        
     }
 
     internal class ReservedNameException : Exception

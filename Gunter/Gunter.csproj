@@ -112,6 +112,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="_codebase\Alerts\Sections\TestCaseInfo.cs" />
     <Compile Include="_codebase\Alerts\Sections\Text.cs" />
     <Compile Include="_codebase\Data\Sections\TableSection.cs" />
     <Compile Include="_codebase\Data\Sections\TextSection.cs" />
@@ -134,7 +135,8 @@
     <Compile Include="_codebase\Data\DataSource.cs" />
     <Compile Include="_codebase\Services\AutofacContractResolver.cs" />
     <Compile Include="_codebase\Data\Configurations\AppSettingsConfig.cs" />
-    <Compile Include="_codebase\Services\TestConfigurationValidator.cs" />
+    <Compile Include="_codebase\Services\Validators\GlobalsValidator.cs" />
+    <Compile Include="_codebase\Services\Validators\TestConfigurationValidator.cs" />
     <Compile Include="_codebase\Services\TestRunner.cs" />
     <Compile Include="_codebase\Alerts\Sections\DataAggregate.cs" />
     <Compile Include="_codebase\Alerts\EmailAlert.cs" />

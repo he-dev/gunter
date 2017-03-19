@@ -55,7 +55,7 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
-        public void RunTests_TestDisabled_NoAlert()
+        public void RunTests_TestCaseDisabled_TestNotRun()
         {
             var testConfig = new Gunter.Data.TestConfiguration
             {
@@ -85,7 +85,7 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
-        public void RunTests_AssertTrue_TestFails()
+        public void RunTests_TestCaseWithAssertTrueEvaluatesToFalse_TestFails()
         {
             // This test verifies that the data-source is empty but it isn't so it fails.
 
@@ -117,7 +117,7 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
-        public void RunTests_AssertFalse_FailsFails()
+        public void RunTests_TestCaseWithAssertFalseEvaluatesToTrue_TestFails()
         {
             // This test verifies that a data-source is not empty but it is so it fails.
 
@@ -149,7 +149,7 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
-        public void RunTests_CanContinueFalse_ExecutionBreakes()
+        public void RunTests_TestCaseWithBreakOnFailureFalse_ExecutionContinues()
         {
             // This test verfies with two identical tests that the execution breaks as soon as the first test fails.
 
@@ -189,11 +189,11 @@ namespace Gunter.Tests
             _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
             var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
             Assert.IsNotNull(mockAlert);
-            Assert.AreEqual(1, mockAlert.Data.Count);
+            Assert.AreEqual(2, mockAlert.Data.Count);
         }
 
         [TestMethod]
-        public void RunTests_CanContinueTrue_ExcutionContinues()
+        public void RunTests_BreakOnFailureTrue_ExcutionBreaks()
         {
             // This test verfies with two identical tests that the execution continues even though the first test fails.
 
@@ -233,11 +233,11 @@ namespace Gunter.Tests
             _testRunner.RunTests(new[] { testConfig }, ConstantResolver.Empty);
             var mockAlert = _alerts.ElementAtOrDefault(0) as MockAlert;
             Assert.IsNotNull(mockAlert);
-            Assert.AreEqual(2, mockAlert.Data.Count);
+            Assert.AreEqual(1, mockAlert.Data.Count);
         }
 
         [TestMethod]
-        public void RunTests_WithFilter_TestPasses()
+        public void RunTests_TestCaseWithFilter_TestPasses()
         {
             // This test verfies that only filtered rows are tested.
 
@@ -269,7 +269,7 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
-        public void RunTests_InvalidExpression_Inconclusive()
+        public void RunTests_TestCaseWithInvalidExpression_Inconclusive()
         {
             // This test verfies that only filtered rows are tested.
 

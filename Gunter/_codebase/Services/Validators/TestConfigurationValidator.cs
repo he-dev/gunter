@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Gunter.Services
+namespace Gunter.Services.Validators
 {
     internal class TestConfigurationValidator
     {

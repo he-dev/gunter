@@ -12,6 +12,7 @@ using Reusable;
 using Gunter.Data;
 using System.Reflection;
 using Gunter.Services;
+using Gunter.Services.Validators;
 
 namespace Gunter
 {
@@ -143,6 +144,10 @@ namespace Gunter
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataSourceInfo))));
 
             containerBuilder
+                .RegisterType<Alerts.Sections.TestCaseInfo>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.TestCaseInfo))));
+
+            containerBuilder
                 .RegisterType<Alerts.Sections.DataAggregate>()
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataAggregate))));
 
@@ -154,7 +159,7 @@ namespace Gunter
         private static IConstantResolver InitializeGlobals(string fileName)
         {
             var globals = new ConstantResolver(Globals.Default) as IConstantResolver;
-            Globals.ValidateNames(globals);
+            GlobalsValidator.ValidateNames(globals, Logger);
 
             globals = globals.Add(Globals.Environment, AppSettingsConfig.Environment);
 
@@ -187,6 +192,7 @@ namespace Gunter
                         });
                         test.FileName = fileName;
                         logEntry.Message($"Loaded '{fileName}'. ({{ElapsedSeconds}} sec)");
+                        GlobalsValidator.ValidateNames(new ConstantResolver(test.Locals), Logger);
                         return test;
                     }
                     catch (Exception ex)

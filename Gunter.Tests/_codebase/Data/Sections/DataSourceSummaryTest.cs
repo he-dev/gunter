@@ -15,7 +15,7 @@ namespace Gunter.Tests.Data.Sections
     [TestClass]
     public class DataSourceSummaryTest
     {
-        [TestMethod]
+        //[TestMethod]
         public void Create_blah()
         {
             var testData = new DataTable();
