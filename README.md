@@ -199,7 +199,7 @@ CREATE TABLE [dbo].[GunterLog](
 
 ## Development
 
-You can use your own private configuration files for testing that will be ignored by repository:
+You can use create your own private configuration files for testing that will be ignored by repository:
 
 - `_Debug\Debug.private.App.config` 
 - `_Test\Gunter.Tests.Gunter.private.json`
