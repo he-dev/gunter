@@ -12,6 +12,7 @@ namespace Gunter.Data
 {
     internal static class Globals
     {
+        [Reserved]
         public static readonly string Environment = nameof(Environment);
 
         public static class Column

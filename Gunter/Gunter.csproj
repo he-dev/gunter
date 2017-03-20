@@ -40,7 +40,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug.he-dev|AnyCPU'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.private|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug.he-dev\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -152,10 +152,10 @@
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="_AppConfigs\Debug.he-dev.App.config">
+    <None Include="_AppConfigs\Debug.private.App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="_Tests\Gunter.Tests.Gunter.he-dev.json">
+    <None Include="_Tests\Gunter.Tests.Gunter.private.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="_Tests\Gunter.Globals.json">
@@ -173,7 +173,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="_Scripts\" />
+  </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
