@@ -1,7 +1,7 @@
-using Reusable;
 using System.Text;
+using Reusable;
 
-namespace Gunter.Services.Email
+namespace Gunter.Data.Email
 {
     internal class AlertEmailSubject : EmailSubject
     {

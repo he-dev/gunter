@@ -1,10 +1,9 @@
 ﻿using System;
-using Gunter.Data;
-using Reusable.Markup;
 using System.Collections.Generic;
-using System.Globalization;
+using Gunter.Services;
+using Reusable.Markup;
 
-namespace Gunter.Services.Email
+namespace Gunter.Data.Email
 {
     internal abstract class HtmlTemplate
     {

@@ -67,7 +67,7 @@
       <HintPath>..\packages\Reusable.ConfigWhiz.Datastores.AppConfig.3.3.6\lib\net452\Reusable.ConfigWhiz.Datastores.AppConfig.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Core.3.3.10\lib\net452\Reusable.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.Core.3.3.11\lib\net452\Reusable.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Email, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Reusable.Email.3.3.6\lib\net452\Reusable.Email.dll</HintPath>
@@ -85,7 +85,7 @@
       <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.3.6\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Markup, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Markup.3.3.10\lib\net452\Reusable.Markup.dll</HintPath>
+      <HintPath>..\packages\Reusable.Markup.3.3.11\lib\net452\Reusable.Markup.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.TypeConversion, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Reusable.TypeConversion.3.3.6\lib\net452\Reusable.TypeConversion.dll</HintPath>
@@ -111,7 +111,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TehCodez\Alerts\Sections\TestCaseInfo.cs" />
+    <Compile Include="TehCodez\Alerts\Sections\TestCaseSummary.cs" />
     <Compile Include="TehCodez\Alerts\Sections\Text.cs" />
     <Compile Include="TehCodez\Data\Configuration.cs" />
     <Compile Include="TehCodez\Data\Sections\TableSection.cs" />
@@ -121,15 +121,15 @@
     <Compile Include="TehCodez\Data\TestCase.cs" />
     <Compile Include="TehCodez\Data\TestSeverity.cs" />
     <Compile Include="TehCodez\Extensions\StringExtensions.cs" />
-    <Compile Include="TehCodez\Services\Email\AlertEmail.cs" />
-    <Compile Include="TehCodez\Services\Email\HtmlTemplate.cs" />
-    <Compile Include="TehCodez\Services\Email\Templates\FooterTemplate.cs" />
-    <Compile Include="TehCodez\Services\Email\Templates\TableTemplate.cs" />
-    <Compile Include="TehCodez\Services\Email\Templates\TextTemplate.cs" />
+    <Compile Include="TehCodez\Data\Email\AlertEmail.cs" />
+    <Compile Include="TehCodez\Data\Email\HtmlTemplate.cs" />
+    <Compile Include="TehCodez\Data\Email\Templates\FooterTemplate.cs" />
+    <Compile Include="TehCodez\Data\Email\Templates\TableTemplate.cs" />
+    <Compile Include="TehCodez\Data\Email\Templates\TextTemplate.cs" />
     <Compile Include="TehCodez\Data\ISection.cs" />
     <Compile Include="TehCodez\Services\ConstantResolver.cs" />
     <Compile Include="TehCodez\Data\VariableName.cs" />
-    <Compile Include="TehCodez\Alerts\Sections\DataSourceInfo.cs" />
+    <Compile Include="TehCodez\Alerts\Sections\DataSourceSummary.cs" />
     <Compile Include="TehCodez\Services\PathResolver.cs" />
     <Compile Include="TehCodez\Data\TestConfiguration.cs" />
     <Compile Include="TehCodez\Data\DataSource.cs" />
@@ -137,10 +137,10 @@
     <Compile Include="TehCodez\Services\Validators\GlobalsValidator.cs" />
     <Compile Include="TehCodez\Services\Validators\TestConfigurationValidator.cs" />
     <Compile Include="TehCodez\Services\TestRunner.cs" />
-    <Compile Include="TehCodez\Alerts\Sections\DataAggregate.cs" />
+    <Compile Include="TehCodez\Alerts\Sections\Aggregation.cs" />
     <Compile Include="TehCodez\Alerts\EmailAlert.cs" />
-    <Compile Include="TehCodez\Services\Email\AlertEmailBody.cs" />
-    <Compile Include="TehCodez\Services\Email\AlertEmailSubject.cs" />
+    <Compile Include="TehCodez\Data\Email\AlertEmailBody.cs" />
+    <Compile Include="TehCodez\Data\Email\AlertEmailSubject.cs" />
     <Compile Include="TehCodez\Services\IAlert.cs" />
     <Compile Include="TehCodez\Services\ISectionFactory.cs" />
     <Compile Include="TehCodez\Data\SqlClient\TableOrViewDataSource.cs" />

@@ -1,15 +1,12 @@
-using Gunter.Data;
-using Gunter.Data.Sections;
-using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Globalization;
 using System.Text;
+using Gunter.Data.Sections;
+using Gunter.Services;
 using Reusable.Extensions;
 using Reusable.Markup;
 using Reusable.Markup.Html;
 
-namespace Gunter.Services.Email.Templates
+namespace Gunter.Data.Email.Templates
 {
     internal class TextTemplate : HtmlTemplate, ISectionTemplate, ISectionTemplate<TextSection>
     {

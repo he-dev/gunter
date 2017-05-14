@@ -1,0 +1,74 @@
+{
+  "Locals": {
+    "MainLog": "[robots].[Gunter_MainLog]",
+    "Top1k": "1000",
+    "To": "test@email.com"
+  },
+  "DataSources": [
+    {
+      "$type": "Gunter.Data.SqlClient.TableOrViewDataSource, Gunter",
+      "Id": 1,
+      "ConnectionString": "{TEST_LOG}",
+      "Commands": {
+        "Main": {
+          //"Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
+          "Text": "SELECT * FROM {MainLog}",
+          "Parameters": { "@Environment": "{Environment}" }
+        },
+        "Debug": { "Text": "{DebugCommand}" }
+      }
+    }
+  ],
+  "Tests": [
+    {
+      "Enabled": true,
+      "Severity": "Warning",
+      "Message": "Trace logging is on.",
+      "DataSources": [ 1 ],
+      "Filter": "[LogLevel] IN ('error', 'fatal')",
+      "Expression": "Count([LogLevel]) = 0",
+      "Assert": true,
+      "BreakOnFailure": false,
+      "Alerts": [ 1 ],
+      "Profiles": []
+    }
+  ],
+  "Alerts": [
+    {
+      "$type": "Gunter.Alerts.EmailAlert, Gunter",
+      "Id": 1,
+      "Title": "Glitch alert for {MainLog} - {TestCase.Severity}",
+	  "EmailClient": {
+		  "$type":  "Reusable.EmailClients.SmtpClient, Reusable.EmailClients.SmtpClient"
+	  },
+      "To": "stringbuilder.append@gmail.com",
+      "Sections": [
+        {
+          "$type": "Gunter.Alerts.Sections.Text, Gunter",
+          "Heading": "Glitch detected!",
+          "Text": "{TestCase.Message}"
+        },
+        {
+          "$type": "Gunter.Alerts.Sections.TestCaseSummary, Gunter",
+          "Heading": "Test case"
+        },
+        {
+          "$type": "Gunter.Alerts.Sections.DataSourceSummary, Gunter",
+          "Heading": "Data-source"
+        },
+        {
+          "$type": "Gunter.Alerts.Sections.Aggregation, Gunter",
+          "Heading": "Exceptions",
+          "Columns": [
+            "Timestamp",
+            "LogLevel | key",
+            "Logger | key",
+            "ElapsedSeconds | sum",
+            "Message",
+            "Exception | key firstline"
+          ]
+        }
+      ]
+    }
+  ]
+}

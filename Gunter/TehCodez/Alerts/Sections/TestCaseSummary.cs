@@ -13,9 +13,9 @@ using System.Linq;
 
 namespace Gunter.Alerts.Sections
 {
-    public class TestCaseInfo : SectionFactory
+    public class TestCaseSummary : SectionFactory
     {
-        public TestCaseInfo(ILogger logger) : base(logger) { Heading = "Test case"; }
+        public TestCaseSummary(ILogger logger) : base(logger) { Heading = "Test case"; }
 
         protected override ISection CreateCore(TestContext context)
         {

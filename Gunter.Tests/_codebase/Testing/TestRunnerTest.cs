@@ -44,8 +44,8 @@ namespace Gunter.Tests
                     Sections =
                     {
                         new Gunter.Alerts.Sections.Text(new NullLogger()),
-                        new Gunter.Alerts.Sections.DataSourceInfo(new NullLogger()),
-                        new Gunter.Alerts.Sections.DataAggregate(new NullLogger())
+                        new Gunter.Alerts.Sections.DataSourceSummary(new NullLogger()),
+                        new Gunter.Alerts.Sections.Aggregation(new NullLogger())
                         {
 
                         },

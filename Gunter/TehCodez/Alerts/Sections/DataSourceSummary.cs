@@ -13,22 +13,22 @@ using System.Linq;
 
 namespace Gunter.Alerts.Sections
 {
-    public class DataSourceInfo : SectionFactory
+    public class DataSourceSummary : SectionFactory
     {
-        public DataSourceInfo(ILogger logger) : base(logger) { Heading = "Data-source"; }
+        public DataSourceSummary(ILogger logger) : base(logger) { Heading = "Data-source"; }
 
         protected override ISection CreateCore(TestContext context)
         {
             var body =
                 new DataTable(Heading)
-                .AddColumn("Property", c => c.DataType = typeof(string))
-                .AddColumn("Value", c => c.DataType = typeof(string))
-                .AddRow($"Query ({DataSource.CommandName.Main})", context.DataSource.ToString(DataSource.CommandName.Main, CultureInfo.InvariantCulture).Resolve(context.Constants))
-                .AddRow($"Query ({DataSource.CommandName.Debug})", context.DataSource.ToString(DataSource.CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
-                .AddRow("Results", context.Data.Rows.Count);
+                    .AddColumn("Property", c => c.DataType = typeof(string))
+                    .AddColumn("Value", c => c.DataType = typeof(string))
+                    .AddRow($"Query ({DataSource.CommandName.Main})", context.DataSource.ToString(DataSource.CommandName.Main, CultureInfo.InvariantCulture).Resolve(context.Constants))
+                    .AddRow($"Query ({DataSource.CommandName.Debug})", context.DataSource.ToString(DataSource.CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
+                    .AddRow("Results", context.Data.Rows.Count);
 
             var timestampColumn = VariableName.Column.Timestamp.ToFormatString().Resolve(context.Constants);
-            if (context.Data.Columns.Contains(timestampColumn))
+            if (context.Data.Columns.Contains(timestampColumn) && context.Data.Rows.Count > 0)
             {
                 body.AddRow("CreatedOn", context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn)));
                 var timeSpan =

@@ -1,7 +1,5 @@
-﻿using Gunter.Services.Email.Templates;
-using Gunter.Data;
+﻿using Gunter.Data;
 using Gunter.Services;
-using Gunter.Services.Email;
 using Newtonsoft.Json;
 using Reusable.Logging;
 using System;
@@ -9,6 +7,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Gunter.Data.Email;
+using Gunter.Data.Email.Templates;
 using Gunter.Data.Sections;
 using Reusable;
 

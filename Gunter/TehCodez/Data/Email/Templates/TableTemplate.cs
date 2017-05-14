@@ -1,15 +1,14 @@
-using Gunter.Data;
-using Gunter.Data.Sections;
-using Reusable.Markup;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Gunter.Data.Sections;
+using Gunter.Services;
+using Reusable.Markup;
 using Reusable.Markup.Html;
 
-namespace Gunter.Services.Email.Templates
+namespace Gunter.Data.Email.Templates
 {
     internal class TableTemplate : HtmlTemplate, ISectionTemplate, ISectionTemplate<TableSection>
     {
@@ -55,10 +54,10 @@ namespace Gunter.Services.Email.Templates
             table
                 .Element("tbody", tbody => tbody
                     .Elements("tr", data.AsEnumerable(), (tr, row) => tr
-                        .Elements("td", data.Columns.Cast<DataColumn>(), (td, x, i) => td
+                        .Elements("td", data.Columns.Cast<DataColumn>(), (td, x) => td
                             .Append(row.Field<string>(x.ColumnName))
                             .Style(
-                                orientation == Orientation.Vertical && i == 0 
+                                orientation == Orientation.Vertical && x.Ordinal == 0 
                                     ? Styles[Style.tbody_td_property] 
                                     : Styles[Style.tbody_td_value]))));
 

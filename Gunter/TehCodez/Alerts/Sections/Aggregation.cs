@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Gunter.Alerts.Sections
 {
-    public class DataAggregate : SectionFactory
+    public class Aggregation : SectionFactory
     {
         private delegate double AggregateCallback(IEnumerable<DataRow> aggregate, string columnName);
 
@@ -25,7 +25,7 @@ namespace Gunter.Alerts.Sections
             [Column.Option.Avg] = (rows, column) => rows.Average(row => row.Field<double>(column)),
         };
 
-        public DataAggregate(ILogger logger) : base(logger) { }
+        public Aggregation(ILogger logger) : base(logger) { }
 
         [JsonRequired]
         public List<string> Columns { get; set; }
@@ -53,7 +53,7 @@ namespace Gunter.Alerts.Sections
             ).ToList();
 
             // Creates a data-table with the specified columns.
-            var body = new DataTable(nameof(DataAggregate));
+            var body = new DataTable(nameof(Aggregation));
             foreach (var column in columns) body.AddColumn(column.Name, c => c.DataType = typeof(string));
 
             // Create aggregated rows and add them to the final data-table.

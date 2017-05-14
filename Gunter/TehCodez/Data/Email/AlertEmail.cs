@@ -1,6 +1,6 @@
 ﻿using Reusable;
 
-namespace Gunter.Services.Email
+namespace Gunter.Data.Email
 {
     internal class AlertEmail : Email<AlertEmailSubject, AlertEmailBody> { }
 }

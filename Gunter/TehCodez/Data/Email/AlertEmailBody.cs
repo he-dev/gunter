@@ -1,10 +1,9 @@
-using Reusable;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using Reusable;
 
-namespace Gunter.Services.Email
+namespace Gunter.Data.Email
 {
     internal class AlertEmailBody : EmailBody
     {

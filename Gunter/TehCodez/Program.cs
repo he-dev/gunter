@@ -132,16 +132,16 @@ namespace Gunter
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.Text))));
 
             containerBuilder
-                .RegisterType<Alerts.Sections.DataSourceInfo>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataSourceInfo))));
+                .RegisterType<Alerts.Sections.DataSourceSummary>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataSourceSummary))));
 
             containerBuilder
-                .RegisterType<Alerts.Sections.TestCaseInfo>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.TestCaseInfo))));
+                .RegisterType<Alerts.Sections.TestCaseSummary>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.TestCaseSummary))));
 
             containerBuilder
-                .RegisterType<Alerts.Sections.DataAggregate>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataAggregate))));
+                .RegisterType<Alerts.Sections.Aggregation>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.Aggregation))));
 
             #endregion
 

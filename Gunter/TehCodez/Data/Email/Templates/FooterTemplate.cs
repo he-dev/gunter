@@ -1,13 +1,11 @@
-﻿using Reusable;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using Reusable.Markup;
-using Reusable.Extensions;
 using Reusable.Markup.Html;
 
-namespace Gunter.Services.Email.Templates
+namespace Gunter.Data.Email.Templates
 {
     internal class FooterTemplate : HtmlTemplate
     {
