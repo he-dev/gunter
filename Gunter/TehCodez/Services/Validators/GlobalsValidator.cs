@@ -12,7 +12,7 @@ namespace Gunter.Services.Validators
     {
         public static void ValidateNames(IConstantResolver globals, ILogger logger)
         {
-            var reservedNames = Globals.GetReservedNames();
+            var reservedNames = VariableName.GetReservedNames();
             foreach(var reservedName in reservedNames.Where(reservedName => globals.ContainsKey(reservedName)))
             {
                 LogEntry.New().Warn().Message($"Reserved name '{reservedName}' will be overwritten.").Log(logger);

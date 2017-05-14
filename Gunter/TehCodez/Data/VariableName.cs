@@ -7,10 +7,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Reusable.Extensions;
 
 namespace Gunter.Data
 {
-    internal static class Globals
+    internal static class VariableName
     {
         [Reserved]
         public static readonly string Environment = nameof(Environment);
@@ -30,8 +31,10 @@ namespace Gunter.Data
         {
             [Reserved]
             public static readonly string Severity = $"{nameof(TestCase)}.{nameof(Severity)}";
+
             [Reserved]
             public static readonly string Message = $"{nameof(TestCase)}.{nameof(Message)}";
+
             [Reserved]
             public static readonly string Profile = $"{nameof(TestCase)}.{nameof(Profile)}";
         }
@@ -44,17 +47,14 @@ namespace Gunter.Data
         public static IEnumerable<string> GetReservedNames()
         {
             return
-                typeof(Globals)
-                .NestedTypes()
-                .Select(t =>
-                    t.GetFields(BindingFlags.Public | BindingFlags.Static)
-                    .Where(f => 
-                        f.GetCustomAttribute<ReservedAttribute>() != null
-                    )
-                )
+                typeof(VariableName)
+                .Flatten()
+                .Select(t => t.Type
+                    .GetFields(BindingFlags.Public | BindingFlags.Static)
+                    .Where(f => f.GetCustomAttribute<ReservedAttribute>().IsNotNull()))
                 .SelectMany(fields => fields)
                 .Select(f => (string)f.GetValue(null));
-        }        
+        }
 
         public static readonly ImmutableDictionary<string, object> Default = new Dictionary<string, object>
         {
@@ -65,7 +65,7 @@ namespace Gunter.Data
         }
         .ToImmutableDictionary();
 
-        
+
     }
 
     internal class ReservedNameException : Exception

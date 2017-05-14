@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Autofac;
-using Gunter.Data.Configurations;
 using Gunter.Alerts;
 using Newtonsoft.Json;
-using SmartConfig.DataStores.AppConfig;
 using Reusable.Logging;
 using Reusable;
 using Gunter.Data;
 using System.Reflection;
+using Gunter.Data.Configuration;
 using Gunter.Services;
 using Gunter.Services.Validators;
+using Reusable.ConfigWhiz;
+using Reusable.ConfigWhiz.Datastores.AppConfig;
+using Reusable.Extensions;
 
 namespace Gunter
 {
@@ -27,30 +29,33 @@ namespace Gunter
         {
             InitializeLogging();
             Logger = LoggerFactory.CreateLogger("Program");
+            Configuration = InitializeConfiguration();
             LogEntry.New().Trace().Message("Logging initialized. Starting...").Log(Logger);
         }
+
+        public static readonly string GlobalsFileName = $"{InstanceName}.Tests.Globals.json";
+
+        public static Configuration Configuration { get; }
 
         private static int Main(string[] args)
         {
             try
             {
-                InitializeConfiguration();
-
                 var container = InitializeContainer();
 
-                var globals = InitializeGlobals(
-                    PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName,
-                    $"{InstanceName}.Globals.json")
-                );
+                var globals = InitializeGlobals(PathResolver.Resolve(Configuration.Load<Program, Global>().TestsDirectoryName, GlobalsFileName));
 
                 var profile = args.FirstOrDefault();
-                if (!string.IsNullOrEmpty(profile)) globals = globals.Add(Globals.TestCase.Profile, profile);
+                if (!string.IsNullOrEmpty(profile)) globals = globals.Add(VariableName.TestCase.Profile, profile);
 
-                var tests = InitializeTests(
-                    Directory.GetFiles(PathResolver.Resolve(AppSettingsConfig.TestsDirectoryName, string.Empty),
-                    $"{InstanceName}.Tests.*.json"),
-                    container
-                ).ToList();
+                var testFileNames =
+                    Directory
+                        .GetFiles(
+                            PathResolver.Resolve(Configuration.Load<Program, Global>().TestsDirectoryName, string.Empty),
+                            $"{InstanceName}.Tests.*.json")
+                        .Where(fileName => !fileName.EndsWith(GlobalsFileName, StringComparison.OrdinalIgnoreCase));
+
+                var tests = InitializeTests(testFileNames, container).ToList();
 
                 LogEntry.New().Trace().Message("Validating test configurations.").Log(Logger);
                 foreach (var config in tests)
@@ -79,7 +84,6 @@ namespace Gunter
         private static void InitializeLogging()
         {
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
-            Reusable.Logging.NLog.Tools.DatabaseTargetQueryGenerator.GenerateInsertQueries();
 
             Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting(name: "Environment", key: $"{InstanceName}.Environment"));
             Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
@@ -87,33 +91,21 @@ namespace Gunter
             Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
         }
 
-        private static void InitializeConfiguration()
+        private static Configuration InitializeConfiguration()
         {
-            using (var entry = LogEntry.New().Stopwatch(sw => sw.Start()).AsAutoLog(Logger))
+            var entry = LogEntry.New().Stopwatch(sw => sw.Start()).Message("Configuration initialized. ({ElapsedSeconds} sec)");
+            try
             {
-                try
-                {
-                    //SmartConfig.Configuration.Load
-                    //       .From(new ConnectionStringsStore())
-                    //       .Select(typeof(ConnectionStringsConfig));
-
-                    SmartConfig.Configuration.Builder()
-                           .From(new AppSettingsStore())
-                           .Select(typeof(AppSettingsConfig));
-
-                    //SmartConfig.Configuration.Load
-                    //    .From(new SQLiteStore("name=ConfigDb"))
-                    //    .Where("Environment", AppSettingsConfig.Environment)
-                    //    .Register<JsonToObjectConverter<LogInfo>>()
-                    //    .Select(typeof(MainConfig));
-
-                    entry.Message("Configuration initialized. ({ElapsedSeconds} sec)");
-                }
-                catch (Exception ex)
-                {
-                    entry.Error().Exception(ex).Message("Error initializing configuration. ({ElapsedSeconds} sec)");
-                    throw;
-                }
+                return new Configuration(new AppSettings());
+            }
+            catch (Exception ex)
+            {
+                entry.Error().Exception(ex).Message("Error initializing configuration. ({ElapsedSeconds} sec)");
+                throw;
+            }
+            finally
+            {
+                entry.Log(Logger);
             }
         }
 
@@ -158,10 +150,10 @@ namespace Gunter
 
         private static IConstantResolver InitializeGlobals(string fileName)
         {
-            var globals = new ConstantResolver(Globals.Default) as IConstantResolver;
+            var globals = new ConstantResolver(VariableName.Default) as IConstantResolver;
             GlobalsValidator.ValidateNames(globals, Logger);
 
-            globals = globals.Add(Globals.Environment, AppSettingsConfig.Environment);
+            globals = globals.Add(VariableName.Environment, Configuration.Load<Program, Global>().Environment);
 
             if (File.Exists(fileName))
             {

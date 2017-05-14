@@ -21,7 +21,7 @@ namespace Gunter.Alerts.Sections
             [Column.Option.Min] = (rows, column) => rows.Min(row => row.Field<double>(column)),
             [Column.Option.Max] = (rows, column) => rows.Max(row => row.Field<double>(column)),
             [Column.Option.Count] = (rows, column) => rows.Count(),
-            [Column.Option.Sum] = (rows, column) => rows.Sum(row => row.Field<double>(column)),
+            [Column.Option.Sum] = (rows, column) => rows.Where(row => row[column] != DBNull.Value).Sum(row => row.Field<double>(column)),
             [Column.Option.Avg] = (rows, column) => rows.Average(row => row.Field<double>(column)),
         };
 

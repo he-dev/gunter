@@ -11,7 +11,7 @@ namespace Gunter.Services
     {
         public static IEnumerable<TestContext> ComposeTests(TestConfiguration config, IConstantResolver constants)
         {
-            var profileExists = constants.TryGetValue(Globals.TestCase.Profile, out object profile);
+            var profileExists = constants.TryGetValue(VariableName.TestCase.Profile, out object profile);
             var results =
                 from test in config.Tests
                 where
@@ -30,9 +30,9 @@ namespace Gunter.Services
                     Constants =
                         constants
                             .UnionWith(config.Locals)
-                            .Add(Globals.TestConfiguration.FileName, config.FileName)
-                            .Add(Globals.TestCase.Severity, test.Severity)
-                            .Add(Globals.TestCase.Message, test.Message)
+                            .Add(VariableName.TestConfiguration.FileName, config.FileName)
+                            .Add(VariableName.TestCase.Severity, test.Severity)
+                            .Add(VariableName.TestCase.Message, test.Message)
                 };
             return results;
         }

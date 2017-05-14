@@ -10,6 +10,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Gunter.Data.Sections;
+using Reusable;
 
 namespace Gunter.Alerts
 {
@@ -28,6 +29,9 @@ namespace Gunter.Alerts
         [JsonRequired]
         public string To { get; set; }
 
+        [JsonRequired]
+        public IEmailClient EmailClient { get; set; }
+
         protected override void PublishCore(IEnumerable<ISection> sections, IConstantResolver constants)
         {
             var body = sections.Select(section => _sectionTemplates[section.GetType()].Render(section, constants)).ToList();
@@ -40,9 +44,9 @@ namespace Gunter.Alerts
                 {
                     Sections = body
                 },
+                To = constants.Resolve(To)
             };
-            var to = constants.Resolve(To);
-            email.Send(to);
+            EmailClient.Send(email);
         }
     }
 

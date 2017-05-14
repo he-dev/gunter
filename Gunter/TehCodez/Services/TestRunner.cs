@@ -41,7 +41,7 @@ namespace Gunter.Services
             {
                 var logEntry = LogEntry.New()
                     .SetValue(nameof(TestCase.Expression), context.Test.Expression)
-                    .SetValue(Globals.TestConfiguration.FileName, context.Constants.Resolve(Globals.TestConfiguration.FileName.ToFormatString()));
+                    .SetValue(VariableName.TestConfiguration.FileName, context.Constants.Resolve(VariableName.TestConfiguration.FileName.ToFormatString()));
 
                 try
                 {

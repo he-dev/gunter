@@ -1,7 +1,6 @@
-﻿using Gunter.Data;
+﻿using System;
+using Gunter.Data;
 using Reusable.Markup;
-using Reusable.Markup.Extensions;
-using Reusable.Markup.Renderers;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -9,19 +8,10 @@ namespace Gunter.Services.Email
 {
     internal abstract class HtmlTemplate
     {
-        protected HtmlTemplate(Dictionary<string, string> styles)
+        protected HtmlTemplate(IDictionary<string, string> styles)
         {
-            Html = new MarkupBuilder(new HtmlRenderer());
-            (Html as MarkupBuilder)
-                .Extensions
-                    .Add<cssExtension>()
-                    .Add<attrExtension>()
-                    .Add(new styleExtension(styles));
+            Styles = new Dictionary<string, string>(styles, StringComparer.OrdinalIgnoreCase);
         }
-
-        protected dynamic Html { get; }
-
-        protected static string HtmlEncode(object value) => System.Web.HttpUtility.HtmlEncode(string.Format(CultureInfo.InvariantCulture, "{0}", value));
 
         public static class Theme
         {
@@ -31,6 +21,10 @@ namespace Gunter.Services.Email
             public static readonly string TableHeaderBackgroundColor = "#C6DABF";
             public static readonly string TableFooterBackgroundColor = "#D5E4D0";
         }
+
+        protected IMarkupElement Html => MarkupElement.Builder;
+
+        protected Dictionary<string, string> Styles { get; }
     }
 
     internal interface ISectionTemplate
