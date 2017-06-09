@@ -22,9 +22,9 @@ namespace Gunter.Services
             var testGroups = testConfigs.Select(testConfig => TestComposer.ComposeTests(testConfig, constants));
 
 #if DEBUG
-            const int maxDegreeOfParallelism = 1;
+            var maxDegreeOfParallelism = 1;
 #else
-            const int maxDegreeOfParallelism = Environment.ProcessorCount;
+            var maxDegreeOfParallelism = Environment.ProcessorCount;
 #endif
 
             Parallel.ForEach

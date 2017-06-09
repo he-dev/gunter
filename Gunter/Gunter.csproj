@@ -51,8 +51,11 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Autofac, Version=4.3.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\packages\Autofac.4.3.0\lib\net45\Autofac.dll</HintPath>
+    <Reference Include="Autofac, Version=4.6.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.4.6.0\lib\net45\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="JetBrains.Annotations, Version=10.4.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>..\packages\JetBrains.Annotations.10.4.0\lib\net\JetBrains.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -61,34 +64,34 @@
       <HintPath>..\packages\NLog.4.4.3\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ConfigWhiz.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ConfigWhiz.Core.3.3.6\lib\net452\Reusable.ConfigWhiz.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.ConfigWhiz.Core.3.33.13\lib\net452\Reusable.ConfigWhiz.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ConfigWhiz.Datastores.AppConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ConfigWhiz.Datastores.AppConfig.3.3.6\lib\net452\Reusable.ConfigWhiz.Datastores.AppConfig.dll</HintPath>
+      <HintPath>..\packages\Reusable.ConfigWhiz.Datastores.AppConfig.3.33.13\lib\net452\Reusable.ConfigWhiz.Datastores.AppConfig.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Core.3.3.11\lib\net452\Reusable.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.Core.3.33.13\lib\net452\Reusable.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Email, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Email.3.3.6\lib\net452\Reusable.Email.dll</HintPath>
+      <HintPath>..\packages\Reusable.Email.3.33.13\lib\net452\Reusable.Email.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.EmailClients.SmtpClient, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.EmailClients.SmtpClient.3.3.6\lib\net452\Reusable.EmailClients.SmtpClient.dll</HintPath>
+      <HintPath>..\packages\Reusable.EmailClients.SmtpClient.3.33.13\lib\net452\Reusable.EmailClients.SmtpClient.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.3.3.6\lib\net452\Reusable.Logging.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.3.33.13\lib\net452\Reusable.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.Adapters.NLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.3.3.6\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.3.33.13\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.NLog.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.3.6\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.33.13\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Markup, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Markup.3.3.11\lib\net452\Reusable.Markup.dll</HintPath>
+      <HintPath>..\packages\Reusable.Markup.3.33.13\lib\net452\Reusable.Markup.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.TypeConversion, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.TypeConversion.3.3.6\lib\net452\Reusable.TypeConversion.dll</HintPath>
+      <HintPath>..\packages\Reusable.TypeConversion.3.33.13\lib\net452\Reusable.TypeConversion.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -100,8 +103,8 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Transactions" />
-    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    <Reference Include="System.ValueTuple, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -152,16 +155,13 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>NLog.tt</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="_AppConfigs\Debug.private.App.config">
       <SubType>Designer</SubType>
-    </None>
-    <None Include="_Tests\Gunter.Tests.Gunter.private.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="_Tests\Gunter.Tests.Globals.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
