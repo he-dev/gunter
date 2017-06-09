@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Gunter.Data;
-using Gunter.Alerts;
 using Reusable.Logging;
 using Gunter.Services;
 using Gunter.Extensions;
 using System.Threading.Tasks;
+using Gunter.Reporting;
 
 namespace Gunter.Services
 {
@@ -17,9 +17,9 @@ namespace Gunter.Services
 
         public TestRunner(ILogger logger) => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public void RunTests(IEnumerable<TestConfiguration> testConfigs, IConstantResolver constants)
+        public void RunTests(IEnumerable<TestCollection> testCollections, IConstantResolver constants)
         {
-            var testGroups = testConfigs.Select(testConfig => TestComposer.ComposeTests(testConfig, constants));
+            var tests = testCollections.Select(testCollection => TestComposer.ComposeTests(testCollection, constants));
 
 #if DEBUG
             var maxDegreeOfParallelism = 1;
@@ -29,51 +29,67 @@ namespace Gunter.Services
 
             Parallel.ForEach
             (
-                source: testGroups,
+                source: tests,
                 parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism },
                 body: RunTest
             );
         }
 
-        public void RunTest(IEnumerable<TestContext> tests)
+        public void RunTest(IEnumerable<TestConfiguration> tests)
         {
             foreach (var context in tests)
             {
-                var logEntry = LogEntry.New()
-                    .SetValue(nameof(TestCase.Expression), context.Test.Expression)
-                    .SetValue(VariableName.TestConfiguration.FileName, context.Constants.Resolve(VariableName.TestConfiguration.FileName.ToFormatString()));
+                var logEntry =
+                    LogEntry
+                        .New()
+                        .SetValue(nameof(TestCase.Expression), context.Test.Expression)
+                        .SetValue(VariableName.TestCollection.FileName, context.Constants.Resolve(VariableName.TestCollection.FileName.ToFormatString()));
 
-                try
+                foreach (var dataSource in context.DataSources)
                 {
-                    var result = context.Data.Compute(context.Test.Expression, context.Test.Filter) is bool testResult && testResult == context.Test.Assert;
-
-                    switch (result)
+                    try
                     {
-                        case true:
-                            logEntry.Info().Message("Passed.");
-                            break;
+                        using (var data = dataSource.GetData(context.Constants))
+                        {
+                            var testCaseContext = new TestContext(context, dataSource, data);
 
-                        case false:
-                            logEntry.Error().Message("Failed.");
-                            foreach (var alert in context.Alerts) alert.Publish(context);
-                            if (context.Test.BreakOnFailure) return;
-                            break;
+                            if (data.Compute(context.Test.Expression, context.Test.Filter) is bool testResult)
+                            {
+                                var success = testResult == context.Test.Assert;
 
-                        default:
-                            throw new InvalidOperationException($"Test expression must evaluate to {typeof(bool).Name}.");
+                                logEntry.Info().Message($"Assert: {success}");
+
+                                var mustAlert =
+                                    (success && context.Test.AlertTrigger == AlertTrigger.Success) ||
+                                    (!success && context.Test.AlertTrigger == AlertTrigger.Failure);
+
+                                if (mustAlert)
+                                {
+                                    foreach (var alert in context.Alerts) alert.Publish(testCaseContext);
+                                }
+
+                                if (!success && !context.Test.ContinueOnFailure)
+                                {
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}.");
+                            }
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    logEntry
-                        .Error()
-                        .Exception(ex)
-                        .Message($"Inconclusive. The expression must evaluate to {typeof(bool).Name}.");
-                }
-                finally
-                {
-                    context.Dispose();
-                    logEntry.Log(_logger);
+                    catch (Exception ex)
+                    {
+                        logEntry
+                            .Error()
+                            .Exception(ex)
+                            .Message($"Inconclusive. The expression must evaluate to {nameof(Boolean)}.");
+                    }
+                    finally
+                    {
+                        logEntry.Log(_logger);
+                    }
                 }
             }
         }

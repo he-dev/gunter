@@ -7,7 +7,6 @@ using Gunter.Services;
 using Reusable.Logging;
 using Gunter.Extensions;
 using Gunter.Data;
-using Gunter.Data.Sections;
 
 namespace Gunter.Alerts.Sections
 {

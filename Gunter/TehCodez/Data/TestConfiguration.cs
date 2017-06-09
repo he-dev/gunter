@@ -1,39 +1,48 @@
 ﻿using System.Collections.Generic;
-using Gunter.Data;
-using Gunter.Alerts;
-using Newtonsoft.Json;
-using System.Linq;
 using System;
 using Gunter.Services;
 using System.Data;
+using System.Linq;
+using Gunter.Messaging;
+using Gunter.Reporting;
 
 namespace Gunter.Data
 {
     public class TestConfiguration
     {
-        public TestConfiguration()
-        {
-            Locals = new Dictionary<string, object>();
-            DataSources = new List<IDataSource>();
-            Tests = new List<TestCase>();
-            Alerts = new List<IAlert>();
-        }
+        public TestCase Test { get; set; }
 
-        [JsonIgnore]
-        public string FileName { get; set; }
+        public IEnumerable<IDataSource> DataSources { get; set; }
 
-        public Dictionary<string, object> Locals { get; set; }
+        public IEnumerable<IAlert> Alerts { get; set; }
 
-        [JsonRequired]
-        public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
+        public IEnumerable<IReport> Reports { get; set; }
 
-        [JsonRequired]
-        public List<TestCase> Tests { get; set; } = new List<TestCase>();
-
-        [JsonRequired]
-        public List<IAlert> Alerts { get; set; }
+        public IConstantResolver Constants { get; set; }
     }
 
-    
-}
+    public class TestContext
+    {
+        public TestContext(TestConfiguration configuration, IDataSource dataSource, DataTable data)
+        {
+            Test = configuration.Test;
+            DataSource = dataSource;
+            Data = data;
+            Alerts = configuration.Alerts;
+            Reports = configuration.Reports;
+            Constants = configuration.Constants;
+        }
 
+        public TestCase Test { get; }
+
+        public IDataSource DataSource { get; }
+
+        public DataTable Data { get; }
+
+        public IEnumerable<IAlert> Alerts { get; }
+
+        public IEnumerable<IReport> Reports { get; }
+
+        public IConstantResolver Constants { get; }
+    }
+}

@@ -9,9 +9,10 @@ using Newtonsoft.Json;
 
 namespace Gunter.Data.SqlClient
 {
-    public class TableOrViewDataSource : DataSource
+    public class TableOrViewDataSource : IDataSource
     {
-        public TableOrViewDataSource(ILogger logger) : base(logger) { }
+        [JsonRequired]
+        public int Id { get; }
 
         [JsonRequired]
         public string ConnectionString { get; set; }
@@ -19,7 +20,7 @@ namespace Gunter.Data.SqlClient
         [JsonRequired]
         public Dictionary<string, Command> Commands { get; set; } = new Dictionary<string, Command>();
 
-        protected override DataTable GetDataCore(IConstantResolver constants)
+        public DataTable GetData(IConstantResolver constants)
         {
             using (var conn = new SqlConnection(constants.Resolve(ConnectionString)))
             {
@@ -45,7 +46,7 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        public override string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string format, IFormatProvider formatProvider)
         {
             switch (format)
             {

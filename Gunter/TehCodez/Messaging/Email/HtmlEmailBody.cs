@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using Reusable;
 
-namespace Gunter.Data.Email
+namespace Gunter.Messaging.Email
 {
-    internal class AlertEmailBody : EmailBody
+    internal class HtmlEmailBody : EmailBody
     {
-        public AlertEmailBody()
+        public HtmlEmailBody()
         {
             IsHtml = true;
             Encoding = Encoding.UTF8;

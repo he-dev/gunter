@@ -1,14 +1,16 @@
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
-using Gunter.Data.Sections;
+using Gunter.Data;
+using Gunter.Reporting;
 using Gunter.Services;
 using Reusable.Extensions;
 using Reusable.Markup;
 using Reusable.Markup.Html;
 
-namespace Gunter.Data.Email.Templates
+namespace Gunter.Messaging.Email.Templates
 {
-    internal class TextTemplate : HtmlTemplate, ISectionTemplate, ISectionTemplate<TextSection>
+    internal class TextTemplate : HtmlTemplate
     {
         public TextTemplate() : base(new Dictionary<string, string>
         {
@@ -18,14 +20,16 @@ namespace Gunter.Data.Email.Templates
         })
         { }
 
-        public string Render(ISection section, IConstantResolver constants) => Render((TextSection)section, constants);
+        //public string Render(ISection section, IConstantResolver constants) => Render((TextSection)section, constants);
 
-        public string Render(TextSection section, IConstantResolver constants) => 
-            new StringBuilder()
+        public override string Render(ISection section, TestContext context)
+        {
+            return new StringBuilder()
                 .AppendWhen(() => section.Heading.IsNotNullOrEmpty(), sb => sb.AppendLine(Html.Element("h1", section.Heading).Style(Styles[Style.h1]).ToHtml()))
                 .AppendWhen(() => section.Text.IsNotNullOrEmpty(), sb => sb.AppendLine(Html.Element("p", section.Text).Style(Styles[Style.p]).ToHtml()))
                 .AppendLine(Html.Element("hr").Style(Styles[Style.hr]).ToHtml())
                 .ToString();
+        }
 
         private static class Style
         {

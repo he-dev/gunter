@@ -2,7 +2,10 @@
 {
     public enum TestSeverity
     {
-        Critical,
-        Warning
+        Debug,
+        Info,
+        Warning,
+        Error,
+        Fatal,
     }
 }

@@ -1,30 +1,25 @@
-﻿using Gunter.Data;
-using Gunter.Data.Sections;
-using Gunter.Data.SqlClient;
-using Gunter.Extensions;
-using Gunter.Services;
-using Reusable.Data;
-using Reusable.Logging;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using Gunter.Data;
+using Gunter.Extensions;
+using Reusable.Data;
 
-namespace Gunter.Alerts.Sections
+namespace Gunter.Reporting.Tables
 {
-    public class DataSourceSummary : SectionFactory
+    public class DataSourceInfo : ISectionDetail
     {
-        public DataSourceSummary(ILogger logger) : base(logger) { Heading = "Data-source"; }
+        public TableOrientation Orientation => TableOrientation.Vertical;
 
-        protected override ISection CreateCore(TestContext context)
+        public DataSet CreateDetail(TestContext context)
         {
             var body =
-                new DataTable(Heading)
+                new DataTable(nameof(DataSourceInfo))
                     .AddColumn("Property", c => c.DataType = typeof(string))
                     .AddColumn("Value", c => c.DataType = typeof(string))
-                    .AddRow($"Query ({DataSource.CommandName.Main})", context.DataSource.ToString(DataSource.CommandName.Main, CultureInfo.InvariantCulture).Resolve(context.Constants))
-                    .AddRow($"Query ({DataSource.CommandName.Debug})", context.DataSource.ToString(DataSource.CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
+                    .AddRow($"Query ({CommandName.Main})", context.DataSource.ToString(CommandName.Main, CultureInfo.InvariantCulture).Resolve(context.Constants))
+                    .AddRow($"Query ({CommandName.Debug})", context.DataSource.ToString(CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
                     .AddRow("Results", context.Data.Rows.Count);
 
             var timestampColumn = VariableName.Column.Timestamp.ToFormatString().Resolve(context.Constants);
@@ -37,12 +32,7 @@ namespace Gunter.Alerts.Sections
                 body.AddRow("TimeSpan", timeSpan.ToString(VariableName.DataSourceInfo.TimeSpanFormat.ToFormatString().Resolve(context.Constants)));
             }
 
-            return new TableSection
-            {
-                Heading = Heading,
-                Body = body,
-                Orientation = Orientation.Vertical
-            };
+            return new DataSet { Tables = { body } };
         }
     }
 

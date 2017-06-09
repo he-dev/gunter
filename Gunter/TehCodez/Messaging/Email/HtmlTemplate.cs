@@ -1,16 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using Gunter.Data;
+using Gunter.Reporting;
 using Gunter.Services;
 using Reusable.Markup;
 
-namespace Gunter.Data.Email
+namespace Gunter.Messaging.Email
 {
-    internal abstract class HtmlTemplate
+    internal interface IHtmlTemplate
+    {
+        string Render(ISection section, TestContext context);
+    }
+
+    internal abstract class HtmlTemplate : IHtmlTemplate
     {
         protected HtmlTemplate(IDictionary<string, string> styles)
         {
             Styles = new Dictionary<string, string>(styles, StringComparer.OrdinalIgnoreCase);
         }
+
+        public abstract string Render(ISection section, TestContext context);
 
         public static class Theme
         {
@@ -26,13 +36,4 @@ namespace Gunter.Data.Email
         protected Dictionary<string, string> Styles { get; }
     }
 
-    internal interface ISectionTemplate
-    {
-        string Render(ISection section, IConstantResolver constants);
-    }
-
-    internal interface ISectionTemplate<in T> where T : ISection
-    {
-        string Render(T section, IConstantResolver constants);
-    }
 }

@@ -9,41 +9,14 @@ namespace Gunter.Data
 {
     public interface IDataSource : IFormattable
     {
-        int Id { get; }        
+        int Id { get; }
 
         DataTable GetData(IConstantResolver constants);
     }
 
-    public abstract class DataSource : IDataSource
+    public static class CommandName
     {
-        protected DataSource(ILogger logger) => Logger = logger;
-
-        [JsonRequired]
-        public int Id { get; set; }
-
-        protected ILogger Logger { get; private set; }
-
-        public DataTable GetData(IConstantResolver constants)
-        {
-            try
-            {
-                return GetDataCore(constants);
-            }
-            catch (Exception ex)
-            {
-                LogEntry.New().Error().Exception(ex).Message("Error getting data.").Log(Logger);
-                return new DataTable();
-            }
-        }
-
-        protected abstract DataTable GetDataCore(IConstantResolver constants);
-
-        public abstract string ToString(string format, IFormatProvider formatProvider);
-
-        public static class CommandName
-        {
-            public const string Main = nameof(Main);
-            public const string Debug = nameof(Debug);
-        }
+        public const string Main = nameof(Main);
+        public const string Debug = nameof(Debug);
     }
 }

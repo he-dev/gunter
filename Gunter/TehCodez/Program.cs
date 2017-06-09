@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Autofac;
-using Gunter.Alerts;
 using Newtonsoft.Json;
 using Reusable.Logging;
 using Reusable;
 using Gunter.Data;
 using System.Reflection;
 using Gunter.Data.Configuration;
+using Gunter.Messaging.Email;
+using Gunter.Reporting;
+using Gunter.Reporting.Tables;
 using Gunter.Services;
 using Gunter.Services.Validators;
 using Reusable.ConfigWhiz;
@@ -122,26 +124,27 @@ namespace Gunter
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrViewDataSource))));
 
             containerBuilder
-                .RegisterType<EmailAlert>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(EmailAlert))));
+                .RegisterType<HtmlEmail>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(HtmlEmail))));
 
             #region Register sections
 
             containerBuilder
-                .RegisterType<Alerts.Sections.Text>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.Text))));
+                .RegisterType<Report>()
+                .As<IReport>();
 
             containerBuilder
-                .RegisterType<Alerts.Sections.DataSourceSummary>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.DataSourceSummary))));
+                .RegisterType<Section>()
+                .As<ISection>();
 
             containerBuilder
-                .RegisterType<Alerts.Sections.TestCaseSummary>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.TestCaseSummary))));
+                .RegisterType<TestCaseInfo>();
 
             containerBuilder
-                .RegisterType<Alerts.Sections.Aggregation>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Alerts.Sections.Aggregation))));
+                .RegisterType<DataSourceInfo>();            
+
+            containerBuilder
+                .RegisterType<DataSummary>();
 
             #endregion
 
@@ -163,20 +166,20 @@ namespace Gunter
             return globals;
         }
 
-        private static IEnumerable<TestConfiguration> InitializeTests(IEnumerable<string> fileNames, IContainer container)
+        private static IEnumerable<TestCollection> InitializeTests(IEnumerable<string> fileNames, IContainer container)
         {
             LogEntry.New().Trace().Message("Initializing tests...").Log(Logger);
 
             return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
 
-            TestConfiguration LoadTest(string fileName)
+            TestCollection LoadTest(string fileName)
             {
                 using (var logEntry = LogEntry.New().Info().AsAutoLog(Logger))
                 {
                     try
                     {
                         var json = File.ReadAllText(fileName);
-                        var test = JsonConvert.DeserializeObject<TestConfiguration>(json, new JsonSerializerSettings
+                        var test = JsonConvert.DeserializeObject<TestCollection>(json, new JsonSerializerSettings
                         {
                             ContractResolver = new AutofacContractResolver(container),
                             DefaultValueHandling = DefaultValueHandling.Populate,

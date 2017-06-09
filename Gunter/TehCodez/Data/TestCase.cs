@@ -20,17 +20,21 @@ namespace Gunter.Data
 
         public string Filter { get; set; }
 
-        [DefaultValue(true)]
-        public bool Assert { get; set; }
-
         [JsonRequired]
         public string Expression { get; set; }
 
+        [DefaultValue(true)]
+        public bool Assert { get; set; }
+
         [DefaultValue(false)]
-        public bool BreakOnFailure { get; set; }
+        public bool ContinueOnFailure { get; set; }
+
+        [DefaultValue(AlertTrigger.Failure)]
+        public AlertTrigger AlertTrigger { get; set; }
 
         public List<int> Alerts { get; set; } = new List<int>();
 
         public List<string> Profiles { get; set; } = new List<string>();
     }
 }
+

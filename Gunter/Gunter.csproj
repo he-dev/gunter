@@ -114,38 +114,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TehCodez\Alerts\Sections\TestCaseSummary.cs" />
-    <Compile Include="TehCodez\Alerts\Sections\Text.cs" />
+    <Compile Include="TehCodez\Data\AlertTrigger.cs" />
+    <Compile Include="TehCodez\Reporting\Report.cs" />
+    <Compile Include="TehCodez\Reporting\Tables\TestCaseInfo.cs" />
     <Compile Include="TehCodez\Data\Configuration.cs" />
-    <Compile Include="TehCodez\Data\Sections\TableSection.cs" />
-    <Compile Include="TehCodez\Data\Sections\TextSection.cs" />
     <Compile Include="TehCodez\Services\TestComposer.cs" />
-    <Compile Include="TehCodez\Data\TestContext.cs" />
+    <Compile Include="TehCodez\Data\TestConfiguration.cs" />
     <Compile Include="TehCodez\Data\TestCase.cs" />
     <Compile Include="TehCodez\Data\TestSeverity.cs" />
     <Compile Include="TehCodez\Extensions\StringExtensions.cs" />
-    <Compile Include="TehCodez\Data\Email\AlertEmail.cs" />
-    <Compile Include="TehCodez\Data\Email\HtmlTemplate.cs" />
-    <Compile Include="TehCodez\Data\Email\Templates\FooterTemplate.cs" />
-    <Compile Include="TehCodez\Data\Email\Templates\TableTemplate.cs" />
-    <Compile Include="TehCodez\Data\Email\Templates\TextTemplate.cs" />
-    <Compile Include="TehCodez\Data\ISection.cs" />
+    <Compile Include="TehCodez\Messaging\Email\HtmlTemplate.cs" />
+    <Compile Include="TehCodez\Messaging\Email\Templates\FooterTemplate.cs" />
+    <Compile Include="TehCodez\Messaging\Email\Templates\TableTemplate.cs" />
+    <Compile Include="TehCodez\Messaging\Email\Templates\TextTemplate.cs" />
+    <Compile Include="TehCodez\Reporting\Section.cs" />
     <Compile Include="TehCodez\Services\ConstantResolver.cs" />
     <Compile Include="TehCodez\Data\VariableName.cs" />
-    <Compile Include="TehCodez\Alerts\Sections\DataSourceSummary.cs" />
+    <Compile Include="TehCodez\Reporting\Tables\DataSourceInfo.cs" />
     <Compile Include="TehCodez\Services\PathResolver.cs" />
-    <Compile Include="TehCodez\Data\TestConfiguration.cs" />
+    <Compile Include="TehCodez\Data\TestCollection.cs" />
     <Compile Include="TehCodez\Data\DataSource.cs" />
     <Compile Include="TehCodez\Services\AutofacContractResolver.cs" />
     <Compile Include="TehCodez\Services\Validators\GlobalsValidator.cs" />
     <Compile Include="TehCodez\Services\Validators\TestConfigurationValidator.cs" />
     <Compile Include="TehCodez\Services\TestRunner.cs" />
-    <Compile Include="TehCodez\Alerts\Sections\Aggregation.cs" />
-    <Compile Include="TehCodez\Alerts\EmailAlert.cs" />
-    <Compile Include="TehCodez\Data\Email\AlertEmailBody.cs" />
-    <Compile Include="TehCodez\Data\Email\AlertEmailSubject.cs" />
-    <Compile Include="TehCodez\Services\IAlert.cs" />
-    <Compile Include="TehCodez\Services\ISectionFactory.cs" />
+    <Compile Include="TehCodez\Reporting\Tables\DataSummary.cs" />
+    <Compile Include="TehCodez\Messaging\Email\HtmlEmail.cs" />
+    <Compile Include="TehCodez\Messaging\Email\HtmlEmailBody.cs" />
+    <Compile Include="TehCodez\Messaging\Email\HtmlEmailSubject.cs" />
+    <Compile Include="TehCodez\Messaging\Alert.cs" />
     <Compile Include="TehCodez\Data\SqlClient\TableOrViewDataSource.cs" />
     <Compile Include="TehCodez\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -171,6 +168,10 @@
     <None Include="_AppConfigs\Release.App.config" />
     <None Include="_AppConfigs\Debug.App.config">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="_Tests\Gunter.Tests.Gunter.example.json" />
+    <None Include="_Tests\Gunter.Tests.Gunter.private.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>

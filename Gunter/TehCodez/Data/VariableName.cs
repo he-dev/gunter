@@ -21,10 +21,10 @@ namespace Gunter.Data
             public static readonly string Timestamp = $"{nameof(Column)}.{nameof(Timestamp)}";
         }
 
-        public class TestConfiguration
+        public class TestCollection
         {
             [Reserved]
-            public static readonly string FileName = $"{nameof(TestConfiguration)}.{nameof(FileName)}";
+            public static readonly string FileName = $"{nameof(TestCollection)}.{nameof(FileName)}";
         }
 
         public class TestCase

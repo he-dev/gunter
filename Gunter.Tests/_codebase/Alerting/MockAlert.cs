@@ -1,5 +1,4 @@
-﻿using Gunter.Alerts;
-using Gunter.Data;
+﻿using Gunter.Data;
 using Gunter.Data.Sections;
 using Gunter.Services;
 using System;
@@ -7,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using Reusable.Logging;
 using System.Linq;
+using Gunter.Messaging;
 
 namespace Gunter.Tests.Alerting
 {

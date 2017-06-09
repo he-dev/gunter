@@ -1,18 +1,15 @@
-﻿using Gunter.Data;
-using Gunter.Data.Sections;
-using Gunter.Services;
-using Newtonsoft.Json;
-using Reusable.Data;
-using Reusable.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
+using Gunter.Data;
+using Newtonsoft.Json;
+using Reusable.Data;
 
-namespace Gunter.Alerts.Sections
+namespace Gunter.Reporting.Tables
 {
-    public class Aggregation : SectionFactory
+    public class DataSummary : ISectionDetail
     {
         private delegate double AggregateCallback(IEnumerable<DataRow> aggregate, string columnName);
 
@@ -25,12 +22,12 @@ namespace Gunter.Alerts.Sections
             [Column.Option.Avg] = (rows, column) => rows.Average(row => row.Field<double>(column)),
         };
 
-        public Aggregation(ILogger logger) : base(logger) { }
+        public TableOrientation Orientation => TableOrientation.Horizontal;
 
         [JsonRequired]
         public List<string> Columns { get; set; }
 
-        protected override ISection CreateCore(TestContext context)
+        public DataSet CreateDetail(TestContext context)
         {
             var columns = Columns.Select(Column.Parse).ToList();
 
@@ -53,14 +50,14 @@ namespace Gunter.Alerts.Sections
             ).ToList();
 
             // Creates a data-table with the specified columns.
-            var body = new DataTable(nameof(Aggregation));
+            var body = new DataTable(nameof(DataSummary));
             foreach (var column in columns) body.AddColumn(column.Name, c => c.DataType = typeof(string));
 
             // Create aggregated rows and add them to the final data-table.
             var rows = groups.Select(CreateRow);
             foreach (var row in rows) body.Rows.Add(row);
 
-            var footer = new DataTable(nameof(TableSection.Footer));
+            var footer = new DataTable(nameof(DataSummary));
             foreach (var column in columns) footer.AddColumn(column.Name, c => c.DataType = typeof(string));
             footer.AddRow(columns.Select(column =>
             {
@@ -69,13 +66,7 @@ namespace Gunter.Alerts.Sections
             })
             .ToArray());
 
-            return new TableSection
-            {
-                Heading = Heading,
-                Body = body,
-                Footer = footer,
-                Orientation = Orientation.Horizontal
-            };
+            return new DataSet { Tables = { body, footer } };
 
             DataRow CreateRow(IGrouping<IDictionary<string, string>, DataRow> group)
             {

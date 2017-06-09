@@ -7,7 +7,8 @@ using Gunter.Data;
 using Gunter.Services;
 using System;
 using System.Linq;
-using Gunter.Alerts;
+using Gunter.Messaging;
+using Gunter.Reporting.Tables;
 
 namespace Gunter.Tests
 {
@@ -44,8 +45,8 @@ namespace Gunter.Tests
                     Sections =
                     {
                         new Gunter.Alerts.Sections.Text(new NullLogger()),
-                        new Gunter.Alerts.Sections.DataSourceSummary(new NullLogger()),
-                        new Gunter.Alerts.Sections.Aggregation(new NullLogger())
+                        new DataSourceInfo(new NullLogger()),
+                        new DataSummary(new NullLogger())
                         {
 
                         },
@@ -57,7 +58,7 @@ namespace Gunter.Tests
         [TestMethod]
         public void RunTests_TestCaseDisabled_TestNotRun()
         {
-            var testConfig = new Gunter.Data.TestConfiguration
+            var testConfig = new Gunter.Data.TestCollection
             {
                 DataSources = _dataSources,
                 Tests =
@@ -71,7 +72,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Expression = "COUNT([Id]) > 0",
                         Assert = false,
-                        BreakOnFailure = false,
+                        ContinueOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -89,7 +90,7 @@ namespace Gunter.Tests
         {
             // This test verifies that the data-source is empty but it isn't so it fails.
 
-            var testConfig = new Gunter.Data.TestConfiguration
+            var testConfig = new Gunter.Data.TestCollection
             {
                 DataSources = _dataSources,
                 Tests =
@@ -103,7 +104,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        BreakOnFailure = false,
+                        ContinueOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -121,7 +122,7 @@ namespace Gunter.Tests
         {
             // This test verifies that a data-source is not empty but it is so it fails.
 
-            var testConfig = new Gunter.Data.TestConfiguration
+            var testConfig = new Gunter.Data.TestCollection
             {
                 DataSources = _dataSources,
                 Tests =
@@ -135,7 +136,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Expression = "COUNT([Id]) = 0",
                         Assert = false,
-                        BreakOnFailure = false,
+                        ContinueOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -153,7 +154,7 @@ namespace Gunter.Tests
         {
             // This test verfies with two identical tests that the execution breaks as soon as the first test fails.
 
-            var testConfig = new Gunter.Data.TestConfiguration
+            var testConfig = new Gunter.Data.TestCollection
             {
                 DataSources = _dataSources,
                 Tests =
@@ -167,7 +168,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        BreakOnFailure = false,
+                        ContinueOnFailure = false,
                         Alerts = { 1 }
                     },
                     new TestCase
@@ -179,7 +180,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        BreakOnFailure = false,
+                        ContinueOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -197,7 +198,7 @@ namespace Gunter.Tests
         {
             // This test verfies with two identical tests that the execution continues even though the first test fails.
 
-            var testConfig = new Gunter.Data.TestConfiguration
+            var testConfig = new Gunter.Data.TestCollection
             {
                 DataSources = _dataSources,
                 Tests =
@@ -211,7 +212,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        BreakOnFailure = true,
+                        ContinueOnFailure = true,
                         Alerts = { 1 }
                     },
                     new TestCase
@@ -223,7 +224,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        BreakOnFailure = false,
+                        ContinueOnFailure = false,
                         Alerts = { 1 }
                     }
                 },
@@ -241,7 +242,7 @@ namespace Gunter.Tests
         {
             // This test verfies that only filtered rows are tested.
 
-            var testConfig = new Gunter.Data.TestConfiguration
+            var testConfig = new Gunter.Data.TestCollection
             {
                 DataSources = _dataSources,
                 Tests =
@@ -255,7 +256,7 @@ namespace Gunter.Tests
                         Filter = "[LogLevel] IN ('debug')",
                         Assert = true,
                         Expression = "COUNT([Id]) = 1",
-                        BreakOnFailure = true,
+                        ContinueOnFailure = true,
                         Alerts = { 1 }
                     },
                 },
@@ -273,7 +274,7 @@ namespace Gunter.Tests
         {
             // This test verfies that only filtered rows are tested.
 
-            var testConfig = new Gunter.Data.TestConfiguration
+            var testConfig = new Gunter.Data.TestCollection
             {
                 DataSources = _dataSources,
                 Tests =
@@ -287,7 +288,7 @@ namespace Gunter.Tests
                         Filter = null,
                         Assert = true,
                         Expression = "[LogLevel] IN ('debug')",
-                        BreakOnFailure = true,
+                        ContinueOnFailure = true,
                         Alerts = { 1 }
                     },
                 },

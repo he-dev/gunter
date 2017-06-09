@@ -8,7 +8,6 @@ using Reusable.Data;
 using Reusable.Logging;
 using Gunter.Data;
 using Gunter.Services;
-using Gunter.Alerts.Sections;
 
 namespace Gunter.Tests.Data.Sections
 {
@@ -26,9 +25,9 @@ namespace Gunter.Tests.Data.Sections
             testData.AddRow(now.AddDays(3));
             testData.AddRow(now.AddDays(4));
 
-            var testContext = new Gunter.Data.TestContext
+            var testContext = new Gunter.Data.TestConfiguration
             {
-                DataSource = new TableOrViewDataSource(new NullLogger())
+                DataSources = new TableOrViewDataSource(new NullLogger())
                 {
                     Commands =
                     {

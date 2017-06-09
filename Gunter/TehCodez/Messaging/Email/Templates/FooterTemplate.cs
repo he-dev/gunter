@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using Gunter.Data;
+using Gunter.Reporting;
 using Reusable.Markup;
 using Reusable.Markup.Html;
 
-namespace Gunter.Data.Email.Templates
+namespace Gunter.Messaging.Email.Templates
 {
     internal class FooterTemplate : HtmlTemplate
     {
@@ -16,6 +18,11 @@ namespace Gunter.Data.Email.Templates
             [Style.HorizonalRule] = "border: 0; border-bottom: 1px solid #ccc; background: #CCC"
         })
         { }
+
+        public override string Render(ISection section, TestContext context)
+        {
+            return null;
+        }
 
         public string Render(string name, DateTime timestamp)
         {

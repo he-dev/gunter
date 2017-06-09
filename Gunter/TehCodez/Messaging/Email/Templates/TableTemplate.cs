@@ -3,14 +3,15 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using Gunter.Data.Sections;
+using Gunter.Data;
+using Gunter.Reporting;
 using Gunter.Services;
 using Reusable.Markup;
 using Reusable.Markup.Html;
 
-namespace Gunter.Data.Email.Templates
+namespace Gunter.Messaging.Email.Templates
 {
-    internal class TableTemplate : HtmlTemplate, ISectionTemplate, ISectionTemplate<TableSection>
+    internal class TableTemplate : HtmlTemplate
     {
         private static readonly string DateTimeFormat = CultureInfo.InvariantCulture.DateTimeFormat.SortableDateTimePattern;
 
@@ -26,26 +27,34 @@ namespace Gunter.Data.Email.Templates
         })
         { }
 
-        public string Render(ISection section, IConstantResolver constants) => Render((TableSection)section, constants);
+        //public string Render(ISection section, IConstantResolver constants) => Render((TableSection)section, constants);
 
-        public string Render(TableSection section, IConstantResolver constants) =>
-            new StringBuilder()
+        public override string Render(ISection section, TestContext context)
+        {
+            return new StringBuilder()
                 .AppendLine(string.IsNullOrEmpty(section.Heading) ? string.Empty : RenderHeading(section.Heading))
-                .AppendLine(RenderDetailTable(section.Body, section.Footer, section.Orientation))
+                .AppendLine(
+                    RenderDetailTable(
+                        section.Detail.CreateDetail(context), 
+                        section.Detail.Orientation))
                 .ToString();
+        }
 
         private string RenderHeading(string text) => Html.Element("h2", text).Style(Styles[Style.h2]).ToHtml();
 
-        private string RenderDetailTable(DataTable data, DataTable footer, Orientation orientation)
+        private string RenderDetailTable(DataSet data, TableOrientation orientation)
         {
+            var body = data.Tables[0];
+            var footer = data.Tables[1];
+
             var table = Html.Element("table").Style(Styles[Style.table]);
 
-            if (orientation == Orientation.Horizontal)
+            if (orientation == TableOrientation.Horizontal)
             {
                 table
                     .Element("thead", thead => thead
                         .Element("tr", tr => tr
-                            .Elements("td", data.Columns.Cast<DataColumn>(), (td, x) => td
+                            .Elements("td", body.Columns.Cast<DataColumn>(), (td, x) => td
                                 .Append(x.ColumnName)
                                 .Style(Styles[Style.thead_td])))
                         .Style(Styles[Style.thead]));
@@ -53,11 +62,11 @@ namespace Gunter.Data.Email.Templates
 
             table
                 .Element("tbody", tbody => tbody
-                    .Elements("tr", data.AsEnumerable(), (tr, row) => tr
-                        .Elements("td", data.Columns.Cast<DataColumn>(), (td, x) => td
+                    .Elements("tr", body.AsEnumerable(), (tr, row) => tr
+                        .Elements("td", body.Columns.Cast<DataColumn>(), (td, x) => td
                             .Append(row.Field<string>(x.ColumnName))
                             .Style(
-                                orientation == Orientation.Vertical && x.Ordinal == 0 
+                                orientation == TableOrientation.Vertical && x.Ordinal == 0 
                                     ? Styles[Style.tbody_td_property] 
                                     : Styles[Style.tbody_td_value]))));
 
@@ -66,7 +75,7 @@ namespace Gunter.Data.Email.Templates
                 table
                     .Element("tfoot", tfoot => tfoot
                         .Elements("tr", footer.AsEnumerable(), (tr, row) => tr
-                            .Elements("td", data.Columns.Cast<DataColumn>(), (td, x) => td
+                            .Elements("td", body.Columns.Cast<DataColumn>(), (td, x) => td
                                 .Append(row.Field<string>(x.ColumnName))
                                 .Style(Styles[Style.tbody_td_value])))
                         //.Style(Styles[Style.tfoot])
