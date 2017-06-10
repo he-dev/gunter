@@ -15,22 +15,29 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
 
-        public TestRunner(ILogger logger) => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-        public void RunTests(IEnumerable<TestCollection> testCollections, IConstantResolver constants)
+        public TestRunner(ILogger logger)
         {
-            var tests = testCollections.Select(testCollection => TestComposer.ComposeTests(testCollection, constants));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 #if DEBUG
-            var maxDegreeOfParallelism = 1;
-#else
-            var maxDegreeOfParallelism = Environment.ProcessorCount;
+            MaxDegreeOfParallelism = 1;
 #endif
+        }
+
+        public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
+
+        public void RunTests(IEnumerable<TestFile> testFiles, IConstantResolver constants)
+        {
+            var tests =
+                (from testFile in testFiles
+                 select TestComposer.ComposeTests(testFile, constants)).ToList();
+
+            LogEntry.New().Debug().Message($"Test configuration count: {tests.Count}").Log(_logger);
 
             Parallel.ForEach
             (
                 source: tests,
-                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism },
+                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism },
                 body: RunTest
             );
         }

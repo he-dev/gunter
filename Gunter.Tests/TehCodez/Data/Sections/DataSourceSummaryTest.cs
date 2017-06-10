@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Data;
 using Gunter.Data.SqlClient;
-using Gunter.Data.Sections;
 using System.Collections.Generic;
 using Reusable.Data;
 using Reusable.Logging;
@@ -27,15 +26,17 @@ namespace Gunter.Tests.Data.Sections
 
             var testContext = new Gunter.Data.TestConfiguration
             {
-                DataSources = new TableOrViewDataSource(new NullLogger())
+                DataSources = new[] 
                 {
-                    Commands =
+                    new TableOrViewDataSource(new NullLogger())
                     {
-                        ["Main"] =new Command { Text = "SELECT * FROM [Main]" },
-                        ["Debug"] =new Command { Text = "SELECT * FROM [Debug]" }
+                        Commands =
+                        {
+                            ["Main"] =new Command { Text = "SELECT * FROM [Main]" },
+                            ["Debug"] =new Command { Text = "SELECT * FROM [Debug]" }
+                        }
                     }
-                },
-                //Data = testData
+                },                
             };
 
             //var section = new DataSourceSummary(new NullLogger()).Create(testContext, ConstantResolver.Empty);

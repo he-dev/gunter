@@ -9,7 +9,7 @@ namespace Gunter.Services
 {
     internal static class TestComposer
     {
-        public static IEnumerable<TestConfiguration> ComposeTests(TestCollection config, IConstantResolver constants)
+        public static IEnumerable<TestConfiguration> ComposeTests(TestFile config, IConstantResolver constants)
         {
             var profileExists = constants.TryGetValue(VariableName.TestCase.Profile, out object profile);
             var results =

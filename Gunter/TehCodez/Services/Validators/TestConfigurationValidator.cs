@@ -11,7 +11,7 @@ namespace Gunter.Services.Validators
 {
     internal class TestConfigurationValidator
     {
-        public static void ValidateDataSources(TestCollection config, ILogger logger)
+        public static void ValidateDataSources(TestFile config, ILogger logger)
         {
             var dataSourceIds = config.DataSources.Select(ds => ds.Id);
 
@@ -24,7 +24,7 @@ namespace Gunter.Services.Validators
             }
         }
 
-        public static void ValidateAlerts(TestCollection config, ILogger logger)
+        public static void ValidateAlerts(TestFile config, ILogger logger)
         {
             var alertIds = config.Alerts.Select(a => a.Id);
 

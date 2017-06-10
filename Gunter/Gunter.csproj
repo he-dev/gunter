@@ -115,8 +115,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TehCodez\Data\AlertTrigger.cs" />
+    <Compile Include="TehCodez\Data\TestContext.cs" />
     <Compile Include="TehCodez\Reporting\Report.cs" />
-    <Compile Include="TehCodez\Reporting\Tables\TestCaseInfo.cs" />
+    <Compile Include="TehCodez\Reporting\Details\TestCaseInfo.cs" />
     <Compile Include="TehCodez\Data\Configuration.cs" />
     <Compile Include="TehCodez\Services\TestComposer.cs" />
     <Compile Include="TehCodez\Data\TestConfiguration.cs" />
@@ -130,15 +131,15 @@
     <Compile Include="TehCodez\Reporting\Section.cs" />
     <Compile Include="TehCodez\Services\ConstantResolver.cs" />
     <Compile Include="TehCodez\Data\VariableName.cs" />
-    <Compile Include="TehCodez\Reporting\Tables\DataSourceInfo.cs" />
+    <Compile Include="TehCodez\Reporting\Details\DataSourceInfo.cs" />
     <Compile Include="TehCodez\Services\PathResolver.cs" />
-    <Compile Include="TehCodez\Data\TestCollection.cs" />
+    <Compile Include="TehCodez\Data\TestFile.cs" />
     <Compile Include="TehCodez\Data\DataSource.cs" />
     <Compile Include="TehCodez\Services\AutofacContractResolver.cs" />
     <Compile Include="TehCodez\Services\Validators\GlobalsValidator.cs" />
     <Compile Include="TehCodez\Services\Validators\TestConfigurationValidator.cs" />
     <Compile Include="TehCodez\Services\TestRunner.cs" />
-    <Compile Include="TehCodez\Reporting\Tables\DataSummary.cs" />
+    <Compile Include="TehCodez\Reporting\Details\DataSummary.cs" />
     <Compile Include="TehCodez\Messaging\Email\HtmlEmail.cs" />
     <Compile Include="TehCodez\Messaging\Email\HtmlEmailBody.cs" />
     <Compile Include="TehCodez\Messaging\Email\HtmlEmailSubject.cs" />

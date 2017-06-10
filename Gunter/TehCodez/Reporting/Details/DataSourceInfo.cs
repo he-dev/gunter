@@ -6,7 +6,7 @@ using Gunter.Data;
 using Gunter.Extensions;
 using Reusable.Data;
 
-namespace Gunter.Reporting.Tables
+namespace Gunter.Reporting.Details
 {
     public class DataSourceInfo : ISectionDetail
     {

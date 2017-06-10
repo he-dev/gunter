@@ -56,21 +56,21 @@
 					"Heading": "Test case",
 					"Detail":
 					{
-						"$type": "Gunter.Reporting.Tables.TestCaseInfo, Gunter"
+						"$type": "Gunter.Reporting.Details.TestCaseInfo, Gunter"
 					}
 				},
 				{
 					"Heading": "Data-source",
 					"Detail":
 					{
-						"$type": "Gunter.Reporting.Tables.DataSourceInfo, Gunter"
+						"$type": "Gunter.Reporting.Details.DataSourceInfo, Gunter"
 					}
 				},
 				{
 					"Heading": "Exceptions",
 					"Detail":
 					{
-						"$type": "Gunter.Reporting.Tables.DataSummary, Gunter",
+						"$type": "Gunter.Reporting.Details.DataSummary, Gunter",
 						"Columns": [
 							"Timestamp",
 							"LogLevel | key",

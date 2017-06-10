@@ -20,45 +20,40 @@ namespace Gunter.Messaging.Email
 
         private readonly FooterTemplate _footerRenderer = new FooterTemplate();
 
+        public HtmlEmail(ILogger logger) : base(logger) { }
+
         [JsonRequired]
         public string To { get; set; }
 
         [JsonRequired]
         public IEmailClient EmailClient { get; set; }
 
-        public override void Publish(TestContext context)
+        protected override void PublishCore(TestContext context, IReport report)
         {
-            var alert = context.Alerts.Single(x => x.Id == Id);
+            var renderedSections =
+                (from section in report.Sections
+                 select new StringBuilder()
+                     .Append(_textTemplate.Render(section, context))
+                     .Append(_tableTemplate.Render(section, context))
+                     .ToString()).ToList();
 
-            var reports =
-                from id in alert.Reports
-                join report in context.Reports on id equals report.Id
-                select report;
+            renderedSections.Add(_footerRenderer.Render(Program.InstanceName, DateTime.UtcNow));
 
-            foreach (var report in reports)
+            var to = context.Constants.Resolve(To);
+
+            LogEntry.New().Debug().Message($"To: {to}").Log(Logger);
+
+            var email = new Email<HtmlEmailSubject, HtmlEmailBody>
             {
-                var sections =
-                    from section in report.Sections
-                    select new StringBuilder()
-                        .Append(_textTemplate.Render(section, context))
-                        .Append(_tableTemplate.Render(section, context))
-                        .ToString();
-
-                var email = new Email<HtmlEmailSubject, HtmlEmailBody>
+                Subject = new HtmlEmailSubject(context.Constants.Resolve(report.Title)),
+                Body = new HtmlEmailBody
                 {
-                    Subject = new HtmlEmailSubject(context.Constants.Resolve(report.Title)),
-                    Body = new HtmlEmailBody
-                    {
-                        Sections = sections.ToList()
-                    },
-                    To = context.Constants.Resolve(To)
-                };
-                EmailClient.Send(email);
-            }
-
-            //body.Add(_footerRenderer.Render("Gunter", DateTime.UtcNow));
-
+                    Sections = renderedSections
+                },
+                To = to
+            };
+            EmailClient.Send(email);
         }
-    }
 
+    }
 }

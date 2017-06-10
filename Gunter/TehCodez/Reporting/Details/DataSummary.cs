@@ -7,7 +7,7 @@ using Gunter.Data;
 using Newtonsoft.Json;
 using Reusable.Data;
 
-namespace Gunter.Reporting.Tables
+namespace Gunter.Reporting.Details
 {
     public class DataSummary : ISectionDetail
     {

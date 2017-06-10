@@ -10,20 +10,12 @@ using Gunter.Reporting;
 
 namespace Gunter.Data
 {
-    public class TestCollection
+    public class TestFile
     {
-        public TestCollection()
-        {
-            Locals = new Dictionary<string, object>();
-            DataSources = new List<IDataSource>();
-            Tests = new List<TestCase>();
-            Alerts = new List<IAlert>();
-        }
-
         [JsonIgnore]
         public string FileName { get; set; }
 
-        public Dictionary<string, object> Locals { get; set; }
+        public Dictionary<string, object> Locals { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
         [JsonRequired]
         public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
@@ -32,10 +24,10 @@ namespace Gunter.Data
         public List<TestCase> Tests { get; set; } = new List<TestCase>();
 
         [JsonRequired]
-        public List<IAlert> Alerts { get; set; }
+        public List<IAlert> Alerts { get; set; } = new List<IAlert>();
 
         [JsonRequired]
-        public List<IReport> Reports { get; set; }
+        public List<IReport> Reports { get; set; } = new List<IReport>();
     }
 }
 

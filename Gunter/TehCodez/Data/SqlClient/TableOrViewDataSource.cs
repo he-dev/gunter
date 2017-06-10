@@ -11,6 +11,15 @@ namespace Gunter.Data.SqlClient
 {
     public class TableOrViewDataSource : IDataSource
     {
+        private readonly ILogger _logger;
+
+        private Dictionary<string, Command> _commands = new Dictionary<string, Command>();
+
+        public TableOrViewDataSource(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         [JsonRequired]
         public int Id { get; }
 
@@ -18,28 +27,56 @@ namespace Gunter.Data.SqlClient
         public string ConnectionString { get; set; }
 
         [JsonRequired]
-        public Dictionary<string, Command> Commands { get; set; } = new Dictionary<string, Command>();
+        public Dictionary<string, Command> Commands
+        {
+            get => _commands;
+            set
+            {
+                if (!value.ContainsKey(CommandName.Main))
+                {
+                    LogEntry.New().Fatal().Message($"{CommandName.Main} command not specified.").Log(_logger);
+                    throw new ArgumentException(
+                        paramName: nameof(Commands),
+                        message: $"You need to specify at least the {nameof(CommandName.Main)} command.");
+                }
+                _commands = value;
+            }
+        }
 
         public DataTable GetData(IConstantResolver constants)
         {
+            if (!Commands.TryGetValue(CommandName.Main, out var command))
+            {
+                LogEntry.New().Fatal().Message($"{CommandName.Main} command not specified.").Log(_logger);
+                throw new InvalidOperationException($"You need to specify at least the {CommandName.Main} command.");
+            }
+
+            var connectionString = constants.Resolve(ConnectionString);
+            LogEntry.New().Debug().Message($"Connection string: {connectionString}").Log(_logger);
+
             using (var conn = new SqlConnection(constants.Resolve(ConnectionString)))
             {
                 conn.Open();
 
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = constants.Resolve(Commands[CommandName.Main].Text);
+                    cmd.CommandText = constants.Resolve(command.Text);
                     cmd.CommandType = CommandType.Text;
 
-                    foreach (var parameter in Commands[CommandName.Main].Parameters)
+                    LogEntry.New().Debug().Message($"Command text: {cmd.CommandText}").Log(_logger);
+
+                    foreach (var parameter in command.Parameters)
                     {
-                        cmd.Parameters.AddWithValue(parameter.Key, constants.Resolve(parameter.Value));
+                        var parameterValue = constants.Resolve(parameter.Value);
+                        LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameterValue}'").Log(_logger);
+                        cmd.Parameters.AddWithValue(parameter.Key, parameterValue);
                     }
 
                     using (var dataReader = cmd.ExecuteReader())
                     {
                         var dataTable = new DataTable();
                         dataTable.Load(dataReader);
+                        LogEntry.New().Debug().Message($"Row count: {dataTable.Rows.Count}").Log(_logger);
                         return dataTable;
                     }
                 }

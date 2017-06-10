@@ -11,7 +11,7 @@ using System.Reflection;
 using Gunter.Data.Configuration;
 using Gunter.Messaging.Email;
 using Gunter.Reporting;
-using Gunter.Reporting.Tables;
+using Gunter.Reporting.Details;
 using Gunter.Services;
 using Gunter.Services.Validators;
 using Reusable.ConfigWhiz;
@@ -127,7 +127,7 @@ namespace Gunter
                 .RegisterType<HtmlEmail>()
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(HtmlEmail))));
 
-            #region Register sections
+            #region Initialize reporting componenets
 
             containerBuilder
                 .RegisterType<Report>()
@@ -166,20 +166,20 @@ namespace Gunter
             return globals;
         }
 
-        private static IEnumerable<TestCollection> InitializeTests(IEnumerable<string> fileNames, IContainer container)
+        private static IEnumerable<TestFile> InitializeTests(IEnumerable<string> fileNames, IContainer container)
         {
             LogEntry.New().Trace().Message("Initializing tests...").Log(Logger);
 
             return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
 
-            TestCollection LoadTest(string fileName)
+            TestFile LoadTest(string fileName)
             {
                 using (var logEntry = LogEntry.New().Info().AsAutoLog(Logger))
                 {
                     try
                     {
                         var json = File.ReadAllText(fileName);
-                        var test = JsonConvert.DeserializeObject<TestCollection>(json, new JsonSerializerSettings
+                        var test = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
                         {
                             ContractResolver = new AutofacContractResolver(container),
                             DefaultValueHandling = DefaultValueHandling.Populate,

@@ -3,7 +3,7 @@ using System.Linq;
 using Gunter.Data;
 using Reusable.Data;
 
-namespace Gunter.Reporting.Tables
+namespace Gunter.Reporting.Details
 {
     public class TestCaseInfo : ISectionDetail
     {
