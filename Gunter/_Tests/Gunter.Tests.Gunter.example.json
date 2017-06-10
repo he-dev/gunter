@@ -63,7 +63,9 @@
 					"Heading": "Data-source",
 					"Detail":
 					{
-						"$type": "Gunter.Reporting.Details.DataSourceInfo, Gunter"
+						"$type": "Gunter.Reporting.Details.DataSourceInfo, Gunter",
+						"TimestampColumn":  "Timestamp",
+						"TimeSpanFormat":  "dd\\.hh\\:mm\\:ss"
 					}
 				},
 				{

@@ -27,17 +27,18 @@ namespace Gunter.Messaging.Email.Templates
         })
         { }
 
-        //public string Render(ISection section, IConstantResolver constants) => Render((TableSection)section, constants);
-
-        public override string Render(ISection section, TestContext context)
+        public override string Render(TestContext context, ISection section)
         {
-            return new StringBuilder()
-                .AppendLine(string.IsNullOrEmpty(section.Heading) ? string.Empty : RenderHeading(section.Heading))
-                .AppendLine(
-                    RenderDetailTable(
-                        section.Detail.CreateDetail(context), 
-                        section.Detail.Orientation))
-                .ToString();
+            using (var detail = section.Detail.Create(context))
+            {
+                return new StringBuilder()
+                    .AppendLine(string.IsNullOrEmpty(section.Heading) ? string.Empty : RenderHeading(section.Heading))
+                    .AppendLine(
+                        RenderDetailTable(
+                            detail,
+                            section.Detail.Orientation))
+                    .ToString();
+            }
         }
 
         private string RenderHeading(string text) => Html.Element("h2", text).Style(Styles[Style.h2]).ToHtml();
@@ -66,8 +67,8 @@ namespace Gunter.Messaging.Email.Templates
                         .Elements("td", body.Columns.Cast<DataColumn>(), (td, x) => td
                             .Append(row.Field<string>(x.ColumnName))
                             .Style(
-                                orientation == TableOrientation.Vertical && x.Ordinal == 0 
-                                    ? Styles[Style.tbody_td_property] 
+                                orientation == TableOrientation.Vertical && x.Ordinal == 0
+                                    ? Styles[Style.tbody_td_property]
                                     : Styles[Style.tbody_td_value]))));
 
             if (footer != null)

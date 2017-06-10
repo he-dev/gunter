@@ -103,10 +103,11 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TehCodez\Messaging\MockAlert.cs" />
+    <Compile Include="TehCodez\Messaging\TestAlert.cs" />
     <Compile Include="TehCodez\Data\Sections\DataSourceSummaryTest.cs" />
     <Compile Include="TehCodez\Data\Fakes\FakeDataSource.cs" />
     <Compile Include="TehCodez\Data\SqlClient\TableOrViewDataSourceTest.cs" />
+    <Compile Include="TehCodez\Services\TestComposerTest.cs" />
     <Compile Include="TehCodez\Testing\TestRunnerTest.cs" />
   </ItemGroup>
   <ItemGroup>

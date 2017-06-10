@@ -27,7 +27,7 @@ namespace Gunter.Reporting.Details
         [JsonRequired]
         public List<string> Columns { get; set; }
 
-        public DataSet CreateDetail(TestContext context)
+        public DataSet Create(TestContext context)
         {
             var columns = Columns.Select(Column.Parse).ToList();
 

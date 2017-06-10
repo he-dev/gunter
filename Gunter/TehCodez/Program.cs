@@ -70,7 +70,7 @@ namespace Gunter
                 using (var scope = container.BeginLifetimeScope())
                 {
                     LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} started. ***").Log(Logger);
-                    scope.Resolve<TestRunner>().RunTests(tests, globals);
+                    scope.Resolve<TestRunner>().RunTestFiles(tests, globals);
                 }
 
                 return 0;

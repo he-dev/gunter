@@ -28,7 +28,7 @@ namespace Gunter.Reporting
         [JsonIgnore]
         TableOrientation Orientation { get; }
 
-        DataSet CreateDetail(TestContext context);
+        DataSet Create(TestContext context);
     }
 
     public enum TableOrientation

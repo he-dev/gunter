@@ -53,7 +53,29 @@ namespace Gunter.Services
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-
         #endregion
-    }   
+    }
+
+    public interface IResolvable
+    {
+        IConstantResolver Constants { get; set; }
+    }
+
+    public static class ResolvableExtensions
+    {
+        public static T UpdateConstants<T>(this T resolvable, IConstantResolver constants) where T : class, IResolvable
+        {
+            resolvable.Constants = constants;
+            return resolvable;
+        }
+
+        public static IEnumerable<T> UpdateConstants<T>(this IEnumerable<T> resolvables, IConstantResolver constants) where T : class, IResolvable
+        {
+            foreach (var resolvable in resolvables)
+            {
+                resolvable.Constants = constants;
+            }
+            return resolvables;
+        }
+    }
 }

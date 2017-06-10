@@ -55,8 +55,10 @@ namespace Gunter.Tests.Data.Fakes
     {
         public static FakeDataSource AddRow(this FakeDataSource dataSource, Action<DataRow> row)
         {
-            var newRow = dataSource.GetData(null).NewRow();
+            var data = dataSource.GetData(null);
+            var newRow = data.NewRow();
             row(newRow);
+            data.Rows.Add(newRow);
             return dataSource;
         }
 

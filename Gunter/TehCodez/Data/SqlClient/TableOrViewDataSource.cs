@@ -14,17 +14,25 @@ namespace Gunter.Data.SqlClient
         private readonly ILogger _logger;
 
         private Dictionary<string, Command> _commands = new Dictionary<string, Command>();
+        private string _connectionString;
 
         public TableOrViewDataSource(ILogger logger)
         {
             _logger = logger;
         }
 
+        [JsonIgnore]
+        public IConstantResolver Constants { get; set; } = ConstantResolver.Empty;
+
         [JsonRequired]
         public int Id { get; }
 
         [JsonRequired]
-        public string ConnectionString { get; set; }
+        public string ConnectionString
+        {
+            get => Constants.Resolve(_connectionString);
+            set => _connectionString = value;
+        }
 
         [JsonRequired]
         public Dictionary<string, Command> Commands
@@ -43,7 +51,7 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        public DataTable GetData(IConstantResolver constants)
+        public DataTable GetData()
         {
             if (!Commands.TryGetValue(CommandName.Main, out var command))
             {
@@ -51,10 +59,9 @@ namespace Gunter.Data.SqlClient
                 throw new InvalidOperationException($"You need to specify at least the {CommandName.Main} command.");
             }
 
-            var connectionString = constants.Resolve(ConnectionString);
-            LogEntry.New().Debug().Message($"Connection string: {connectionString}").Log(_logger);
+            LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
 
-            using (var conn = new SqlConnection(constants.Resolve(ConnectionString)))
+            using (var conn = new SqlConnection(ConnectionString))
             {
                 conn.Open();
 

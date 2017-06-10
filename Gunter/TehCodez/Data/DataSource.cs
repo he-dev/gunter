@@ -7,11 +7,11 @@ using System.Data;
 
 namespace Gunter.Data
 {
-    public interface IDataSource : IFormattable
+    public interface IDataSource : IResolvable, IFormattable
     {
         int Id { get; }
 
-        DataTable GetData(IConstantResolver constants);
+        DataTable GetData();
     }
 
     public static class CommandName

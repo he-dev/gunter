@@ -9,12 +9,12 @@ namespace Gunter.Services
 {
     internal static class TestComposer
     {
-        public static IEnumerable<TestConfiguration> ComposeTests(TestFile config, IConstantResolver constants)
+        public static IEnumerable<TestConfiguration> ComposeTests(TestFile config)
         {
-            var profileExists = constants.TryGetValue(VariableName.TestCase.Profile, out object profile);
+            //var profileExists = constants.TryGetValue(VariableName.TestCase.Profile, out object profile);
             var results =
                 from test in config.Tests
-                where test.Enabled && (!profileExists || test.Profiles.Contains((string)profile, StringComparer.OrdinalIgnoreCase))
+                where test.Enabled // && (!profileExists || test.Profiles.Contains((string)profile, StringComparer.OrdinalIgnoreCase))
                 let dataSources =
                     (from id in test.DataSources
                      join ds in config.DataSources on id equals ds.Id
@@ -29,16 +29,12 @@ namespace Gunter.Services
                      select report).Distinct().ToList()
                 select new TestConfiguration
                 {
-                    Test = test,
+                    FileName = config.FileName,
+                    Locals = config.Locals,
                     DataSources = dataSources,
+                    Test = test,
                     Alerts = alerts,
                     Reports = reports,
-                    Constants =
-                        constants
-                            .UnionWith(config.Locals)
-                            .Add(VariableName.TestCollection.FileName, config.FileName)
-                            .Add(VariableName.TestCase.Severity, test.Severity)
-                            .Add(VariableName.TestCase.Message, test.Message)
                 };
 
             return results;

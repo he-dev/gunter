@@ -16,14 +16,21 @@ namespace Gunter.Messaging.Email
     public class HtmlEmail : Alert
     {
         private readonly TextTemplate _textTemplate = new TextTemplate();
+
         private readonly TableTemplate _tableTemplate = new TableTemplate();
 
         private readonly FooterTemplate _footerRenderer = new FooterTemplate();
 
-        public HtmlEmail(ILogger logger) : base(logger) { }
+        private string _to;
+
+        public HtmlEmail(ILogger logger) : base(logger) { }        
 
         [JsonRequired]
-        public string To { get; set; }
+        public string To
+        {
+            get => Constants.Resolve(_to);
+            set => _to = value;
+        }
 
         [JsonRequired]
         public IEmailClient EmailClient { get; set; }
@@ -33,27 +40,24 @@ namespace Gunter.Messaging.Email
             var renderedSections =
                 (from section in report.Sections
                  select new StringBuilder()
-                     .Append(_textTemplate.Render(section, context))
-                     .Append(_tableTemplate.Render(section, context))
+                     .Append(_textTemplate.Render(context, section))
+                     .Append(_tableTemplate.Render(context, section))
                      .ToString()).ToList();
 
             renderedSections.Add(_footerRenderer.Render(Program.InstanceName, DateTime.UtcNow));
 
-            var to = context.Constants.Resolve(To);
-
-            LogEntry.New().Debug().Message($"To: {to}").Log(Logger);
+            LogEntry.New().Debug().Message($"To: {To}").Log(Logger);
 
             var email = new Email<HtmlEmailSubject, HtmlEmailBody>
             {
-                Subject = new HtmlEmailSubject(context.Constants.Resolve(report.Title)),
+                Subject = new HtmlEmailSubject(report.Title),
                 Body = new HtmlEmailBody
                 {
                     Sections = renderedSections
                 },
-                To = to
+                To = To
             };
             EmailClient.Send(email);
         }
-
     }
 }

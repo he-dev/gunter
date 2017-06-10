@@ -12,7 +12,11 @@ namespace Gunter.Reporting.Details
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
-        public DataSet CreateDetail(TestContext context)
+        public string TimestampColumn { get; set; } = "Timestamp";
+
+        public string TimeSpanFormat { get; set; } = @"dd\.hh\:mm\:ss";
+
+        public DataSet Create(TestContext context)
         {
             var body =
                 new DataTable(nameof(DataSourceInfo))
@@ -22,14 +26,14 @@ namespace Gunter.Reporting.Details
                     .AddRow($"Query ({CommandName.Debug})", context.DataSource.ToString(CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
                     .AddRow("Results", context.Data.Rows.Count);
 
-            var timestampColumn = VariableName.Column.Timestamp.ToFormatString().Resolve(context.Constants);
-            if (context.Data.Columns.Contains(timestampColumn) && context.Data.Rows.Count > 0)
+            //var timestampColumn = VariableName.Column.Timestamp.ToFormatString().Resolve(context.Constants);
+            if (context.Data.Columns.Contains(TimestampColumn) && context.Data.Rows.Count > 0)
             {
-                body.AddRow("CreatedOn", context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn)));
+                body.AddRow("CreatedOn", context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn)));
                 var timeSpan =
-                    context.Data.AsEnumerable().Max(r => r.Field<DateTime>(timestampColumn)) -
-                    context.Data.AsEnumerable().Min(r => r.Field<DateTime>(timestampColumn));
-                body.AddRow("TimeSpan", timeSpan.ToString(VariableName.DataSourceInfo.TimeSpanFormat.ToFormatString().Resolve(context.Constants)));
+                    context.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn)) -
+                    context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
+                body.AddRow("TimeSpan", TimeSpanFormat);
             }
 
             return new DataSet { Tables = { body } };
