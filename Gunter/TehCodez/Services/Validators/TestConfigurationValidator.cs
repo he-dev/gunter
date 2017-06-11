@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Gunter.Services.Validators
 {
-    internal class TestConfigurationValidator
+    internal static class TestConfigurationValidator
     {
         public static void ValidateDataSources(TestFile config, ILogger logger)
         {

@@ -135,7 +135,7 @@
     <Compile Include="TehCodez\Data\TestFile.cs" />
     <Compile Include="TehCodez\Data\DataSource.cs" />
     <Compile Include="TehCodez\Services\AutofacContractResolver.cs" />
-    <Compile Include="TehCodez\Services\Validators\GlobalsValidator.cs" />
+    <Compile Include="TehCodez\Services\Validators\VariableValidator.cs" />
     <Compile Include="TehCodez\Services\Validators\TestConfigurationValidator.cs" />
     <Compile Include="TehCodez\Services\TestRunner.cs" />
     <Compile Include="TehCodez\Reporting\Details\DataSummary.cs" />

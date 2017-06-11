@@ -14,6 +14,7 @@ using Gunter.Reporting;
 using Gunter.Reporting.Details;
 using Gunter.Services;
 using Gunter.Services.Validators;
+using JetBrains.Annotations;
 using Reusable.ConfigWhiz;
 using Reusable.ConfigWhiz.Datastores.AppConfig;
 using Reusable.Extensions;
@@ -23,16 +24,14 @@ namespace Gunter
     internal class Program
     {
         public static readonly string InstanceName = Assembly.GetAssembly(typeof(Program)).GetName().Name;
-        public static readonly string InstanceVersion = "1.0.0";
+        public static readonly string InstanceVersion = "2.0.0";
 
         private static readonly ILogger Logger;
 
         static Program()
         {
-            InitializeLogging();
-            Logger = LoggerFactory.CreateLogger("Program");
+            Logger = InitializeLogging();
             Configuration = InitializeConfiguration();
-            LogEntry.New().Trace().Message("Logging initialized. Starting...").Log(Logger);
         }
 
         public static readonly string GlobalsFileName = $"{InstanceName}.Tests.Globals.json";
@@ -43,20 +42,25 @@ namespace Gunter
         {
             try
             {
-                var container = InitializeContainer();
-
-                var globals = InitializeGlobals(PathResolver.Resolve(Configuration.Load<Program, Global>().TestsDirectoryName, GlobalsFileName));
+                var globals = InitializeGlobals(
+                    PathResolver.ResolveFilePath(
+                        AppDomain.CurrentDomain, 
+                        Path.Combine(Configuration.Load<Program, ProgramConfig>().TestsDirectoryName, GlobalsFileName)));
 
                 var profile = args.FirstOrDefault();
-                if (!string.IsNullOrEmpty(profile)) globals = globals.Add(VariableName.TestCase.Profile, profile);
+                if (!string.IsNullOrEmpty(profile))
+                {
+                    globals = globals.Add(VariableName.TestCase.Profile, profile);
+                }
 
                 var testFileNames =
                     Directory
                         .GetFiles(
-                            PathResolver.Resolve(Configuration.Load<Program, Global>().TestsDirectoryName, string.Empty),
+                            PathResolver.ResolveDirectoryPath(AppDomain.CurrentDomain, Configuration.Load<Program, ProgramConfig>().TestsDirectoryName),
                             $"{InstanceName}.Tests.*.json")
                         .Where(fileName => !fileName.EndsWith(GlobalsFileName, StringComparison.OrdinalIgnoreCase));
 
+                var container = InitializeContainer();
                 var tests = InitializeTests(testFileNames, container).ToList();
 
                 LogEntry.New().Trace().Message("Validating test configurations.").Log(Logger);
@@ -66,7 +70,6 @@ namespace Gunter
                     TestConfigurationValidator.ValidateAlerts(config, Logger);
                 }
 
-                using (var logEntry = LogEntry.New().Info().Message($"***{InstanceName} v{InstanceVersion} finished. ({{ElapsedSeconds}} sec) ***").AsAutoLog(Logger))
                 using (var scope = container.BeginLifetimeScope())
                 {
                     LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} started. ***").Log(Logger);
@@ -78,12 +81,18 @@ namespace Gunter
             // Exception should already be logged elsewhere and rethrown to exit the application.
             catch (Exception ex)
             {
-                LogEntry.New().Fatal().Message($"***{InstanceName} v{InstanceVersion} crashed. ({{ElapsedSeconds}} sec) ***").Exception(ex).Log(Logger);
+                LogEntry.New().Fatal().Message($"*** {InstanceName} v{InstanceVersion} crashed. ***").Exception(ex).Log(Logger);
                 return 1;
+            }
+            finally
+            {
+                LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} exited. ***").Log(Logger);
             }
         }
 
-        private static void InitializeLogging()
+        #region Initialization
+
+        private static ILogger InitializeLogging()
         {
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
 
@@ -91,112 +100,136 @@ namespace Gunter
             Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
 
             Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
+            var logger = LoggerFactory.CreateLogger(nameof(Program));
+            LogEntry.New().Debug().Message("Logging initialized.").Log(logger);
+            return logger;
         }
 
         private static Configuration InitializeConfiguration()
         {
-            var entry = LogEntry.New().Stopwatch(sw => sw.Start()).Message("Configuration initialized. ({ElapsedSeconds} sec)");
             try
             {
                 return new Configuration(new AppSettings());
             }
             catch (Exception ex)
             {
-                entry.Error().Exception(ex).Message("Error initializing configuration. ({ElapsedSeconds} sec)");
-                throw;
-            }
-            finally
-            {
-                entry.Log(Logger);
+                throw new InitializationException("Could not initialize configuration.", ex);
             }
         }
 
         private static IContainer InitializeContainer()
         {
-            var containerBuilder = new ContainerBuilder();
+            try
+            {
+                var containerBuilder = new ContainerBuilder();
 
-            containerBuilder
-                .RegisterType<TestRunner>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
+                containerBuilder
+                    .RegisterType<TestRunner>()
+                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
 
-            containerBuilder
-                .RegisterType<Data.SqlClient.TableOrView>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrView))));
+                containerBuilder
+                    .RegisterType<Data.SqlClient.TableOrView>()
+                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrView))));
 
-            containerBuilder
-                .RegisterType<HtmlEmail>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(HtmlEmail))));
+                containerBuilder
+                    .RegisterType<HtmlEmail>()
+                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(HtmlEmail))));
 
-            #region Initialize reporting componenets
+                #region Initialize reporting componenets
 
-            containerBuilder
-                .RegisterType<Report>()
-                .As<IReport>();
+                containerBuilder
+                    .RegisterType<Report>()
+                    .As<IReport>();
 
-            containerBuilder
-                .RegisterType<Section>()
-                .As<ISection>();
+                containerBuilder
+                    .RegisterType<Section>()
+                    .As<ISection>();
 
-            containerBuilder
-                .RegisterType<TestCaseInfo>();
+                containerBuilder
+                    .RegisterType<TestCaseInfo>();
 
-            containerBuilder
-                .RegisterType<DataSourceInfo>();            
+                containerBuilder
+                    .RegisterType<DataSourceInfo>();
 
-            containerBuilder
-                .RegisterType<DataSummary>();
+                containerBuilder
+                    .RegisterType<DataSummary>();
 
-            #endregion
+                #endregion
 
-            return containerBuilder.Build();
+                return containerBuilder.Build();
+            }
+            catch (Exception ex)
+            {
+                throw new InitializationException("Could not initialize container.", ex);
+            }
         }
 
         private static IVariableResolver InitializeGlobals(string fileName)
         {
-            var globals = VariableResolver.Empty;
-            GlobalsValidator.ValidateNames(globals, Logger);
-
-            globals = globals.Add(VariableName.Environment, Configuration.Load<Program, Global>().Environment);
-
-            if (File.Exists(fileName))
+            try
             {
-                globals = globals.UnionWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)));
-            }
+                var globals = VariableResolver.Empty;
 
-            return globals;
+                if (File.Exists(fileName))
+                {
+                    globals = globals.MergeWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)));
+                    VariableValidator.ValidateNoReservedNames(globals);
+                }
+
+                globals = globals.Add(VariableName.Environment, Configuration.Load<Program, ProgramConfig>().Environment);
+
+                return globals;
+            }
+            catch (Exception ex)
+            {
+                throw new InitializationException("Could not initialize globals.", ex);
+            }
         }
 
+        [NotNull]
+        [ItemNotNull]
         private static IEnumerable<TestFile> InitializeTests(IEnumerable<string> fileNames, IContainer container)
         {
-            LogEntry.New().Trace().Message("Initializing tests...").Log(Logger);
+            LogEntry.New().Debug().Message("Initializing tests.").Log(Logger);
 
             return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
 
             TestFile LoadTest(string fileName)
             {
-                using (var logEntry = LogEntry.New().Info().AsAutoLog(Logger))
+                var logEntry = LogEntry.New().Info();
+                try
                 {
-                    try
+                    var json = File.ReadAllText(fileName);
+                    var testFile = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
                     {
-                        var json = File.ReadAllText(fileName);
-                        var testFile = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
-                        {
-                            ContractResolver = new AutofacContractResolver(container),
-                            DefaultValueHandling = DefaultValueHandling.Populate,
-                            TypeNameHandling = TypeNameHandling.Auto
-                        });
-                        testFile.FileName = fileName;
-                        logEntry.Message($"Loaded '{fileName}'. ({{ElapsedSeconds}} sec)");
-                        GlobalsValidator.ValidateNames(VariableResolver.Empty.UnionWith(testFile.Locals), Logger);
-                        return testFile;
-                    }
-                    catch (Exception ex)
-                    {
-                        logEntry.Error().Message($"Error loading '{fileName}'. ({{ElapsedSeconds}} sec)").Exception(ex);
-                        return null;
-                    }
+                        ContractResolver = new AutofacContractResolver(container),
+                        DefaultValueHandling = DefaultValueHandling.Populate,
+                        TypeNameHandling = TypeNameHandling.Auto
+                    });
+                    testFile.FileName = fileName;
+                    VariableValidator.ValidateNoReservedNames(VariableResolver.Empty.MergeWith(testFile.Locals));
+                    logEntry.Message($"Loaded: {fileName}");
+                    return testFile;
+                }
+                catch (Exception ex)
+                {
+                    logEntry.Error().Message($"Could not load: {fileName}").Exception(ex);
+                    return null;
+                }
+                finally
+                {
+                    logEntry.Log(Logger);
                 }
             }
         }
+        
+        #endregion
+    }
+
+    internal class InitializationException : Exception
+    {
+        public InitializationException(string message, Exception innerException)
+            : base(message, innerException)
+        { }
     }
 }

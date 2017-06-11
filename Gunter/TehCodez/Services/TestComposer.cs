@@ -14,7 +14,7 @@ namespace Gunter.Services
             var results =
                 from test in testFile.Tests
                 let localVariables = globalVariables
-                    .UnionWith(testFile.Locals)
+                    .MergeWith(testFile.Locals)
                     .Add(VariableName.TestFile.FileName, testFile.FileName)
                     .Add(VariableName.TestCase.Severity, test.Severity)
                     .Add(VariableName.TestCase.Message, test.Message)

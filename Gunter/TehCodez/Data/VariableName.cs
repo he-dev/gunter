@@ -50,7 +50,7 @@ namespace Gunter.Data
     internal class ReservedNameException : Exception
     {
         public ReservedNameException(IEnumerable<string> names)
-            : base(message: $"Reserved names found: [{string.Join(", ", names.Select(name => $"'{name}'"))}]")
+            : base($"You must not use any of these reserved names: [{string.Join(", ", names.Select(name => $"'{name}'"))}]")
         { }
     }
 
