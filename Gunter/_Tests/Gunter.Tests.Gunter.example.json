@@ -9,14 +9,18 @@
 			"$type": "Gunter.Data.SqlClient.TableOrViewDataSource, Gunter",
 			"Id": 1,
 			"ConnectionString": "{TEST_LOG}",
-			"Commands": {
-				"Main": {
+			"Commands": [
+				{
+					"Name":  "Main",
 					//"Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
 					"Text": "SELECT * FROM {MainLog}",
 					"Parameters": { "@Environment": "{Environment}" }
 				},
-				"Debug": { "Text": "{DebugCommand}" }
-			}
+				{
+					"Name":  "Debug",
+					"Text": "{DebugCommand}"
+				}
+			]
 		}
 	],
 	"Tests": [

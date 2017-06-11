@@ -37,7 +37,7 @@ namespace Gunter.Tests.Services
                 Reports = { new Report { Id = 2 } }
             };
 
-            var tests = TestComposer.ComposeTests(testFile, ConstantResolver.Empty).ToList();
+            var tests = TestComposer.ComposeTests(testFile).ToList();
             Assert.AreEqual(1, tests.Count);
             Assert.AreEqual(1, tests.Single().DataSources.Count());
             Assert.AreEqual(1, tests.Single().Alerts.Count());

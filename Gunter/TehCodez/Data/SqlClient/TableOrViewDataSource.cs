@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using Reusable;
 using Reusable.Logging;
 using Gunter.Services;
 using Newtonsoft.Json;
+using Reusable.Data;
 
 namespace Gunter.Data.SqlClient
 {
@@ -13,8 +16,9 @@ namespace Gunter.Data.SqlClient
     {
         private readonly ILogger _logger;
 
-        private Dictionary<string, Command> _commands = new Dictionary<string, Command>();
+        private List<Command> _commands = new List<Command>();
         private string _connectionString;
+        private IConstantResolver _constants = ConstantResolver.Empty;
 
         public TableOrViewDataSource(ILogger logger)
         {
@@ -22,7 +26,18 @@ namespace Gunter.Data.SqlClient
         }
 
         [JsonIgnore]
-        public IConstantResolver Constants { get; set; } = ConstantResolver.Empty;
+        public IConstantResolver Constants
+        {
+            get => _constants;
+            set
+            {
+                _constants = value;
+                foreach (var command in _commands)
+                {
+                    command.UpdateConstants(value);
+                }
+            }
+        }
 
         [JsonRequired]
         public int Id { get; }
@@ -35,17 +50,16 @@ namespace Gunter.Data.SqlClient
         }
 
         [JsonRequired]
-        public Dictionary<string, Command> Commands
+        public List<Command> Commands
         {
             get => _commands;
             set
             {
-                if (!value.ContainsKey(CommandName.Main))
+                if (!value.Any())
                 {
-                    LogEntry.New().Fatal().Message($"{CommandName.Main} command not specified.").Log(_logger);
                     throw new ArgumentException(
                         paramName: nameof(Commands),
-                        message: $"You need to specify at least the {nameof(CommandName.Main)} command.");
+                        message: $"You need to specify at least the one command.");
                 }
                 _commands = value;
             }
@@ -53,10 +67,9 @@ namespace Gunter.Data.SqlClient
 
         public DataTable GetData()
         {
-            if (!Commands.TryGetValue(CommandName.Main, out var command))
+            if (!Commands.Any())
             {
-                LogEntry.New().Fatal().Message($"{CommandName.Main} command not specified.").Log(_logger);
-                throw new InvalidOperationException($"You need to specify at least the {CommandName.Main} command.");
+                throw new InvalidOperationException($"You need to specify at least the one command.");
             }
 
             LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
@@ -67,16 +80,15 @@ namespace Gunter.Data.SqlClient
 
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = constants.Resolve(command.Text);
+                    cmd.CommandText = Commands.First().Text;
                     cmd.CommandType = CommandType.Text;
 
-                    LogEntry.New().Debug().Message($"Command text: {cmd.CommandText}").Log(_logger);
+                    LogEntry.New().Debug().Message($"Command: {cmd.CommandText}").Log(_logger);
 
-                    foreach (var parameter in command.Parameters)
+                    foreach (var parameter in Commands.First())
                     {
-                        var parameterValue = constants.Resolve(parameter.Value);
-                        LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameterValue}'").Log(_logger);
-                        cmd.Parameters.AddWithValue(parameter.Key, parameterValue);
+                        LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameter.Value}'").Log(_logger);
+                        cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
                     }
 
                     using (var dataReader = cmd.ExecuteReader())
@@ -90,22 +102,55 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public IEnumerable<(string Name, string Text)> GetCommands()
         {
-            switch (format)
-            {
-                case string s when s.Equals(CommandName.Main, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Main].Text;
-                case string s when s.Equals(CommandName.Debug, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Debug].Text;
-                default: return base.ToString();
-            }
+            return
+                from command in Commands
+                select (command.Name, command.Text);
         }
+
+        //public string ToString(string format, IFormatProvider formatProvider)
+        //{
+        //    switch (format)
+        //    {
+        //        case string s when s.Equals(CommandName.Main, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Main].Text;
+        //        case string s when s.Equals(CommandName.Debug, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Debug].Text;
+        //        default: return base.ToString();
+        //    }
+        //}
     }
 
-    public class Command
+    public class Command : IResolvable, IEnumerable<KeyValuePair<string, string>>
     {
+        private string _text;
+        public IConstantResolver Constants { get; set; }
+
+        public string Name { get; set; }
+
         [JsonRequired]
-        public string Text { get; set; }
+        public string Text
+        {
+            get => Constants.Resolve(_text);
+            set => _text = value;
+        }
 
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
+
+        #region IEnumerable
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+        {
+            return 
+                Parameters
+                    .Select(parameter => new KeyValuePair<string, string>(parameter.Key, Constants.Resolve(parameter.Value)))
+                    .GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
     }
 }

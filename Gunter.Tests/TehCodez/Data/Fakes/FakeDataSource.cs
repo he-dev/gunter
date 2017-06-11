@@ -28,16 +28,18 @@ namespace Gunter.Tests.Data.Fakes
             _data.Columns.Add(nameof(FakeDataSourceExtensions.Completed), typeof(bool));
         }
 
+        public IConstantResolver Constants { get; set; } = ConstantResolver.Empty;
+
         public int Id { get; set; }
 
-        public DataTable GetData(IConstantResolver constants)
+        public DataTable GetData()
         {
             return _data;
-        }       
+        }            
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public IEnumerable<(string Name, string Text)> GetCommands()
         {
-            return base.ToString();
+            yield break;
         }
 
         public IEnumerator<DataRow> GetEnumerator()
@@ -49,13 +51,14 @@ namespace Gunter.Tests.Data.Fakes
         {
             return GetEnumerator();
         }
+
     }
 
     internal static class FakeDataSourceExtensions
     {
         public static FakeDataSource AddRow(this FakeDataSource dataSource, Action<DataRow> row)
         {
-            var data = dataSource.GetData(null);
+            var data = dataSource.GetData();
             var newRow = data.NewRow();
             row(newRow);
             data.Rows.Add(newRow);

@@ -32,8 +32,8 @@ namespace Gunter.Tests.Data.Sections
                     {
                         Commands =
                         {
-                            ["Main"] =new Command { Text = "SELECT * FROM [Main]" },
-                            ["Debug"] =new Command { Text = "SELECT * FROM [Debug]" }
+                            new Command { Name = "Main", Text = "SELECT * FROM [Main]" },
+                            new Command { Name = "Debug", Text = "SELECT * FROM [Debug]" }
                         }
                     }
                 },                

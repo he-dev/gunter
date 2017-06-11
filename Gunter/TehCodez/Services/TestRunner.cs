@@ -92,16 +92,15 @@ namespace Gunter.Services
                                     Data = data,
                                     Alerts = testCase.Alerts,
                                     Reports = testCase.Reports,
-                                    Constants = testCase.constants
                                 };
 
-                                foreach (var alert in testCase.config.Alerts)
+                                foreach (var alert in testCase.Alerts)
                                 {
                                     alert.Publish(testContext);
                                 }
                             }
 
-                            if (!success && !testCase.config.Test.ContinueOnFailure)
+                            if (!success && !testCase.Test.ContinueOnFailure)
                             {
                                 return;
                             }

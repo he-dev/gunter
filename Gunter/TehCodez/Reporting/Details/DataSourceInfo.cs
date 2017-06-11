@@ -21,10 +21,16 @@ namespace Gunter.Reporting.Details
             var body =
                 new DataTable(nameof(DataSourceInfo))
                     .AddColumn("Property", c => c.DataType = typeof(string))
-                    .AddColumn("Value", c => c.DataType = typeof(string))
-                    .AddRow($"Query ({CommandName.Main})", context.DataSource.ToString(CommandName.Main, CultureInfo.InvariantCulture).Resolve(context.Constants))
-                    .AddRow($"Query ({CommandName.Debug})", context.DataSource.ToString(CommandName.Debug, CultureInfo.InvariantCulture).Resolve(context.Constants))
-                    .AddRow("Results", context.Data.Rows.Count);
+                    .AddColumn("Value", c => c.DataType = typeof(string));
+
+            var commandNumber = 0;
+            foreach (var tuple in context.DataSource.GetCommands())
+            {
+                body.AddRow($"Command: {(string.IsNullOrEmpty(tuple.Name) ? commandNumber++.ToString() : tuple.Name)}", tuple.Text);
+            }
+
+            body
+                .AddRow("Results", context.Data.Rows.Count);
 
             //var timestampColumn = VariableName.Column.Timestamp.ToFormatString().Resolve(context.Constants);
             if (context.Data.Columns.Contains(TimestampColumn) && context.Data.Rows.Count > 0)
@@ -37,6 +43,12 @@ namespace Gunter.Reporting.Details
             }
 
             return new DataSet { Tables = { body } };
+        }
+
+        public static class Columns
+        {
+            public static readonly string Property = nameof(Property);
+            public static readonly string Value = nameof(Value);
         }
     }
 
