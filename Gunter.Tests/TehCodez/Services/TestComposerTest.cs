@@ -13,7 +13,7 @@ namespace Gunter.Tests.Services
     public class TestComposerTest
     {
         [TestMethod]
-        public void ComposeTests_abc()
+        public void ComposeTests_AllOptions_TestUnits()
         {
             var testFile = new TestFile
             {
@@ -37,11 +37,11 @@ namespace Gunter.Tests.Services
                 Reports = { new Report { Id = 2 } }
             };
 
-            var tests = TestComposer.ComposeTests(testFile).ToList();
-            Assert.AreEqual(1, tests.Count);
-            Assert.AreEqual(1, tests.Single().DataSources.Count());
-            Assert.AreEqual(1, tests.Single().Alerts.Count());
-            Assert.AreEqual(1, tests.Single().Reports.Count());
+            var testUnits = TestComposer.ComposeTests(testFile, VariableResolver.Empty).ToList();
+            Assert.AreEqual(1, testUnits.Count);
+            Assert.AreEqual(2, testUnits.Single().DataSource.Id);
+            Assert.AreEqual(1, testUnits.Single().Alerts.Count());
+            Assert.AreEqual(1, testUnits.Single().Reports.Count());
         }
     }
 }

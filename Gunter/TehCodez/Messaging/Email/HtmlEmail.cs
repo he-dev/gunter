@@ -28,14 +28,14 @@ namespace Gunter.Messaging.Email
         [JsonRequired]
         public string To
         {
-            get => Constants.Resolve(_to);
+            get => Variables.Resolve(_to);
             set => _to = value;
         }
 
         [JsonRequired]
         public IEmailClient EmailClient { get; set; }
 
-        protected override void PublishCore(TestContext context, IReport report)
+        protected override void PublishCore(TestUnit context, IReport report)
         {
             var renderedSections =
                 (from section in report.Sections

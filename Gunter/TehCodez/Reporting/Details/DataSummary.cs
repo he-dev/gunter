@@ -4,11 +4,13 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
 using Gunter.Data;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.Data;
 
 namespace Gunter.Reporting.Details
 {
+    [PublicAPI]
     public class DataSummary : ISectionDetail
     {
         private delegate double AggregateCallback(IEnumerable<DataRow> aggregate, string columnName);
@@ -24,18 +26,23 @@ namespace Gunter.Reporting.Details
 
         public TableOrientation Orientation => TableOrientation.Horizontal;
 
-        [JsonRequired]
-        public List<string> Columns { get; set; }
+        [NotNull]
+        [ItemNotNull]
+        public List<string> Columns { get; set; } = new List<string>();
 
-        public DataSet Create(TestContext context)
+        public DataSet Create(TestUnit testUnit)
         {
-            var columns = Columns.Select(Column.Parse).ToList();
+            // Use default columns if none-specified.
+            var columns = 
+                Columns.Any() 
+                    ? Columns.Select(Column.Parse).ToList() 
+                    : testUnit.DataSource.Data.Columns.Cast<DataColumn>().Select(c => new Column(c.ColumnName)).ToList();
 
             // Get only keyed columns.
             var keys = columns.Where(x => x.Options.Contains(Column.Option.Key)).ToList();
 
             // Group-by keyed columns.
-            var groups = context.Data.Select(context.Test.Filter).GroupBy(x =>
+            var groups = testUnit.DataSource.Data.Select(testUnit.Test.Filter).GroupBy(x =>
                 keys.ToDictionary(
                     column => column.Name,
                     column =>
@@ -50,19 +57,19 @@ namespace Gunter.Reporting.Details
             ).ToList();
 
             // Creates a data-table with the specified columns.
-            var body = new DataTable(nameof(DataSummary));
+            var body = new DataTable(nameof(DataSummary) + "Body");
             foreach (var column in columns) body.AddColumn(column.Name, c => c.DataType = typeof(string));
 
             // Create aggregated rows and add them to the final data-table.
             var rows = groups.Select(CreateRow);
             foreach (var row in rows) body.Rows.Add(row);
 
-            var footer = new DataTable(nameof(DataSummary));
+            var footer = new DataTable(nameof(DataSummary) + "Footer");
             foreach (var column in columns) footer.AddColumn(column.Name, c => c.DataType = typeof(string));
             footer.AddRow(columns.Select(column =>
             {
                 var options = string.Join(", ", column.Options);
-                return (string.IsNullOrEmpty(options) ? Column.Option.First : options).ToLower();
+                return (object)(string.IsNullOrEmpty(options) ? Column.Option.First : options).ToLower();
             })
             .ToArray());
 
@@ -102,6 +109,8 @@ namespace Gunter.Reporting.Details
         // Represents an aggregated column and its options.
         private class Column
         {
+            public Column(string name) : this(name, Enumerable.Empty<string>()) { }
+
             private Column(string name, IEnumerable<string> options)
             {
                 Name = name;

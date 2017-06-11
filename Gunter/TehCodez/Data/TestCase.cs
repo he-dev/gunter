@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using Gunter.Services;
+using JetBrains.Annotations;
 
 namespace Gunter.Data
 {
-   
+    [PublicAPI]
     public class TestCase : IResolvable
     {
         private string _message;
 
         [JsonIgnore]
-        public IConstantResolver Constants { get; set; } = ConstantResolver.Empty;
+        public IVariableResolver Variables { get; set; } = VariableResolver.Empty;
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }
@@ -23,7 +23,7 @@ namespace Gunter.Data
         [JsonRequired]
         public string Message
         {
-            get => Constants.Resolve(_message);
+            get => Variables.Resolve(_message);
             set => _message = value;
         }
 
@@ -48,7 +48,5 @@ namespace Gunter.Data
 
         public List<string> Profiles { get; set; } = new List<string>();
     }
-
-    
 }
 

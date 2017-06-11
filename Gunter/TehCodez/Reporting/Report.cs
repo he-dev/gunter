@@ -24,15 +24,27 @@ namespace Gunter.Reporting
     public class Report : IReport
     {
         private string _title;
+        private IVariableResolver _variables = VariableResolver.Empty;
 
         [JsonIgnore]
-        public IConstantResolver Constants { get; set; } = ConstantResolver.Empty;
+        public IVariableResolver Variables
+        {
+            get => _variables;
+            set
+            {
+                _variables = value;
+                foreach (var section in Sections)
+                {
+                    section.UpdateVariables(value);
+                }
+            }
+        }
 
         public int Id { get; set; }
 
         public string Title
         {
-            get => Constants.Resolve(_title);
+            get => Variables.Resolve(_title);
             set => _title = value;
         }
 

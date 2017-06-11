@@ -21,7 +21,7 @@ namespace Gunter.Messaging
         [JsonRequired]
         List<int> Reports { get; set; }
 
-        void Publish(TestContext context);
+        void Publish(TestUnit context);
     }
 
     public abstract class Alert : IAlert
@@ -32,7 +32,7 @@ namespace Gunter.Messaging
         }
 
         [JsonIgnore]
-        public IConstantResolver Constants { get; set; } = ConstantResolver.Empty;
+        public IVariableResolver Variables { get; set; } = VariableResolver.Empty;
 
         protected ILogger Logger { get; }
 
@@ -40,14 +40,14 @@ namespace Gunter.Messaging
 
         public List<int> Reports { get; set; } = new List<int>();
 
-        public void Publish(TestContext context)
+        public void Publish(TestUnit context)
         {
             LogEntry.New().Debug().Message($"Publishing alert {Id}").Log(Logger);
 
             var reports =
                 from id in Reports
                 join report in context.Reports on id equals report.Id
-                select report;
+                select report.UpdateVariables(Variables);
 
             foreach (var report in reports)
             {
@@ -57,6 +57,6 @@ namespace Gunter.Messaging
             }
         }
 
-        protected abstract void PublishCore(TestContext context, IReport report);
+        protected abstract void PublishCore(TestUnit context, IReport report);
     }
 }

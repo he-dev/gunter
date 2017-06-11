@@ -120,8 +120,8 @@ namespace Gunter
                 .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
 
             containerBuilder
-                .RegisterType<Data.SqlClient.TableOrViewDataSource>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrViewDataSource))));
+                .RegisterType<Data.SqlClient.TableOrView>()
+                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrView))));
 
             containerBuilder
                 .RegisterType<HtmlEmail>()
@@ -151,9 +151,9 @@ namespace Gunter
             return containerBuilder.Build();
         }
 
-        private static IConstantResolver InitializeGlobals(string fileName)
+        private static IVariableResolver InitializeGlobals(string fileName)
         {
-            var globals = new ConstantResolver(VariableName.Default) as IConstantResolver;
+            var globals = VariableResolver.Empty;
             GlobalsValidator.ValidateNames(globals, Logger);
 
             globals = globals.Add(VariableName.Environment, Configuration.Load<Program, Global>().Environment);
@@ -179,16 +179,16 @@ namespace Gunter
                     try
                     {
                         var json = File.ReadAllText(fileName);
-                        var test = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
+                        var testFile = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
                         {
                             ContractResolver = new AutofacContractResolver(container),
                             DefaultValueHandling = DefaultValueHandling.Populate,
                             TypeNameHandling = TypeNameHandling.Auto
                         });
-                        test.FileName = fileName;
+                        testFile.FileName = fileName;
                         logEntry.Message($"Loaded '{fileName}'. ({{ElapsedSeconds}} sec)");
-                        GlobalsValidator.ValidateNames(new ConstantResolver(test.Locals), Logger);
-                        return test;
+                        GlobalsValidator.ValidateNames(VariableResolver.Empty.UnionWith(testFile.Locals), Logger);
+                        return testFile;
                     }
                     catch (Exception ex)
                     {

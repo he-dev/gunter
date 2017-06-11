@@ -4,51 +4,59 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using Reusable;
 using Reusable.Logging;
 using Gunter.Services;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable.Data;
 
 namespace Gunter.Data.SqlClient
 {
-    public class TableOrViewDataSource : IDataSource
+    public class TableOrView : IDataSource
     {
         private readonly ILogger _logger;
+        private readonly Lazy<DataTable> _data;
 
         private List<Command> _commands = new List<Command>();
         private string _connectionString;
-        private IConstantResolver _constants = ConstantResolver.Empty;
+        private IVariableResolver _variables = VariableResolver.Empty;
 
-        public TableOrViewDataSource(ILogger logger)
+        public TableOrView(ILogger logger)
         {
             _logger = logger;
+            _data = new Lazy<DataTable>(GetData);
         }
 
+        [NotNull]
         [JsonIgnore]
-        public IConstantResolver Constants
+        public IVariableResolver Variables
         {
-            get => _constants;
+            get => _variables;
             set
             {
-                _constants = value;
+                _variables = value;
                 foreach (var command in _commands)
                 {
-                    command.UpdateConstants(value);
+                    command.UpdateVariables(value);
                 }
             }
         }
 
-        [JsonRequired]
-        public int Id { get; }
+        public int Id { get; set; }
+                
+        public DataTable Data => _data.Value;
 
+        [PublicAPI]
+        [NotNull]
         [JsonRequired]
         public string ConnectionString
         {
-            get => Constants.Resolve(_connectionString);
+            get => Variables.Resolve(_connectionString);
             set => _connectionString = value;
         }
 
+        [PublicAPI]
+        [NotNull]
+        [ItemNotNull]
         [JsonRequired]
         public List<Command> Commands
         {
@@ -65,7 +73,7 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        public DataTable GetData()
+        private DataTable GetData()
         {
             if (!Commands.Any())
             {
@@ -118,31 +126,46 @@ namespace Gunter.Data.SqlClient
         //        default: return base.ToString();
         //    }
         //}
+
+        public void Dispose()
+        {
+            if (_data.IsValueCreated)
+            {
+                _data.Value.Dispose();
+            }
+        }
     }
 
+    [JsonObject]
     public class Command : IResolvable, IEnumerable<KeyValuePair<string, string>>
     {
         private string _text;
-        public IConstantResolver Constants { get; set; }
 
+        [NotNull]
+        [JsonIgnore]
+        public IVariableResolver Variables { get; set; } = VariableResolver.Empty;
+
+        [CanBeNull]
         public string Name { get; set; }
 
+        [NotNull]
         [JsonRequired]
         public string Text
         {
-            get => Constants.Resolve(_text);
+            get => Variables.Resolve(_text);
             set => _text = value;
         }
 
+        [PublicAPI]
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
 
         #region IEnumerable
 
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
         {
-            return 
+            return
                 Parameters
-                    .Select(parameter => new KeyValuePair<string, string>(parameter.Key, Constants.Resolve(parameter.Value)))
+                    .Select(parameter => new KeyValuePair<string, string>(parameter.Key, Variables.Resolve(parameter.Value)))
                     .GetEnumerator();
         }
 

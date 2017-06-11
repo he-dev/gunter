@@ -27,41 +27,35 @@ namespace Gunter.Services
 
         public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
 
-        public void RunTestFiles(IEnumerable<TestFile> testFiles, IConstantResolver constants)
+        public void RunTestFiles(IEnumerable<TestFile> testFiles, IVariableResolver variables)
         {
             //LogEntry.New().Debug().Message($"Test configuration count: {tests.Count}").Log(_logger);
 
-            var testConfigs =
-                from testFile in testFiles
-                select TestComposer.ComposeTests(testFile);
+            var testUnitGroups =
+                (from testFile in testFiles
+                 select TestComposer.ComposeTests(testFile, variables)).ToList();
 
-            Parallel.ForEach
-            (
-                source: testConfigs,
-                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism },
-                body: testConfig => RunTests(testConfig, constants)
-            );
+            try
+            {
+                Parallel.ForEach
+                (
+                    source: testUnitGroups,
+                    parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism },
+                    body: RunTests
+                );
+            }
+            finally
+            {
+                foreach (var testUnit in testUnitGroups.SelectMany(testUnits => testUnits))
+                {
+                    testUnit.Dispose();
+                }
+            }
         }
 
-        public void RunTests(IEnumerable<TestConfiguration> testConfigurations, IConstantResolver constants)
+        public void RunTests(IEnumerable<TestUnit> testUnits)
         {
-            var testCases =
-                from config in testConfigurations
-                from dataSource in config.DataSources
-                let locals = constants.UnionWith(config.Locals)
-                //let testConstants = locals
-                //    .Add(VariableName.TestFile.FileName, config.FileName)
-                //    .Add(VariableName.TestCase.Severity, config.Test.Severity)
-                //    .Add(VariableName.TestCase.Message, config.Test.Message)
-                select new
-                {
-                    Test = config.Test.UpdateConstants(locals),
-                    DataSource = dataSource.UpdateConstants(locals),
-                    Alerts = config.Alerts,
-                    Reports = config.Reports
-                };
-
-            foreach (var testCase in testCases)
+            foreach (var testUnit in testUnits.Where(tu => tu.Test.Enabled))
             {
                 var logEntry =
                     LogEntry
@@ -71,44 +65,33 @@ namespace Gunter.Services
 
                 try
                 {
-                    using (var data = testCase.DataSource.GetData())
+                    if (testUnit.DataSource.Data.Compute(testUnit.Test.Expression, testUnit.Test.Filter) is bool testResult)
                     {
-                        if (data.Compute(testCase.Test.Expression, testCase.Test.Filter) is bool testResult)
+                        var success = testResult == testUnit.Test.Assert;
+
+                        logEntry.Info().Message($"{(success ? "Success" : "Failure")}");
+
+                        var mustAlert =
+                            (success && testUnit.Test.AlertTrigger == AlertTrigger.Success) ||
+                            (!success && testUnit.Test.AlertTrigger == AlertTrigger.Failure);
+
+                        if (mustAlert)
                         {
-                            var success = testResult == testCase.Test.Assert;
-
-                            logEntry.Info().Message($"{(success ? "Success" : "Failure")}");
-
-                            var mustAlert =
-                                (success && testCase.Test.AlertTrigger == AlertTrigger.Success) ||
-                                (!success && testCase.Test.AlertTrigger == AlertTrigger.Failure);
-
-                            if (mustAlert)
+                            foreach (var alert in testUnit.Alerts)
                             {
-                                var testContext = new TestContext
-                                {
-                                    Test = testCase.Test,
-                                    DataSource = testCase.DataSource,
-                                    Data = data,
-                                    Alerts = testCase.Alerts,
-                                    Reports = testCase.Reports,
-                                };
-
-                                foreach (var alert in testCase.Alerts)
-                                {
-                                    alert.Publish(testContext);
-                                }
-                            }
-
-                            if (!success && !testCase.Test.ContinueOnFailure)
-                            {
-                                return;
+                                alert.UpdateVariables(testUnit.Test.Variables);
+                                alert.Publish(testUnit);
                             }
                         }
-                        else
+
+                        if (!success && !testUnit.Test.ContinueOnFailure)
                         {
-                            throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}.");
+                            return;
                         }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}.");
                     }
                 }
                 catch (Exception ex)

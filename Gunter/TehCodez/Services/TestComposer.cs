@@ -9,30 +9,32 @@ namespace Gunter.Services
 {
     internal static class TestComposer
     {
-        public static IEnumerable<TestConfiguration> ComposeTests(TestFile config)
+        public static IEnumerable<TestUnit> ComposeTests(TestFile testFile, IVariableResolver globalVariables)
         {
-            //var profileExists = constants.TryGetValue(VariableName.TestCase.Profile, out object profile);
             var results =
-                from test in config.Tests
-                where test.Enabled // && (!profileExists || test.Profiles.Contains((string)profile, StringComparer.OrdinalIgnoreCase))
+                from test in testFile.Tests
+                let localVariables = globalVariables
+                    .UnionWith(testFile.Locals)
+                    .Add(VariableName.TestFile.FileName, testFile.FileName)
+                    .Add(VariableName.TestCase.Severity, test.Severity)
+                    .Add(VariableName.TestCase.Message, test.Message)
                 let dataSources =
                     (from id in test.DataSources
-                     join ds in config.DataSources on id equals ds.Id
+                     join ds in testFile.DataSources on id equals ds.Id
                      select ds).Distinct().ToList()
+                from dataSource in dataSources
                 let alerts =
                     (from id in test.Alerts
-                     join alert in config.Alerts on id equals alert.Id
+                     join alert in testFile.Alerts on id equals alert.Id
                      select alert).Distinct().ToList()
                 let reports =
                     (from id in alerts.SelectMany(alert => alert.Reports)
-                     join report in config.Reports on id equals report.Id
+                     join report in testFile.Reports on id equals report.Id
                      select report).Distinct().ToList()
-                select new TestConfiguration
+                select new TestUnit
                 {
-                    FileName = config.FileName,
-                    Locals = config.Locals,
-                    DataSources = dataSources,
-                    Test = test,
+                    Test = test.UpdateVariables(localVariables),
+                    DataSource = dataSource.UpdateVariables(localVariables),
                     Alerts = alerts,
                     Reports = reports,
                 };

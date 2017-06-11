@@ -19,7 +19,7 @@ namespace Gunter.Messaging.Email.Templates
         })
         { }
 
-        public override string Render(TestContext context, ISection section)
+        public override string Render(TestUnit context, ISection section)
         {
             return null;
         }

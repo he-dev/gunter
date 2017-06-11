@@ -24,20 +24,20 @@ namespace Gunter.Tests.Data.Sections
             testData.AddRow(now.AddDays(3));
             testData.AddRow(now.AddDays(4));
 
-            var testContext = new Gunter.Data.TestConfiguration
-            {
-                DataSources = new[] 
-                {
-                    new TableOrViewDataSource(new NullLogger())
-                    {
-                        Commands =
-                        {
-                            new Command { Name = "Main", Text = "SELECT * FROM [Main]" },
-                            new Command { Name = "Debug", Text = "SELECT * FROM [Debug]" }
-                        }
-                    }
-                },                
-            };
+            //var testContext = new Gunter.Data.TestConfiguration
+            //{
+            //    DataSources = new[] 
+            //    {
+            //        new TableOrView(new NullLogger())
+            //        {
+            //            Commands =
+            //            {
+            //                new Command { Name = "Main", Text = "SELECT * FROM [Main]" },
+            //                new Command { Name = "Debug", Text = "SELECT * FROM [Debug]" }
+            //            }
+            //        }
+            //    },                
+            //};
 
             //var section = new DataSourceSummary(new NullLogger()).Create(testContext, ConstantResolver.Empty);
 

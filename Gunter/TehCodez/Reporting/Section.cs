@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using Gunter.Data;
+using Gunter.Services;
 using Newtonsoft.Json;
 
 namespace Gunter.Reporting
 {
-    public interface ISection
+    public interface ISection : IResolvable
     {
         string Heading { get; set; }
 
@@ -16,9 +17,23 @@ namespace Gunter.Reporting
 
     public class Section : ISection
     {
-        public string Heading { get; set; }
+        private string _text;
+        private string _heading;
 
-        public string Text { get; set; }
+        [JsonIgnore]
+        public IVariableResolver Variables { get; set; } = VariableResolver.Empty;
+
+        public string Heading
+        {
+            get => Variables.Resolve(_heading);
+            set => _heading = value;
+        }
+
+        public string Text
+        {
+            get => Variables.Resolve(_text);
+            set => _text = value;
+        }
 
         public ISectionDetail Detail { get; set; }
     }
@@ -28,7 +43,7 @@ namespace Gunter.Reporting
         [JsonIgnore]
         TableOrientation Orientation { get; }
 
-        DataSet Create(TestContext context);
+        DataSet Create(TestUnit testUnit);
     }
 
     public enum TableOrientation

@@ -10,7 +10,7 @@ namespace Gunter.Services.Validators
 {
     internal class GlobalsValidator
     {
-        public static void ValidateNames(IConstantResolver globals, ILogger logger)
+        public static void ValidateNames(IVariableResolver globals, ILogger logger)
         {
             var reservedNames = VariableName.GetReservedNames();
             foreach(var reservedName in reservedNames.Where(reservedName => globals.ContainsKey(reservedName)))

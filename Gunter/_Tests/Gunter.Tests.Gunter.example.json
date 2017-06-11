@@ -6,7 +6,7 @@
 	},
 	"DataSources": [
 		{
-			"$type": "Gunter.Data.SqlClient.TableOrViewDataSource, Gunter",
+			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
 			"Id": 1,
 			"ConnectionString": "{TEST_LOG}",
 			"Commands": [
@@ -25,7 +25,7 @@
 	],
 	"Tests": [
 		{
-			"Enabled": true,
+			"Enabled": false,
 			"Severity": "Warning",
 			"Message": "Trace logging is on.",
 			"DataSources": [1],
@@ -69,7 +69,7 @@
 					{
 						"$type": "Gunter.Reporting.Details.DataSourceInfo, Gunter",
 						"TimestampColumn":  "Timestamp",
-						"TimeSpanFormat":  "dd\\.hh\\:mm\\:ss"
+						"TimespanFormat":  "dd\\.hh\\:mm\\:ss"
 					}
 				},
 				{

@@ -11,6 +11,6 @@ namespace Gunter.Extensions
     {
         public static string ToFormatString(this string value) => $"{{{value}}}";
 
-        public static string Resolve(this string value, IConstantResolver constants) => constants.Resolve(value);
+        public static string Resolve(this string value, IVariableResolver variables) => variables.Resolve(value);
     }
 }

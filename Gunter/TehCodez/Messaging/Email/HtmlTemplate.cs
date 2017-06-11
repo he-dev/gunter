@@ -10,7 +10,7 @@ namespace Gunter.Messaging.Email
 {
     internal interface IHtmlTemplate
     {
-        string Render(TestContext context, ISection section);
+        string Render(TestUnit context, ISection section);
     }
 
     internal abstract class HtmlTemplate : IHtmlTemplate
@@ -20,7 +20,7 @@ namespace Gunter.Messaging.Email
             Styles = new Dictionary<string, string>(styles, StringComparer.OrdinalIgnoreCase);
         }
 
-        public abstract string Render(TestContext context, ISection section);
+        public abstract string Render(TestUnit context, ISection section);
 
         public static class Theme
         {

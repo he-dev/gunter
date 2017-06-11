@@ -66,7 +66,7 @@ namespace Gunter.Tests.Testing
                 Alerts = { _alert }
             };
 
-            _testRunner.RunTestFiles(new[] { testConfig }, ConstantResolver.Empty);
+            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
             Assert.AreEqual(0, _alert.PublishedReports.Count);
         }
 
@@ -119,7 +119,7 @@ namespace Gunter.Tests.Testing
                 }
             };
 
-            _testRunner.RunTestFiles(new[] { testConfig }, ConstantResolver.Empty);
+            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
             Assert.AreEqual(1, _alert.PublishedReports.Count);
             var report = _alert.PublishedReports.Single();
 
@@ -155,7 +155,7 @@ namespace Gunter.Tests.Testing
                 Alerts = _alerts
             };
 
-            _testRunner.RunTestFiles(new[] { testConfig }, ConstantResolver.Empty);
+            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
             var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
             Assert.IsNotNull(mockAlert);
             Assert.AreEqual(1, mockAlert.PublishedReports.Count);
@@ -199,7 +199,7 @@ namespace Gunter.Tests.Testing
                 Alerts = _alerts
             };
 
-            _testRunner.RunTestFiles(new[] { testConfig }, ConstantResolver.Empty);
+            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
             var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
             Assert.IsNotNull(mockAlert);
             Assert.AreEqual(2, mockAlert.PublishedReports.Count);
@@ -243,7 +243,7 @@ namespace Gunter.Tests.Testing
                 Alerts = _alerts
             };
 
-            _testRunner.RunTestFiles(new[] { testConfig }, ConstantResolver.Empty);
+            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
             var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
             Assert.IsNotNull(mockAlert);
             Assert.AreEqual(1, mockAlert.PublishedReports.Count);
@@ -275,7 +275,7 @@ namespace Gunter.Tests.Testing
                 Alerts = _alerts
             };
 
-            _testRunner.RunTestFiles(new[] { testConfig }, ConstantResolver.Empty);
+            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
             var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
             Assert.IsNotNull(mockAlert);
             Assert.AreEqual(0, mockAlert.PublishedReports.Count);
@@ -308,7 +308,7 @@ namespace Gunter.Tests.Testing
             };
 
             var testRunner = new TestRunner(new NullLogger());
-            testRunner.RunTestFiles(new[] { testConfig }, ConstantResolver.Empty);
+            testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
 
             Assert.AreEqual(0, (_alerts[0] as TestAlert).PublishedReports.Count);
         }

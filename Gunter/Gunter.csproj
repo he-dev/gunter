@@ -115,12 +115,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TehCodez\Data\AlertTrigger.cs" />
-    <Compile Include="TehCodez\Data\TestContext.cs" />
+    <Compile Include="TehCodez\Data\TestUnit.cs" />
     <Compile Include="TehCodez\Reporting\Report.cs" />
     <Compile Include="TehCodez\Reporting\Details\TestCaseInfo.cs" />
     <Compile Include="TehCodez\Data\Configuration.cs" />
     <Compile Include="TehCodez\Services\TestComposer.cs" />
-    <Compile Include="TehCodez\Data\TestConfiguration.cs" />
     <Compile Include="TehCodez\Data\TestCase.cs" />
     <Compile Include="TehCodez\Data\TestSeverity.cs" />
     <Compile Include="TehCodez\Extensions\StringExtensions.cs" />
@@ -129,7 +128,7 @@
     <Compile Include="TehCodez\Messaging\Email\Templates\TableTemplate.cs" />
     <Compile Include="TehCodez\Messaging\Email\Templates\TextTemplate.cs" />
     <Compile Include="TehCodez\Reporting\Section.cs" />
-    <Compile Include="TehCodez\Services\ConstantResolver.cs" />
+    <Compile Include="TehCodez\Services\VariableResolver.cs" />
     <Compile Include="TehCodez\Data\VariableName.cs" />
     <Compile Include="TehCodez\Reporting\Details\DataSourceInfo.cs" />
     <Compile Include="TehCodez\Services\PathResolver.cs" />
@@ -144,7 +143,7 @@
     <Compile Include="TehCodez\Messaging\Email\HtmlEmailBody.cs" />
     <Compile Include="TehCodez\Messaging\Email\HtmlEmailSubject.cs" />
     <Compile Include="TehCodez\Messaging\Alert.cs" />
-    <Compile Include="TehCodez\Data\SqlClient\TableOrViewDataSource.cs" />
+    <Compile Include="TehCodez\Data\SqlClient\TableOrView.cs" />
     <Compile Include="TehCodez\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
 using Gunter.Data;
-using Gunter.Extensions;
+using JetBrains.Annotations;
 using Reusable.Data;
 
 namespace Gunter.Reporting.Details
@@ -12,44 +13,43 @@ namespace Gunter.Reporting.Details
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
-        public string TimestampColumn { get; set; } = "Timestamp";
+        [PublicAPI]
+        [DefaultValue("Timestamp")]
+        public string TimestampColumn { get; set; }
 
-        public string TimeSpanFormat { get; set; } = @"dd\.hh\:mm\:ss";
+        // Custom TimeSpan Format Strings https://msdn.microsoft.com/en-us/library/ee372287(v=vs.110).aspx
 
-        public DataSet Create(TestContext context)
+        [PublicAPI]
+        [DefaultValue(@"dd\.hh\:mm\:ss")]
+        public string TimespanFormat { get; set; }
+
+        public DataSet Create(TestUnit testUnit)
         {
             var body =
                 new DataTable(nameof(DataSourceInfo))
                     .AddColumn("Property", c => c.DataType = typeof(string))
-                    .AddColumn("Value", c => c.DataType = typeof(string));
+                    .AddColumn("Value", c => c.DataType = typeof(string))
+                    .AddRow("Type", testUnit.DataSource.GetType().Name);
 
             var commandNumber = 0;
-            foreach (var tuple in context.DataSource.GetCommands())
+            foreach (var tuple in testUnit.DataSource.GetCommands())
             {
                 body.AddRow($"Command: {(string.IsNullOrEmpty(tuple.Name) ? commandNumber++.ToString() : tuple.Name)}", tuple.Text);
             }
 
             body
-                .AddRow("Results", context.Data.Rows.Count);
+                .AddRow("Results", testUnit.DataSource.Data.Rows.Count);
 
-            //var timestampColumn = VariableName.Column.Timestamp.ToFormatString().Resolve(context.Constants);
-            if (context.Data.Columns.Contains(TimestampColumn) && context.Data.Rows.Count > 0)
+            if (testUnit.DataSource.Data.Columns.Contains(TimestampColumn) && testUnit.DataSource.Data.Rows.Count > 0)
             {
-                body.AddRow("CreatedOn", context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn)));
-                var timeSpan =
-                    context.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn)) -
-                    context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
-                body.AddRow("TimeSpan", TimeSpanFormat);
+                body.AddRow("CreatedOn", testUnit.DataSource.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn)));
+                var timespan =
+                    testUnit.DataSource.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn)) -
+                    testUnit.DataSource.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
+                body.AddRow("TimeSpan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture));
             }
 
             return new DataSet { Tables = { body } };
         }
-
-        public static class Columns
-        {
-            public static readonly string Property = nameof(Property);
-            public static readonly string Value = nameof(Value);
-        }
     }
-
 }

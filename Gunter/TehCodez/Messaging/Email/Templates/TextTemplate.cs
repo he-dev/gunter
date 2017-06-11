@@ -22,7 +22,7 @@ namespace Gunter.Messaging.Email.Templates
 
         //public string Render(ISection section, IConstantResolver constants) => Render((TextSection)section, constants);
 
-        public override string Render(TestContext context, ISection section)
+        public override string Render(TestUnit context, ISection section)
         {
             return new StringBuilder()
                 .AppendWhen(() => section.Heading.IsNotNullOrEmpty(), sb => sb.AppendLine(Html.Element("h1", section.Heading).Style(Styles[Style.h1]).ToHtml()))

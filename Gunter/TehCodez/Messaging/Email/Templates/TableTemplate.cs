@@ -27,8 +27,13 @@ namespace Gunter.Messaging.Email.Templates
         })
         { }
 
-        public override string Render(TestContext context, ISection section)
+        public override string Render(TestUnit context, ISection section)
         {
+            if (section.Detail == null)
+            {
+                return string.Empty;
+            }
+
             using (var detail = section.Detail.Create(context))
             {
                 return new StringBuilder()
@@ -46,7 +51,7 @@ namespace Gunter.Messaging.Email.Templates
         private string RenderDetailTable(DataSet data, TableOrientation orientation)
         {
             var body = data.Tables[0];
-            var footer = data.Tables[1];
+            var footer = data.Tables.Count > 1 ? data.Tables[1] : null;
 
             var table = Html.Element("table").Style(Styles[Style.table]);
 

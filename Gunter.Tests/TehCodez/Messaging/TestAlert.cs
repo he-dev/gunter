@@ -16,7 +16,7 @@ namespace Gunter.Tests.Messaging
 
         public List<TestReport> PublishedReports { get; } = new List<TestReport>();
 
-        protected override void PublishCore(TestContext context, IReport report)
+        protected override void PublishCore(TestUnit context, IReport report)
         {
             var sections =
                 from s in report.Sections

@@ -4,15 +4,21 @@ using Reusable.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using JetBrains.Annotations;
 
 namespace Gunter.Data
 {
-    public interface IDataSource : IResolvable
+    [PublicAPI]
+    public interface IDataSource : IResolvable, IDisposable
     {
-        int Id { get; }
+        [JsonRequired]
+        int Id { get; set; }
 
-        DataTable GetData();
+        [NotNull]
+        [JsonIgnore]
+        DataTable Data { get; }
 
+        [NotNull]
         IEnumerable<(string Name, string Text)> GetCommands();
     }
 }

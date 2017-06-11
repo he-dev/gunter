@@ -14,20 +14,15 @@ namespace Gunter.Data
     internal static class VariableName
     {
         [Reserved]
-        public static readonly string Environment = nameof(Environment);
+        public static readonly string Environment = nameof(Environment);       
 
-        public static class Column
-        {
-            public static readonly string Timestamp = $"{nameof(Column)}.{nameof(Timestamp)}";
-        }
-
-        public class TestFile
+        public static class TestFile
         {
             [Reserved]
             public static readonly string FileName = $"{nameof(TestFile)}.{nameof(FileName)}";
         }
 
-        public class TestCase
+        public static class TestCase
         {
             [Reserved]
             public static readonly string Severity = $"{nameof(TestCase)}.{nameof(Severity)}";
@@ -37,11 +32,6 @@ namespace Gunter.Data
 
             [Reserved]
             public static readonly string Profile = $"{nameof(TestCase)}.{nameof(Profile)}";
-        }
-
-        public static class DataSourceInfo
-        {
-            public static readonly string TimeSpanFormat = $"{nameof(DataSourceInfo)}.{nameof(TimeSpanFormat)}";
         }
 
         public static IEnumerable<string> GetReservedNames()
@@ -55,17 +45,6 @@ namespace Gunter.Data
                 .SelectMany(fields => fields)
                 .Select(f => (string)f.GetValue(null));
         }
-
-        public static readonly ImmutableDictionary<string, object> Default = new Dictionary<string, object>
-        {
-            [Column.Timestamp] = "Timestamp",
-
-            // Custom TimeSpan Format Strings https://msdn.microsoft.com/en-us/library/ee372287(v=vs.110).aspx
-            [DataSourceInfo.TimeSpanFormat] = @"dd\.hh\:mm\:ss"
-        }
-        .ToImmutableDictionary();
-
-
     }
 
     internal class ReservedNameException : Exception

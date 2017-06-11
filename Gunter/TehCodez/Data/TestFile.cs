@@ -7,9 +7,11 @@ using Gunter.Services;
 using System.Data;
 using Gunter.Messaging;
 using Gunter.Reporting;
+using JetBrains.Annotations;
 
 namespace Gunter.Data
 {
+    [PublicAPI]
     public class TestFile
     {
         [JsonIgnore]
