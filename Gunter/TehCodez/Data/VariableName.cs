@@ -20,6 +20,8 @@ namespace Gunter.Data
         {
             [Reserved]
             public static readonly string FileName = $"{nameof(TestFile)}.{nameof(FileName)}";
+
+            public static string Name { get; private set; }
         }
 
         public static class TestCase
@@ -30,8 +32,8 @@ namespace Gunter.Data
             [Reserved]
             public static readonly string Message = $"{nameof(TestCase)}.{nameof(Message)}";
 
-            [Reserved]
-            public static readonly string Profile = $"{nameof(TestCase)}.{nameof(Profile)}";
+            //[Reserved]
+            //public static readonly string Profile = $"{nameof(TestCase)}.{nameof(Profile)}";
         }
 
         public static IEnumerable<string> GetReservedNames()
@@ -47,9 +49,9 @@ namespace Gunter.Data
         }
     }
 
-    internal class ReservedNameException : Exception
+    internal class ReservedVariableNameException : Exception
     {
-        public ReservedNameException(IEnumerable<string> names)
+        public ReservedVariableNameException(IEnumerable<string> names)
             : base($"You must not use any of these reserved names: [{string.Join(", ", names.Select(name => $"'{name}'"))}]")
         { }
     }

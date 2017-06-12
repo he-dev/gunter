@@ -37,11 +37,11 @@ namespace Gunter.Tests.Services
                 Reports = { new Report { Id = 2 } }
             };
 
-            var testUnits = TestComposer.ComposeTests(testFile, VariableResolver.Empty).ToList();
-            Assert.AreEqual(1, testUnits.Count);
-            Assert.AreEqual(2, testUnits.Single().DataSource.Id);
-            Assert.AreEqual(1, testUnits.Single().Alerts.Count());
-            Assert.AreEqual(1, testUnits.Single().Reports.Count());
+            var tuple = TestComposer.ComposeTests(testFile, VariableResolver.Empty).ToList();
+            Assert.AreEqual(1, tuple.Count);
+            Assert.AreEqual(2, tuple.Single().DataSource.Id);
+            Assert.AreEqual(1, tuple.Single().Alerts.Count());
+            Assert.AreEqual(1, tuple.Single().Reports.Count());
         }
     }
 }

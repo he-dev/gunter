@@ -5,6 +5,7 @@ using System.Linq;
 using System;
 using Gunter.Services;
 using System.Data;
+using System.IO;
 using Gunter.Messaging;
 using Gunter.Reporting;
 using JetBrains.Annotations;
@@ -15,7 +16,9 @@ namespace Gunter.Data
     public class TestFile
     {
         [JsonIgnore]
-        public string FileName { get; set; }
+        public string FullName { get; set; }
+
+        public string Name => Path.GetFileNameWithoutExtension(FullName);
 
         public Dictionary<string, object> Locals { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 

@@ -9,6 +9,8 @@ namespace Gunter.Data
 {
     public class TestUnit : IDisposable
     {
+        public string FileName { get; set; }
+
         public TestCase Test { get; set; }
 
         public IDataSource DataSource { get; set; }

@@ -9,49 +9,63 @@ using JetBrains.Annotations;
 
 namespace Gunter.Services
 {
-    internal static class PathResolver
+    internal interface IPathResolver
     {
-        public static string ResolveFilePath(AppDomain appDomain, string fileName)
+        string ResolveDirectoryPath(string subdirectoryName);
+        string ResolveFilePath(string fileName);
+    }
+
+    internal class PathResolver : IPathResolver
+    {
+        private readonly AppDomain _appDomain;
+
+        public PathResolver([NotNull] AppDomain appDomain)
         {
-            if (appDomain == null) throw new ArgumentNullException(nameof(appDomain));
+            _appDomain = appDomain ?? throw new ArgumentNullException(nameof(appDomain));
+        }
+
+        public PathResolver() : this(AppDomain.CurrentDomain) { }
+
+        public string ResolveFilePath(string fileName)
+        {
             if (string.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
 
-            if (Path.IsPathRooted(fileName))
-            {
-                return fileName;
-            }
+            if (Path.IsPathRooted(fileName)) { return fileName; }
 
-            return 
-                GetLookupPaths(appDomain)
+            return
+                GetLookupPaths(_appDomain)
                     .Select(directoryName => Path.Combine(directoryName, fileName))
                     .FirstOrDefault(File.Exists);
         }
 
-        public static string ResolveDirectoryPath(AppDomain appDomain, string subdirectoryName)
+        public string ResolveDirectoryPath(string subdirectoryName)
         {
-            if (appDomain == null) throw new ArgumentNullException(nameof(appDomain));
             if (string.IsNullOrEmpty(subdirectoryName)) throw new ArgumentNullException(nameof(subdirectoryName));
 
+            if (Path.IsPathRooted(subdirectoryName)) { return subdirectoryName; }
+
             return
-                GetLookupPaths(appDomain)
+                GetLookupPaths(_appDomain)
                     .Select(directoryName => Path.Combine(directoryName, subdirectoryName))
                     .FirstOrDefault(Directory.Exists);
         }
 
         private static IEnumerable<string> GetLookupPaths(AppDomain appDomain)
         {
-            var lookupPaths = new List<string>
-            {
-                Path.GetDirectoryName(appDomain.SetupInformation.ConfigurationFile)
-            };
+            yield return Path.GetDirectoryName(appDomain.SetupInformation.ConfigurationFile);
 
-            // Windows- and WebServices "hide" their paths somewhere else.
-            if (!string.IsNullOrEmpty(appDomain.SetupInformation.PrivateBinPath))
+            // Windows- and WebServices "hide" their actual paths somewhere else.
+            var privateBinPaths = 
+                appDomain
+                    .SetupInformation
+                    .PrivateBinPath
+                    ?.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries) 
+                ?? Enumerable.Empty<string>();
+
+            foreach (var path in privateBinPaths)
             {
-                lookupPaths.AddRange(appDomain.SetupInformation.PrivateBinPath.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
+                yield return path;
             }
-
-            return lookupPaths;
-        }       
+        }
     }
 }

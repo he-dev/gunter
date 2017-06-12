@@ -15,6 +15,7 @@ using Gunter.Reporting.Details;
 using Gunter.Services;
 using Gunter.Services.Validators;
 using JetBrains.Annotations;
+using NLog.Fluent;
 using Reusable.ConfigWhiz;
 using Reusable.ConfigWhiz.Datastores.AppConfig;
 using Reusable.Extensions;
@@ -38,41 +39,21 @@ namespace Gunter
 
         public static Configuration Configuration { get; }
 
+        public static readonly IPathResolver PathResolver = new PathResolver();
+
         private static int Main(string[] args)
         {
             try
             {
-                var globals = InitializeGlobals(
-                    PathResolver.ResolveFilePath(
-                        AppDomain.CurrentDomain, 
-                        Path.Combine(Configuration.Load<Program, ProgramConfig>().TestsDirectoryName, GlobalsFileName)));
-
-                var profile = args.FirstOrDefault();
-                if (!string.IsNullOrEmpty(profile))
-                {
-                    globals = globals.Add(VariableName.TestCase.Profile, profile);
-                }
-
-                var testFileNames =
-                    Directory
-                        .GetFiles(
-                            PathResolver.ResolveDirectoryPath(AppDomain.CurrentDomain, Configuration.Load<Program, ProgramConfig>().TestsDirectoryName),
-                            $"{InstanceName}.Tests.*.json")
-                        .Where(fileName => !fileName.EndsWith(GlobalsFileName, StringComparison.OrdinalIgnoreCase));
-
                 var container = InitializeContainer();
-                var tests = InitializeTests(testFileNames, container).ToList();
-
-                LogEntry.New().Trace().Message("Validating test configurations.").Log(Logger);
-                foreach (var config in tests)
-                {
-                    TestConfigurationValidator.ValidateDataSources(config, Logger);
-                    TestConfigurationValidator.ValidateAlerts(config, Logger);
-                }
-
                 using (var scope = container.BeginLifetimeScope())
                 {
+                    var globals = InitializeGlobals(PathResolver.ResolveFilePath(Path.Combine(Configuration.Load<Program, ProgramConfig>().TestsDirectoryName, GlobalsFileName)));
+                    var testFileNames = GetTestFileNames();
+                    var tests = InitializeTests(testFileNames, container).ToList();
+
                     LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} started. ***").Log(Logger);
+
                     scope.Resolve<TestRunner>().RunTestFiles(tests, globals);
                 }
 
@@ -90,13 +71,22 @@ namespace Gunter
             }
         }
 
+        private static IEnumerable<string> GetTestFileNames()
+        {
+            var testsDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, ProgramConfig>().TestsDirectoryName);
+            return
+                from fileName in Directory.GetFiles(testsDirectoryName, $"{InstanceName}.Tests.*.json")
+                where !fileName.EndsWith(GlobalsFileName, StringComparison.OrdinalIgnoreCase)
+                select fileName;
+        }
+
         #region Initialization
 
         private static ILogger InitializeLogging()
         {
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
 
-            Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting(name: "Environment", key: $"{InstanceName}.Environment"));
+            Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting(name: "Environment", key: $"Gunter.Program.Config.Environment"));
             Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
 
             Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
@@ -156,6 +146,8 @@ namespace Gunter
 
                 #endregion
 
+                LogEntry.New().Debug().Message("IoC initialized.").Log(Logger);
+
                 return containerBuilder.Build();
             }
             catch (Exception ex)
@@ -173,12 +165,12 @@ namespace Gunter
                 if (File.Exists(fileName))
                 {
                     globals = globals.MergeWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)));
-                    VariableValidator.ValidateNoReservedNames(globals);
+                    VariableValidator.ValidateNamesNotReserved(globals);
                 }
 
-                globals = globals.Add(VariableName.Environment, Configuration.Load<Program, ProgramConfig>().Environment);
+                LogEntry.New().Debug().Message("Globals initialized.").Log(Logger);
 
-                return globals;
+                return globals.Add(VariableName.Environment, Configuration.Load<Program, ProgramConfig>().Environment);
             }
             catch (Exception ex)
             {
@@ -190,7 +182,7 @@ namespace Gunter
         [ItemNotNull]
         private static IEnumerable<TestFile> InitializeTests(IEnumerable<string> fileNames, IContainer container)
         {
-            LogEntry.New().Debug().Message("Initializing tests.").Log(Logger);
+            LogEntry.New().Debug().Message("Initializing tests...").Log(Logger);
 
             return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
 
@@ -206,14 +198,16 @@ namespace Gunter
                         DefaultValueHandling = DefaultValueHandling.Populate,
                         TypeNameHandling = TypeNameHandling.Auto
                     });
-                    testFile.FileName = fileName;
-                    VariableValidator.ValidateNoReservedNames(VariableResolver.Empty.MergeWith(testFile.Locals));
-                    logEntry.Message($"Loaded: {fileName}");
+                    testFile.FullName = fileName;
+
+                    VariableValidator.ValidateNamesNotReserved(VariableResolver.Empty.MergeWith(testFile.Locals));
+
+                    logEntry.Message($"Test initialized: {fileName}");
                     return testFile;
                 }
                 catch (Exception ex)
                 {
-                    logEntry.Error().Message($"Could not load: {fileName}").Exception(ex);
+                    logEntry.Error().Message($"Could not initialize test: {fileName}").Exception(ex);
                     return null;
                 }
                 finally
@@ -222,7 +216,7 @@ namespace Gunter
                 }
             }
         }
-        
+
         #endregion
     }
 
@@ -231,5 +225,12 @@ namespace Gunter
         public InitializationException(string message, Exception innerException)
             : base(message, innerException)
         { }
+    }
+
+    internal static class ExitCode
+    {
+        public const int Success = 0;
+        public const int InitializationError = 1;
+        public const int RuntimeError = 2;
     }
 }

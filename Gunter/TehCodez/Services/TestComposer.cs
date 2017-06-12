@@ -11,11 +11,12 @@ namespace Gunter.Services
     {
         public static IEnumerable<TestUnit> ComposeTests(TestFile testFile, IVariableResolver globalVariables)
         {
-            var results =
+            var testUnits =
                 from test in testFile.Tests
                 let localVariables = globalVariables
                     .MergeWith(testFile.Locals)
-                    .Add(VariableName.TestFile.FileName, testFile.FileName)
+                    .Add(VariableName.TestFile.FileName, testFile.FullName)
+                    .Add(VariableName.TestFile.Name, testFile.Name)
                     .Add(VariableName.TestCase.Severity, test.Severity)
                     .Add(VariableName.TestCase.Message, test.Message)
                 let dataSources =
@@ -33,13 +34,14 @@ namespace Gunter.Services
                      select report).Distinct().ToList()
                 select new TestUnit
                 {
+                    //FileName = testFile.FileName,
                     Test = test.UpdateVariables(localVariables),
                     DataSource = dataSource.UpdateVariables(localVariables),
                     Alerts = alerts,
                     Reports = reports,
                 };
 
-            return results;
+            return testUnits;
         }
     }
 }

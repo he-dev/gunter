@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using Gunter.Data;
 using Reusable.Logging;
@@ -55,21 +56,23 @@ namespace Gunter.Services
 
         public void RunTests(IEnumerable<TestUnit> testUnits)
         {
-            foreach (var testUnit in testUnits.Where(tu => tu.Test.Enabled))
-            {
-                var logEntry =
-                    LogEntry
-                        .New();
-                //.SetValue(nameof(TestCase.Expression), testCase.config.Test.Expression)
-                //.SetValue(VariableName.TestCollection.FileName, testCase.config.Constants.Resolve(VariableName.TestCollection.FileName.ToFormatString()));
+            //LogEntry.New().Info().Message($"Executing \"{Path.GetFileNameWithoutExtension(tuple.FileName)}\".").Log(_logger);
+            var testFileEntry = default(LogEntry);
 
+            var counter = 1;
+            foreach (var testUnit in testUnits.Where(testUnit => testUnit.Test.Enabled))
+            {
+                testFileEntry = testFileEntry ?? LogEntry.New().Stopwatch(sw => sw.Start()).Message("{TestFile.FileName}");
+
+                var testUnitEntry = LogEntry.New().Stopwatch(sw => sw.Start());
                 try
                 {
                     if (testUnit.DataSource.Data.Compute(testUnit.Test.Expression, testUnit.Test.Filter) is bool testResult)
                     {
+                        //LogEntry.New().Info().Message($"{(success ? "Success" : "Failure")}");
+
                         var success = testResult == testUnit.Test.Assert;
 
-                        logEntry.Info().Message($"{(success ? "Success" : "Failure")}");
 
                         var mustAlert =
                             (success && testUnit.Test.AlertTrigger == AlertTrigger.Success) ||
@@ -96,14 +99,11 @@ namespace Gunter.Services
                 }
                 catch (Exception ex)
                 {
-                    logEntry
-                        .Error()
-                        .Exception(ex)
-                        .Message($"Inconclusive. The expression must evaluate to {nameof(Boolean)}.");
+                    LogEntry.New().Error().Exception(ex).Message($"Inconclusive. The expression must evaluate to {nameof(Boolean)}.");
                 }
                 finally
                 {
-                    logEntry.Log(_logger);
+                    testUnitEntry.Message($"Test completed.").Log(_logger);
                 }
             }
         }
