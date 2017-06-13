@@ -33,7 +33,7 @@ namespace Gunter.Tests.Testing
 
         private TestAlert _alert;
 
-        private readonly TestRunner _testRunner = new TestRunner(new NullLogger());
+        private readonly TestRunner _testRunner = new TestRunner(new NullLogger(), new VariableBuilder());
 
         [TestCleanup]
         public void TestCleanup()
@@ -307,7 +307,7 @@ namespace Gunter.Tests.Testing
                 Alerts = _alerts
             };
 
-            var testRunner = new TestRunner(new NullLogger());
+            var testRunner = new TestRunner(new NullLogger(), new VariableBuilder());
             testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
 
             Assert.AreEqual(0, (_alerts[0] as TestAlert).PublishedReports.Count);

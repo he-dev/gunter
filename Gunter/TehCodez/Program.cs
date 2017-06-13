@@ -8,6 +8,7 @@ using Reusable.Logging;
 using Reusable;
 using Gunter.Data;
 using System.Reflection;
+using System.Threading.Tasks;
 using Gunter.Data.Configuration;
 using Gunter.Messaging.Email;
 using Gunter.Reporting;
@@ -45,7 +46,7 @@ namespace Gunter
         {
             try
             {
-                var container = InitializeContainer();
+                var container = InitializeContainer().GetAwaiter().GetResult();
                 using (var scope = container.BeginLifetimeScope())
                 {
                     var globals = InitializeGlobals(PathResolver.ResolveFilePath(Path.Combine(Configuration.Load<Program, ProgramConfig>().TestsDirectoryName, GlobalsFileName)));
@@ -107,11 +108,20 @@ namespace Gunter
             }
         }
 
-        private static IContainer InitializeContainer()
+        private static async Task<IContainer> InitializeContainer()
         {
             try
             {
                 var containerBuilder = new ContainerBuilder();
+
+                var variableBuilderTask = Task.Run(() =>
+                    new VariableBuilder()
+                        .AddVariables<TestFile>(
+                            x => x.FullName,
+                            x => x.Name)
+                        .AddVariables<TestCase>(
+                            x => x.Severity,
+                            x => x.Message));
 
                 containerBuilder
                     .RegisterType<TestRunner>()
@@ -145,6 +155,10 @@ namespace Gunter
                     .RegisterType<DataSummary>();
 
                 #endregion
+
+                containerBuilder
+                    .RegisterInstance(await variableBuilderTask)
+                    .As<IVariableBuilder>();
 
                 LogEntry.New().Debug().Message("IoC initialized.").Log(Logger);
 

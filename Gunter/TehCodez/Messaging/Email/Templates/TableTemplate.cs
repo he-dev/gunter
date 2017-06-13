@@ -37,7 +37,7 @@ namespace Gunter.Messaging.Email.Templates
             using (var detail = section.Detail.Create(context))
             {
                 return new StringBuilder()
-                    .AppendLine(string.IsNullOrEmpty(section.Heading) ? string.Empty : RenderHeading(section.Heading))
+                    //.AppendLine(string.IsNullOrEmpty(section.Heading) ? string.Empty : RenderHeading(section.Heading))
                     .AppendLine(
                         RenderDetailTable(
                             detail,

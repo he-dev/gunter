@@ -128,6 +128,7 @@
     <Compile Include="TehCodez\Messaging\Email\Templates\TableTemplate.cs" />
     <Compile Include="TehCodez\Messaging\Email\Templates\TextTemplate.cs" />
     <Compile Include="TehCodez\Reporting\Section.cs" />
+    <Compile Include="TehCodez\Services\VariableBuilder.cs" />
     <Compile Include="TehCodez\Services\VariableResolver.cs" />
     <Compile Include="TehCodez\Data\VariableName.cs" />
     <Compile Include="TehCodez\Reporting\Details\DataSourceInfo.cs" />

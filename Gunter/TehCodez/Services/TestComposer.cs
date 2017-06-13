@@ -13,12 +13,7 @@ namespace Gunter.Services
         {
             var testUnits =
                 from test in testFile.Tests
-                let localVariables = globalVariables
-                    .MergeWith(testFile.Locals)
-                    .Add(VariableName.TestFile.FileName, testFile.FullName)
-                    .Add(VariableName.TestFile.Name, testFile.Name)
-                    .Add(VariableName.TestCase.Severity, test.Severity)
-                    .Add(VariableName.TestCase.Message, test.Message)
+                let localVariables = globalVariables.MergeWith(testFile.Locals)
                 let dataSources =
                     (from id in test.DataSources
                      join ds in testFile.DataSources on id equals ds.Id

@@ -15,10 +15,12 @@ namespace Gunter.Services
 {
     internal class TestRunner
     {
+        private readonly IVariableBuilder _variableBuilder;
         private readonly ILogger _logger;
 
-        public TestRunner(ILogger logger)
+        public TestRunner(ILogger logger, IVariableBuilder variableBuilder)
         {
+            _variableBuilder = variableBuilder;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 #if DEBUG
@@ -34,7 +36,8 @@ namespace Gunter.Services
 
             var testUnitGroups =
                 (from testFile in testFiles
-                 select TestComposer.ComposeTests(testFile, variables)).ToList();
+                 let testFileVariables = variables.MergeWith(_variableBuilder.BuildVariables(testFile))
+                 select TestComposer.ComposeTests(testFile, testFileVariables)).ToList();
 
             try
             {
@@ -80,9 +83,10 @@ namespace Gunter.Services
 
                         if (mustAlert)
                         {
+                            var testVariables = testUnit.Test.Variables.MergeWith(_variableBuilder.BuildVariables(testUnit.Test));
                             foreach (var alert in testUnit.Alerts)
                             {
-                                alert.UpdateVariables(testUnit.Test.Variables);
+                                alert.UpdateVariables(testVariables);
                                 alert.Publish(testUnit);
                             }
                         }
