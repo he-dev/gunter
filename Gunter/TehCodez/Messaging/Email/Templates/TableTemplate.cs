@@ -17,13 +17,14 @@ namespace Gunter.Messaging.Email.Templates
 
         public TableTemplate() : base(new Dictionary<string, string>
         {
-            [Style.h2] = $"font-family: Sans-Serif; color: {Theme.SectionHeadingColor}; font-weight: normal;",
+            [Style.h2] = $"font-family: Sans-Serif; color: {Theme.SectionHeadingColor}; font-weight: normal; margin-top: 1.5em;",
             [Style.table] = "border: 1px solid #742846; border-collapse: collapse; font-family: Consolas, monospace, trebuchet ms, sans-serif;",
             [Style.thead] = $"background-color: {Theme.TableHeaderBackgroundColor}; color: #303030;",
             [Style.thead_td] = "border: 1px solid #999999; padding: 5px;",
             [Style.tbody_td_property] = $"border: 1px solid #999999; padding: 5px; background-color: {Theme.TableHeaderBackgroundColor};",
             [Style.tbody_td_value] = "border: 1px solid #999999; padding: 5px;",
-            [Style.tfoot] = $"font-style: italic; background-color: {Theme.TableFooterBackgroundColor}; color: #50514F; font-size: 0.75em"
+            [Style.tfoot] = $"font-style: italic; background-color: {Theme.TableFooterBackgroundColor}; color: #50514F; font-size: 0.75em",
+            [Style.hr] = "border: 0; border-bottom: 1px solid #ccc; background: #ccc"
         })
         { }
 
@@ -42,6 +43,7 @@ namespace Gunter.Messaging.Email.Templates
                         RenderDetailTable(
                             detail,
                             section.Detail.Orientation))
+                    //.AppendLine(Html.Element("hr").Style(Styles[Style.hr]).ToHtml())
                     .ToString();
             }
         }
@@ -100,6 +102,7 @@ namespace Gunter.Messaging.Email.Templates
             public const string tbody_td_property = nameof(tbody_td_property);
             public const string tbody_td_value = nameof(tbody_td_value);
             public const string tfoot = nameof(tfoot);
+            public const string hr = nameof(hr);
         }
     }
 }

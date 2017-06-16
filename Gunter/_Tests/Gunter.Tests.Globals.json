@@ -1,3 +1,3 @@
 {
-  "TEST_LOG": "data source=(local);initial catalog=TEST_LOG;integrated security=true",  
+  "TEST_LOG": "data source=(local);initial catalog=TEST_LOG;integrated security=true"  
 }

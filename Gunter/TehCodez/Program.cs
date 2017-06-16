@@ -49,9 +49,11 @@ namespace Gunter
                 var container = InitializeContainer().GetAwaiter().GetResult();
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    var globals = InitializeGlobals(PathResolver.ResolveFilePath(Path.Combine(Configuration.Load<Program, ProgramConfig>().TestsDirectoryName, GlobalsFileName)));
+                    var globals = InitializeGlobals(
+                        PathResolver.ResolveFilePath(Path.Combine(Configuration.Load<Program, Workspace>().TestsDirectoryName, GlobalsFileName)),
+                        container.Resolve<IVariableBuilder>());
                     var testFileNames = GetTestFileNames();
-                    var tests = InitializeTests(testFileNames, container).ToList();
+                    var tests = InitializeTests(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
 
                     LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} started. ***").Log(Logger);
 
@@ -74,7 +76,7 @@ namespace Gunter
 
         private static IEnumerable<string> GetTestFileNames()
         {
-            var testsDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, ProgramConfig>().TestsDirectoryName);
+            var testsDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().TestsDirectoryName);
             return
                 from fileName in Directory.GetFiles(testsDirectoryName, $"{InstanceName}.Tests.*.json")
                 where !fileName.EndsWith(GlobalsFileName, StringComparison.OrdinalIgnoreCase)
@@ -121,7 +123,9 @@ namespace Gunter
                             x => x.Name)
                         .AddVariables<TestCase>(
                             x => x.Severity,
-                            x => x.Message));
+                            x => x.Message)
+                        .AddVariables<Context>(
+                            x => x.Environment));
 
                 containerBuilder
                     .RegisterType<TestRunner>()
@@ -170,7 +174,7 @@ namespace Gunter
             }
         }
 
-        private static IVariableResolver InitializeGlobals(string fileName)
+        private static IVariableResolver InitializeGlobals(string fileName, IVariableBuilder variableBuilder)
         {
             try
             {
@@ -179,12 +183,12 @@ namespace Gunter
                 if (File.Exists(fileName))
                 {
                     globals = globals.MergeWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)));
-                    VariableValidator.ValidateNamesNotReserved(globals);
+                    VariableValidator.ValidateNamesNotReserved(globals, variableBuilder.Names);
                 }
 
                 LogEntry.New().Debug().Message("Globals initialized.").Log(Logger);
 
-                return globals.Add(VariableName.Environment, Configuration.Load<Program, ProgramConfig>().Environment);
+                return globals.MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Context>()));
             }
             catch (Exception ex)
             {
@@ -194,7 +198,7 @@ namespace Gunter
 
         [NotNull]
         [ItemNotNull]
-        private static IEnumerable<TestFile> InitializeTests(IEnumerable<string> fileNames, IContainer container)
+        private static IEnumerable<TestFile> InitializeTests(IEnumerable<string> fileNames, IContainer container, IEnumerable<string> reservedNames)
         {
             LogEntry.New().Debug().Message("Initializing tests...").Log(Logger);
 
@@ -214,7 +218,7 @@ namespace Gunter
                     });
                     testFile.FullName = fileName;
 
-                    VariableValidator.ValidateNamesNotReserved(VariableResolver.Empty.MergeWith(testFile.Locals));
+                    VariableValidator.ValidateNamesNotReserved(VariableResolver.Empty.MergeWith(testFile.Locals), reservedNames);
 
                     logEntry.Message($"Test initialized: {fileName}");
                     return testFile;

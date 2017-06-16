@@ -10,13 +10,19 @@ namespace Gunter.Services.Validators
 {
     internal static class VariableValidator
     {
-        public static void ValidateNamesNotReserved(IVariableResolver variables)
+        public static void ValidateNamesNotReserved(IVariableResolver variables, IEnumerable<string> reservedNames)
         {
-            var reservedNames = VariableName.GetReservedNames().ToList();
             if (reservedNames.Any(variables.ContainsKey))
             {
                 throw new ReservedVariableNameException(reservedNames);
             }
         }
+    }
+
+    internal class ReservedVariableNameException : Exception
+    {
+        public ReservedVariableNameException(IEnumerable<string> names)
+            : base($"You must not use any of these reserved names: [{string.Join(", ", names.Select(name => $"'{name}'"))}]")
+        { }
     }
 }

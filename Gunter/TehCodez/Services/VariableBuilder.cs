@@ -8,6 +8,7 @@ namespace Gunter.Services
 {
     internal interface IVariableBuilder
     {
+        IEnumerable<string> Names { get; }
         VariableBuilder AddVariables<T>([NotNull] params Expression<Func<T, object>>[] expressions);
         IEnumerable<KeyValuePair<string, object>> BuildVariables<T>(T obj);
     }
@@ -15,6 +16,8 @@ namespace Gunter.Services
     internal class VariableBuilder : IVariableBuilder
     {
         private readonly IDictionary<Type, HashSet<INameable>> _variables = new Dictionary<Type, HashSet<INameable>>();
+
+        public IEnumerable<string> Names => _variables.Values.SelectMany(x => x).Select(x => x.Name);
 
         public VariableBuilder AddVariables<T>(params Expression<Func<T, object>>[] expressions)
         {

@@ -51,7 +51,7 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                LogEntry.New().Debug().Message($"Publishing report: {report.Id} with {report.Sections.Count} section(s).").Log(Logger);
+                LogEntry.New().Debug().Message($"Publishing report {report.Id} with {report.Sections.Count} section(s).").Log(Logger);
 
                 PublishCore(context, report);
             }

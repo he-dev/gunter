@@ -14,8 +14,8 @@ namespace Gunter.Messaging.Email.Templates
     {
         public TextTemplate() : base(new Dictionary<string, string>
         {
-            [Style.h1] = $"font-family: Sans-Serif; color: {Theme.GreetingColor}; font-weight: normal;",
-            [Style.h2] = $"font-family: Sans-Serif; color: {Theme.SectionHeadingColor}; font-weight: normal;",
+            [Style.h1] = $"font-family: Sans-Serif; color: {Theme.GreetingColor}; font-weight: normal; margin-top: 1.5em;",
+            [Style.h2] = $"font-family: Sans-Serif; color: {Theme.SectionHeadingColor}; font-weight: normal; margin-top: 1.5em;",
             [Style.p] = $"font-family: Sans-Serif; color: {Theme.MessageColor};",
             [Style.hr] = "border: 0; border-bottom: 1px solid #ccc; background: #ccc"
         })

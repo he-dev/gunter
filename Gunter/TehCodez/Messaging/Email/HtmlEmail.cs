@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Text;
 using Gunter.Data;
 using Gunter.Messaging.Email.Templates;
 using Gunter.Reporting;
-using Gunter.Services;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.Logging;
 
 namespace Gunter.Messaging.Email
 {
+    [PublicAPI]
     public class HtmlEmail : Alert
     {
         private readonly TextTemplate _textTemplate = new TextTemplate();
