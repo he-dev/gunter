@@ -15,6 +15,7 @@ namespace Gunter.Services
         string ResolveFilePath(string fileName);
     }
 
+    [PublicAPI]
     internal class PathResolver : IPathResolver
     {
         private readonly AppDomain _appDomain;
@@ -53,6 +54,8 @@ namespace Gunter.Services
         private static IEnumerable<string> GetLookupPaths(AppDomain appDomain)
         {
             yield return Path.GetDirectoryName(appDomain.SetupInformation.ConfigurationFile);
+            yield return appDomain.BaseDirectory;
+            yield return appDomain.SetupInformation.ApplicationBase;
 
             // Windows- and WebServices "hide" their actual paths somewhere else.
             var privateBinPaths = 

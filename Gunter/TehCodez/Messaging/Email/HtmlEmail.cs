@@ -8,21 +8,24 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.Logging;
+using Reusable.Markup.Html;
 
 namespace Gunter.Messaging.Email
 {
     [PublicAPI]
     public class HtmlEmail : Alert
     {
-        private readonly TextTemplate _textTemplate = new TextTemplate();
+        private readonly IHtmlEmailTemplateService _templateService;
 
-        private readonly TableTemplate _tableTemplate = new TableTemplate();
-
-        private readonly FooterTemplate _footerRenderer = new FooterTemplate();
+        private readonly Func<string, IMarkupVisitor> _createStyleVisitor;
 
         private string _to;
 
-        public HtmlEmail(ILogger logger) : base(logger) { }        
+        public HtmlEmail(ILogger logger, IHtmlEmailTemplateService templateService, Func<string, IMarkupVisitor> createStyleVisitor) : base(logger)
+        {
+            _templateService = templateService;
+            _createStyleVisitor = createStyleVisitor;
+        }
 
         [JsonRequired]
         public string To
@@ -31,19 +34,23 @@ namespace Gunter.Messaging.Email
             set => _to = value;
         }
 
+        public string Css { get; set; }
+
         [JsonRequired]
         public IEmailClient EmailClient { get; set; }
 
         protected override void PublishCore(TestUnit context, IReport report)
         {
+            var styleVisitor = _createStyleVisitor(Css);
+
             var renderedSections =
                 (from section in report.Sections
                  select new StringBuilder()
-                     .Append(_textTemplate.Render(context, section))
-                     .Append(_tableTemplate.Render(context, section))
+                     .Append(_templateService.Text.Render(context, section, styleVisitor))
+                     .Append(_templateService.Table.Render(context, section, styleVisitor))
                      .ToString()).ToList();
 
-            renderedSections.Add(_footerRenderer.Render(Program.InstanceName, DateTime.UtcNow));
+            renderedSections.Add(_templateService.Footer.Render(Program.InstanceName, DateTime.UtcNow));
 
             LogEntry.New().Debug().Message($"To: {To}").Log(Logger);
 
@@ -58,5 +65,12 @@ namespace Gunter.Messaging.Email
             };
             EmailClient.Send(email);
         }
+    }
+
+    public interface IHtmlEmailTemplateService
+    {
+        TextTemplate Text { get; }
+        TableTemplate Table { get; }
+        FooterTemplate Footer { get; }
     }
 }

@@ -5,22 +5,23 @@ using Gunter.Data;
 using Gunter.Reporting;
 using Gunter.Services;
 using Reusable.Markup;
+using Reusable.Markup.Html;
 
 namespace Gunter.Messaging.Email
 {
-    internal interface IHtmlTemplate
+    public interface IHtmlTemplate
     {
-        string Render(TestUnit context, ISection section);
+        string Render(TestUnit context, ISection section, IMarkupVisitor styleVisitor);
     }
 
-    internal abstract class HtmlTemplate : IHtmlTemplate
+    public abstract class HtmlTemplate : IHtmlTemplate
     {
         protected HtmlTemplate(IDictionary<string, string> styles)
         {
             Styles = new Dictionary<string, string>(styles, StringComparer.OrdinalIgnoreCase);
         }
 
-        public abstract string Render(TestUnit context, ISection section);
+        public abstract string Render(TestUnit context, ISection section, IMarkupVisitor styleVisitor);
 
         public static class Theme
         {

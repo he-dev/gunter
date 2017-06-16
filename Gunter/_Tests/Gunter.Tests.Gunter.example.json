@@ -43,7 +43,8 @@
 			"$type": "Gunter.Messaging.Email.HtmlEmail, Gunter",
 			"Id": 1,
 			"EmailClient": { "$type": "Reusable.EmailClients.SmtpClient, Reusable.EmailClients.SmtpClient" },
-			"To": "example@email.com",
+      "To": "example@email.com",
+      "Css":  "Default.css",
 			"Reports": [1]
 		}
 	],

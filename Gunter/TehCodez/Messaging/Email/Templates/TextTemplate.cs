@@ -6,11 +6,12 @@ using Gunter.Reporting;
 using Gunter.Services;
 using Reusable.Extensions;
 using Reusable.Markup;
+using Reusable.Markup.Formatters;
 using Reusable.Markup.Html;
 
 namespace Gunter.Messaging.Email.Templates
 {
-    internal class TextTemplate : HtmlTemplate
+    public class TextTemplate : HtmlTemplate
     {
         public TextTemplate() : base(new Dictionary<string, string>
         {
@@ -23,11 +24,11 @@ namespace Gunter.Messaging.Email.Templates
 
         //public string Render(ISection section, IConstantResolver constants) => Render((TextSection)section, constants);
 
-        public override string Render(TestUnit context, ISection section)
+        public override string Render(TestUnit context, ISection section, IMarkupVisitor styleVisitor)
         {
             return new StringBuilder()
-                .AppendWhen(() => section.Heading.IsNotNullOrEmpty(), sb => sb.AppendLine(Html.Element("h2", section.Heading).Style(Styles[Style.h2]).ToHtml()))
-                .AppendWhen(() => section.Text.IsNotNullOrEmpty(), sb => sb.AppendLine(Html.Element("p", section.Text).Style(Styles[Style.p]).ToHtml()))
+                .AppendWhen(() => section.Heading.IsNotNullOrEmpty(), sb => sb.AppendLine(Html.Element("h2", section.Heading).Style(Styles[Style.h2]).ToHtml(MarkupFormatting.Empty)))
+                .AppendWhen(() => section.Text.IsNotNullOrEmpty(), sb => sb.AppendLine(Html.Element("p", section.Text).Style(Styles[Style.p]).ToHtml(MarkupFormatting.Empty)))
                 //.AppendLine(Html.Element("hr").Style(Styles[Style.hr]).ToHtml())
                 .ToString();
         }

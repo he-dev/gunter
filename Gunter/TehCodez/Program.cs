@@ -9,8 +9,10 @@ using Reusable;
 using Gunter.Data;
 using System.Reflection;
 using System.Threading.Tasks;
+using Autofac.Extras.AggregateService;
 using Gunter.Data.Configuration;
 using Gunter.Messaging.Email;
+using Gunter.Messaging.Email.Templates;
 using Gunter.Reporting;
 using Gunter.Reporting.Details;
 using Gunter.Services;
@@ -20,6 +22,7 @@ using NLog.Fluent;
 using Reusable.ConfigWhiz;
 using Reusable.ConfigWhiz.Datastores.AppConfig;
 using Reusable.Extensions;
+using Reusable.Markup.Html;
 
 namespace Gunter
 {
@@ -40,6 +43,7 @@ namespace Gunter
 
         public static Configuration Configuration { get; }
 
+        // We need this before the IoC is created.
         public static readonly IPathResolver PathResolver = new PathResolver();
 
         private static int Main(string[] args)
@@ -49,10 +53,10 @@ namespace Gunter
                 var container = InitializeContainer().GetAwaiter().GetResult();
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    var globals = InitializeGlobals(
-                        PathResolver.ResolveFilePath(Path.Combine(Configuration.Load<Program, Workspace>().TestsDirectoryName, GlobalsFileName)),
-                        container.Resolve<IVariableBuilder>());
-                    var testFileNames = GetTestFileNames();
+                    var testDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().TestsDirectoryName);
+
+                    var globals = InitializeGlobals(testDirectoryName, GlobalsFileName, container.Resolve<IVariableBuilder>());
+                    var testFileNames = GetTestFileNames(testDirectoryName);
                     var tests = InitializeTests(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
 
                     LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} started. ***").Log(Logger);
@@ -74,11 +78,10 @@ namespace Gunter
             }
         }
 
-        private static IEnumerable<string> GetTestFileNames()
+        private static IEnumerable<string> GetTestFileNames(string directoryName)
         {
-            var testsDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().TestsDirectoryName);
             return
-                from fileName in Directory.GetFiles(testsDirectoryName, $"{InstanceName}.Tests.*.json")
+                from fileName in Directory.GetFiles(directoryName, $"{InstanceName}.Tests.*.json")
                 where !fileName.EndsWith(GlobalsFileName, StringComparison.OrdinalIgnoreCase)
                 select fileName;
         }
@@ -161,8 +164,33 @@ namespace Gunter
                 #endregion
 
                 containerBuilder
+                    .RegisterAggregateService<IHtmlEmailTemplateService>();
+                containerBuilder
+                    .RegisterType<TextTemplate>();
+                containerBuilder
+                    .RegisterType<TableTemplate>();
+                containerBuilder
+                    .RegisterType<FooterTemplate>();
+
+                containerBuilder
                     .RegisterInstance(await variableBuilderTask)
                     .As<IVariableBuilder>();
+
+                containerBuilder
+                    .RegisterInstance(PathResolver)
+                    .As<IPathResolver>();
+
+                containerBuilder
+                    .RegisterType<SimpleCssParser>()
+                    .As<ICssParser>();
+
+                containerBuilder
+                    .Register<Func<string, IMarkupVisitor>>(context => (cssFileName) =>
+                    {
+                        var cssFullName = context.Resolve<IPathResolver>().ResolveFilePath(cssFileName);
+                        var css = context.Resolve<ICssParser>().Parse(cssFullName);
+                        return new StyleVisitor((Dictionary<string, string>)css);
+                    });
 
                 LogEntry.New().Debug().Message("IoC initialized.").Log(Logger);
 
@@ -174,15 +202,17 @@ namespace Gunter
             }
         }
 
-        private static IVariableResolver InitializeGlobals(string fileName, IVariableBuilder variableBuilder)
+        private static IVariableResolver InitializeGlobals(string directoryName, string fileName, IVariableBuilder variableBuilder)
         {
+            var fullName = Path.Combine(directoryName, fileName);
+
             try
             {
                 var globals = VariableResolver.Empty;
 
-                if (File.Exists(fileName))
+                if (File.Exists(fullName))
                 {
-                    globals = globals.MergeWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fileName)));
+                    globals = globals.MergeWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fullName)));
                     VariableValidator.ValidateNamesNotReserved(globals, variableBuilder.Names);
                 }
 

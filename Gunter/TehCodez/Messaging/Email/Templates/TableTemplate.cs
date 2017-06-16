@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -11,11 +12,12 @@ using Reusable.Markup.Html;
 
 namespace Gunter.Messaging.Email.Templates
 {
-    internal class TableTemplate : HtmlTemplate
+    public class TableTemplate : HtmlTemplate
     {
+        private readonly Func<string, IMarkupVisitor> _createStyleVisitor;
         private static readonly string DateTimeFormat = CultureInfo.InvariantCulture.DateTimeFormat.SortableDateTimePattern;
 
-        public TableTemplate() : base(new Dictionary<string, string>
+        public TableTemplate(Func<string, IMarkupVisitor> createStyleVisitor) : base(new Dictionary<string, string>
         {
             [Style.h2] = $"font-family: Sans-Serif; color: {Theme.SectionHeadingColor}; font-weight: normal; margin-top: 1.5em;",
             [Style.table] = "border: 1px solid #742846; border-collapse: collapse; font-family: Consolas, monospace, trebuchet ms, sans-serif;",
@@ -26,9 +28,11 @@ namespace Gunter.Messaging.Email.Templates
             [Style.tfoot] = $"font-style: italic; background-color: {Theme.TableFooterBackgroundColor}; color: #50514F; font-size: 0.75em",
             [Style.hr] = "border: 0; border-bottom: 1px solid #ccc; background: #ccc"
         })
-        { }
+        {
+            _createStyleVisitor = createStyleVisitor;
+        }
 
-        public override string Render(TestUnit context, ISection section)
+        public override string Render(TestUnit context, ISection section, IMarkupVisitor styleVisitor)
         {
             if (section.Detail == null)
             {
@@ -48,7 +52,7 @@ namespace Gunter.Messaging.Email.Templates
             }
         }
 
-        private string RenderHeading(string text) => Html.Element("h2", text).Style(Styles[Style.h2]).ToHtml();
+        private string RenderHeading(string text) => Html.Element("h2", text).Style(Styles[Style.h2]).ToHtml(MarkupFormatting.Empty, Enumerable.Empty<IMarkupVisitor>());
 
         private string RenderDetailTable(DataSet data, TableOrientation orientation)
         {
@@ -90,7 +94,7 @@ namespace Gunter.Messaging.Email.Templates
                         );
             }
 
-            return table.ToHtml();
+            return table.ToHtml(MarkupFormatting.Empty, Enumerable.Empty<IMarkupVisitor>());
         }
 
         private static class Style
