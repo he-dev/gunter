@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Services;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Gunter.Reporting
 {
+    [JsonObject]
     public interface IReport : IResolvable
     {
         [JsonRequired]
@@ -17,11 +20,13 @@ namespace Gunter.Reporting
         [JsonRequired]
         string Title { get; set; }
 
+        [NotNull]
+        [ItemNotNull]
         [JsonRequired]
-        List<ISection> Sections { get; set; }
+        List<IModule> Modules { get; set; }
     }
-
-    public class Report : IReport
+    
+    public class Report : IReport, IEnumerable<IModule>
     {
         private string _title;
         private IVariableResolver _variables = VariableResolver.Empty;
@@ -33,7 +38,7 @@ namespace Gunter.Reporting
             set
             {
                 _variables = value;
-                foreach (var section in Sections)
+                foreach (var section in Modules)
                 {
                     section.UpdateVariables(value);
                 }
@@ -48,6 +53,10 @@ namespace Gunter.Reporting
             set => _title = value;
         }
 
-        public List<ISection> Sections { get; set; } = new List<ISection>();
+        public List<IModule> Modules { get; set; } = new List<IModule>();
+
+        public IEnumerator<IModule> GetEnumerator() => Modules.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

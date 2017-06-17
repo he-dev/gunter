@@ -253,7 +253,7 @@ paket-files/
 
 # he-dev
 
-Debug.private.App.config
-Gunter.Tests.Gunter.private.json
+*he-dev*
+
 
 

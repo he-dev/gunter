@@ -4,7 +4,7 @@ using System.Linq;
 using Gunter.Data;
 using Gunter.Messaging;
 using Gunter.Reporting;
-using Gunter.Reporting.Details;
+using Gunter.Reporting.Modules;
 using Gunter.Services;
 using Gunter.Tests.Data.Fakes;
 using Gunter.Tests.Messaging;
@@ -100,20 +100,20 @@ namespace Gunter.Tests.Testing
                     new Report
                     {
                         Id = 1,
-                        Sections =
+                        Modules =
                         {
-                            new Section
-                            {
-                                Detail = new TestCaseInfo()
-                            },
-                            new Section
-                            {
-                                Detail = new DataSourceInfo()
-                            },
-                            new Section
-                            {
-                                //Detail = new DataSummary()
-                            }
+                            //new Module
+                            //{
+                            //    //Detail = new TestCaseInfo()
+                            //},
+                            //new Module
+                            //{
+                            //    //Detail = new DataSourceInfo()
+                            //},
+                            //new Module
+                            //{
+                            //    //Detail = new DataSummary()
+                            //}
                         }
                     }
                 }
@@ -142,7 +142,7 @@ namespace Gunter.Tests.Testing
                     new TestCase
                     {
                         Enabled = true,
-                        Severity = TestSeverity.Warning,
+                        Severity = TestSeverity.Warn,
                         Message = "Data-source must be empty.",
                         DataSources = { 1 },
                         Filter = null,
@@ -174,7 +174,7 @@ namespace Gunter.Tests.Testing
                     new TestCase
                     {
                         Enabled = true,
-                        Severity = TestSeverity.Warning,
+                        Severity = TestSeverity.Warn,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -186,7 +186,7 @@ namespace Gunter.Tests.Testing
                     new TestCase
                     {
                         Enabled = true,
-                        Severity = TestSeverity.Warning,
+                        Severity = TestSeverity.Warn,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -218,7 +218,7 @@ namespace Gunter.Tests.Testing
                     new TestCase
                     {
                         Enabled = true,
-                        Severity = TestSeverity.Warning,
+                        Severity = TestSeverity.Warn,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -230,7 +230,7 @@ namespace Gunter.Tests.Testing
                     new TestCase
                     {
                         Enabled = true,
-                        Severity = TestSeverity.Warning,
+                        Severity = TestSeverity.Warn,
                         Message = "Data-source must be empty.",
                         DataSources = { 2 },
                         Filter = null,
@@ -262,7 +262,7 @@ namespace Gunter.Tests.Testing
                     new TestCase
                     {
                         Enabled = true,
-                        Severity = TestSeverity.Warning,
+                        Severity = TestSeverity.Warn,
                         Message = "Debug logging is enabled.",
                         DataSources = { 2 },
                         Filter = "[LogLevel] IN ('debug')",
@@ -294,7 +294,7 @@ namespace Gunter.Tests.Testing
                     new TestCase
                     {
                         Enabled = true,
-                        Severity = TestSeverity.Warning,
+                        Severity = TestSeverity.Warn,
                         Message = "Debug logging is enabled.",
                         DataSources = { 2 },
                         Filter = null,

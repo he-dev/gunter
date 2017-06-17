@@ -51,12 +51,12 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                LogEntry.New().Debug().Message($"Publishing report {report.Id} with {report.Sections.Count} section(s).").Log(Logger);
+                LogEntry.New().Debug().Message($"Publishing report {report.Id} with {report.Modules.Count} section(s).").Log(Logger);
 
                 PublishCore(context, report);
             }
         }
 
-        protected abstract void PublishCore(TestUnit context, IReport report);
+        protected abstract void PublishCore(TestUnit testUnit, IReport report);
     }
 }

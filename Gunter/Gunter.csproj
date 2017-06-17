@@ -55,7 +55,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.private|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug.he-dev|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug.he-dev\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -85,34 +85,34 @@
       <HintPath>..\packages\NLog.4.4.3\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ConfigWhiz.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ConfigWhiz.Core.3.40.0\lib\net452\Reusable.ConfigWhiz.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.ConfigWhiz.Core.3.41.1\lib\net452\Reusable.ConfigWhiz.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ConfigWhiz.Datastores.AppConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ConfigWhiz.Datastores.AppConfig.3.40.0\lib\net452\Reusable.ConfigWhiz.Datastores.AppConfig.dll</HintPath>
+      <HintPath>..\packages\Reusable.ConfigWhiz.Datastores.AppConfig.3.41.1\lib\net452\Reusable.ConfigWhiz.Datastores.AppConfig.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Core.3.40.0\lib\net452\Reusable.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.Core.3.41.1\lib\net452\Reusable.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Email, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Email.3.40.0\lib\net452\Reusable.Email.dll</HintPath>
+      <HintPath>..\packages\Reusable.Email.3.41.1\lib\net452\Reusable.Email.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.EmailClients.SmtpClient, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.EmailClients.SmtpClient.3.40.0\lib\net452\Reusable.EmailClients.SmtpClient.dll</HintPath>
+      <HintPath>..\packages\Reusable.EmailClients.SmtpClient.3.41.1\lib\net452\Reusable.EmailClients.SmtpClient.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.3.40.0\lib\net452\Reusable.Logging.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.3.41.1\lib\net452\Reusable.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.Adapters.NLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.3.40.0\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.3.41.1\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.NLog.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.40.0\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.41.1\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Markup, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Markup.3.40.0\lib\net452\Reusable.Markup.dll</HintPath>
+      <HintPath>..\packages\Reusable.Markup.3.41.1\lib\net452\Reusable.Markup.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.TypeConversion, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.TypeConversion.3.40.0\lib\net452\Reusable.TypeConversion.dll</HintPath>
+      <HintPath>..\packages\Reusable.TypeConversion.3.41.1\lib\net452\Reusable.TypeConversion.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -138,28 +138,31 @@
   <ItemGroup>
     <Compile Include="TehCodez\Data\AlertTrigger.cs" />
     <Compile Include="TehCodez\Data\TestUnit.cs" />
+    <Compile Include="TehCodez\Extensions\ServiceProviderExtensions.cs" />
+    <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\GreetingRenderer.cs" />
+    <Compile Include="TehCodez\Reporting\Modules\Greeting.cs" />
+    <Compile Include="TehCodez\Reporting\Modules\Signature.cs" />
     <Compile Include="TehCodez\Reporting\Report.cs" />
-    <Compile Include="TehCodez\Reporting\Details\TestCaseInfo.cs" />
+    <Compile Include="TehCodez\Reporting\Modules\TestCaseInfo.cs" />
     <Compile Include="TehCodez\Data\Configuration.cs" />
     <Compile Include="TehCodez\Services\TestComposer.cs" />
     <Compile Include="TehCodez\Data\TestCase.cs" />
     <Compile Include="TehCodez\Data\TestSeverity.cs" />
     <Compile Include="TehCodez\Extensions\StringExtensions.cs" />
-    <Compile Include="TehCodez\Messaging\Email\HtmlTemplate.cs" />
-    <Compile Include="TehCodez\Messaging\Email\Templates\FooterTemplate.cs" />
-    <Compile Include="TehCodez\Messaging\Email\Templates\TableTemplate.cs" />
-    <Compile Include="TehCodez\Messaging\Email\Templates\TextTemplate.cs" />
-    <Compile Include="TehCodez\Reporting\Section.cs" />
+    <Compile Include="TehCodez\Messaging\Email\ModuleRenderer.cs" />
+    <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\SignatureRenderer.cs" />
+    <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\TableRenderer.cs" />
+    <Compile Include="TehCodez\Reporting\Module.cs" />
     <Compile Include="TehCodez\Services\VariableBuilder.cs" />
     <Compile Include="TehCodez\Services\VariableResolver.cs" />
-    <Compile Include="TehCodez\Reporting\Details\DataSourceInfo.cs" />
+    <Compile Include="TehCodez\Reporting\Modules\DataSourceInfo.cs" />
     <Compile Include="TehCodez\Services\PathResolver.cs" />
     <Compile Include="TehCodez\Data\TestFile.cs" />
     <Compile Include="TehCodez\Data\DataSource.cs" />
     <Compile Include="TehCodez\Services\AutofacContractResolver.cs" />
     <Compile Include="TehCodez\Services\Validators\VariableValidator.cs" />
     <Compile Include="TehCodez\Services\TestRunner.cs" />
-    <Compile Include="TehCodez\Reporting\Details\DataSummary.cs" />
+    <Compile Include="TehCodez\Reporting\Modules\DataSummary.cs" />
     <Compile Include="TehCodez\Messaging\Email\HtmlEmail.cs" />
     <Compile Include="TehCodez\Messaging\Email\HtmlEmailBody.cs" />
     <Compile Include="TehCodez\Messaging\Email\HtmlEmailSubject.cs" />
@@ -178,10 +181,10 @@
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="_AppConfigs\Debug.private.App.config">
+    <None Include="_AppConfigs\Debug.he-dev.App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="_Tests\Gunter.Tests.Globals.json">
+    <None Include="assets\targets\_globals.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
@@ -190,8 +193,8 @@
     <None Include="_AppConfigs\Debug.App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="_Tests\Gunter.Tests.Gunter.example.json" />
-    <None Include="_Tests\Gunter.Tests.Gunter.private.json">
+    <None Include="assets\targets\example.json" />
+    <None Include="assets\targets\he-dev.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -202,7 +205,9 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Default.css" />
+    <Content Include="assets\themes\default.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="NLog.config.tt" />
     <Content Include="NLog.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

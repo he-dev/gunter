@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using Gunter.Data;
-using Gunter.Messaging.Email.Templates;
+using Gunter.Messaging.Email.ModuleRenderers;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -15,15 +17,15 @@ namespace Gunter.Messaging.Email
     [PublicAPI]
     public class HtmlEmail : Alert
     {
-        private readonly IHtmlEmailTemplateService _templateService;
+        private readonly IEnumerable<ModuleRenderer> _renderers;
 
-        private readonly Func<string, IMarkupVisitor> _createStyleVisitor;
+        private readonly Func<string, StyleVisitor> _createStyleVisitor;
 
         private string _to;
 
-        public HtmlEmail(ILogger logger, IHtmlEmailTemplateService templateService, Func<string, IMarkupVisitor> createStyleVisitor) : base(logger)
+        public HtmlEmail(ILogger logger, IEnumerable<ModuleRenderer> renderers, Func<string, StyleVisitor> createStyleVisitor) : base(logger)
         {
-            _templateService = templateService;
+            _renderers = renderers;
             _createStyleVisitor = createStyleVisitor;
         }
 
@@ -34,23 +36,26 @@ namespace Gunter.Messaging.Email
             set => _to = value;
         }
 
-        public string Css { get; set; }
+        [DefaultValue("Default.css")]
+        public string Theme { get; set; }
 
         [JsonRequired]
         public IEmailClient EmailClient { get; set; }
 
-        protected override void PublishCore(TestUnit context, IReport report)
+        protected override void PublishCore(TestUnit testUnit, IReport report)
         {
-            var styleVisitor = _createStyleVisitor(Css);
+            var styleVisitor = _createStyleVisitor(Theme);
+            var serviceProvider = new ServiceProvider()
+                .AddService(styleVisitor)
+                .AddService(testUnit.Test.Variables);
 
-            var renderedSections =
-                (from section in report.Sections
-                 select new StringBuilder()
-                     .Append(_templateService.Text.Render(context, section, styleVisitor))
-                     .Append(_templateService.Table.Render(context, section, styleVisitor))
-                     .ToString()).ToList();
+            var body = new StringBuilder();
 
-            renderedSections.Add(_templateService.Footer.Render(Program.InstanceName, DateTime.UtcNow));
+            foreach (var module in report.Modules)
+            {
+                var renderer = _renderers.Single(r => r.CanRender(module));
+                body.AppendLine(renderer.Render(module, testUnit, serviceProvider));
+            }
 
             LogEntry.New().Debug().Message($"To: {To}").Log(Logger);
 
@@ -59,7 +64,7 @@ namespace Gunter.Messaging.Email
                 Subject = new HtmlEmailSubject(report.Title),
                 Body = new HtmlEmailBody
                 {
-                    Sections = renderedSections
+                    Html = body.ToString()
                 },
                 To = To
             };
@@ -67,10 +72,16 @@ namespace Gunter.Messaging.Email
         }
     }
 
-    public interface IHtmlEmailTemplateService
+    public class ServiceProvider : IServiceProvider
     {
-        TextTemplate Text { get; }
-        TableTemplate Table { get; }
-        FooterTemplate Footer { get; }
+        private readonly IDictionary<Type, object> _services = new Dictionary<Type, object>();
+
+        public ServiceProvider AddService<TServcie>(TServcie service)
+        {
+            _services.Add(typeof(TServcie), service);
+            return this;
+        }
+
+        public object GetService(Type serviceType) => _services.TryGetValue(serviceType, out var service) ? service : null;
     }
 }

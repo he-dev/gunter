@@ -16,15 +16,15 @@ namespace Gunter.Tests.Messaging
 
         public List<TestReport> PublishedReports { get; } = new List<TestReport>();
 
-        protected override void PublishCore(TestUnit context, IReport report)
+        protected override void PublishCore(TestUnit testUnit, IReport report)
         {
             var sections =
-                from s in report.Sections
+                from s in report.Modules
                 select new TestSection
                 {
                     Heading = s.Heading,
                     Text = s.Text,
-                    Detail = s.Detail?.Create(context)
+                    //Detail = s.Detail?.Create(testUnit)
                 };
 
             PublishedReports.Add(new TestReport

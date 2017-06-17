@@ -2,20 +2,22 @@
 using System.Data;
 using Gunter.Data;
 using Gunter.Services;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Gunter.Reporting
 {
-    public interface ISection : IResolvable
+    [PublicAPI]
+    public interface IModule : IResolvable
     {
+        [CanBeNull]
         string Heading { get; set; }
 
+        [CanBeNull]
         string Text { get; set; }
-
-        ISectionDetail Detail { get; set; }
     }
 
-    public class Section : ISection
+    public abstract class Module : IModule
     {
         private string _text;
         private string _heading;
@@ -34,21 +36,25 @@ namespace Gunter.Reporting
             get => Variables.Resolve(_text);
             set => _text = value;
         }
+    }    
 
-        public ISectionDetail Detail { get; set; }
-    }
-
-    public interface ISectionDetail
+    public interface ITabular
     {
         [JsonIgnore]
         TableOrientation Orientation { get; }
 
-        DataSet Create(TestUnit testUnit);
-    }
+        [JsonIgnore]
+        bool HasFooter { get; }
+
+        DataTable Create(TestUnit testUnit);
+    }    
 
     public enum TableOrientation
     {
+        // Header on top
         Horizontal,
+
+        // Header on the left
         Vertical
     }
 }

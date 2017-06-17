@@ -17,7 +17,7 @@ namespace Gunter.Data
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
-        [DefaultValue(TestSeverity.Warning)]
+        [DefaultValue(TestSeverity.Warn)]
         public TestSeverity Severity { get; set; }
 
         [JsonRequired]

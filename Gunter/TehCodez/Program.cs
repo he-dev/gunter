@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using Autofac.Extras.AggregateService;
 using Gunter.Data.Configuration;
 using Gunter.Messaging.Email;
-using Gunter.Messaging.Email.Templates;
+using Gunter.Messaging.Email.ModuleRenderers;
 using Gunter.Reporting;
-using Gunter.Reporting.Details;
+using Gunter.Reporting.Modules;
 using Gunter.Services;
 using Gunter.Services.Validators;
 using JetBrains.Annotations;
@@ -23,13 +23,14 @@ using Reusable.ConfigWhiz;
 using Reusable.ConfigWhiz.Datastores.AppConfig;
 using Reusable.Extensions;
 using Reusable.Markup.Html;
+using Module = Gunter.Reporting.Module;
 
 namespace Gunter
 {
     internal class Program
     {
-        public static readonly string InstanceName = Assembly.GetAssembly(typeof(Program)).GetName().Name;
-        public static readonly string InstanceVersion = "2.0.0";
+        public static readonly string Name = Assembly.GetAssembly(typeof(Program)).GetName().Name;
+        public static readonly string Version = "2.0.0";
 
         private static readonly ILogger Logger;
 
@@ -39,7 +40,7 @@ namespace Gunter
             Configuration = InitializeConfiguration();
         }
 
-        public static readonly string GlobalsFileName = $"{InstanceName}.Tests.Globals.json";
+        public static readonly string GlobalsFileName = "_Globals.json";
 
         public static Configuration Configuration { get; }
 
@@ -53,13 +54,13 @@ namespace Gunter
                 var container = InitializeContainer().GetAwaiter().GetResult();
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    var testDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().TestsDirectoryName);
+                    var testDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().Targets);
 
                     var globals = InitializeGlobals(testDirectoryName, GlobalsFileName, container.Resolve<IVariableBuilder>());
                     var testFileNames = GetTestFileNames(testDirectoryName);
                     var tests = InitializeTests(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
 
-                    LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} started. ***").Log(Logger);
+                    LogEntry.New().Info().Message($"*** {Name} v{Version} started. ***").Log(Logger);
 
                     scope.Resolve<TestRunner>().RunTestFiles(tests, globals);
                 }
@@ -69,21 +70,21 @@ namespace Gunter
             // Exception should already be logged elsewhere and rethrown to exit the application.
             catch (Exception ex)
             {
-                LogEntry.New().Fatal().Message($"*** {InstanceName} v{InstanceVersion} crashed. ***").Exception(ex).Log(Logger);
+                LogEntry.New().Fatal().Message($"*** {Name} v{Version} crashed. ***").Exception(ex).Log(Logger);
                 return 1;
             }
             finally
             {
-                LogEntry.New().Info().Message($"*** {InstanceName} v{InstanceVersion} exited. ***").Log(Logger);
+                LogEntry.New().Info().Message($"*** {Name} v{Version} exited. ***").Log(Logger);
             }
         }
 
         private static IEnumerable<string> GetTestFileNames(string directoryName)
         {
             return
-                from fileName in Directory.GetFiles(directoryName, $"{InstanceName}.Tests.*.json")
-                where !fileName.EndsWith(GlobalsFileName, StringComparison.OrdinalIgnoreCase)
-                select fileName;
+                from fullName in Directory.GetFiles(directoryName, "*.json")
+                where !Path.GetFileName(fullName).StartsWith("_", StringComparison.OrdinalIgnoreCase)
+                select fullName;
         }
 
         #region Initialization
@@ -127,8 +128,9 @@ namespace Gunter
                         .AddVariables<TestCase>(
                             x => x.Severity,
                             x => x.Message)
-                        .AddVariables<Context>(
-                            x => x.Environment));
+                        .AddVariables<Workspace>(
+                            x => x.Environment,
+                            x => x.AppName));
 
                 containerBuilder
                     .RegisterType<TestRunner>()
@@ -149,8 +151,8 @@ namespace Gunter
                     .As<IReport>();
 
                 containerBuilder
-                    .RegisterType<Section>()
-                    .As<ISection>();
+                    .RegisterType<Module>()
+                    .As<IModule>();
 
                 containerBuilder
                     .RegisterType<TestCaseInfo>();
@@ -164,13 +166,16 @@ namespace Gunter
                 #endregion
 
                 containerBuilder
-                    .RegisterAggregateService<IHtmlEmailTemplateService>();
+                    .RegisterType<GreetingRenderer>()
+                    .As<ModuleRenderer>();
+
                 containerBuilder
-                    .RegisterType<TextTemplate>();
+                    .RegisterType<TableRenderer>()
+                    .As<ModuleRenderer>();
+
                 containerBuilder
-                    .RegisterType<TableTemplate>();
-                containerBuilder
-                    .RegisterType<FooterTemplate>();
+                    .RegisterType<SignatureRenderer>()
+                    .As<ModuleRenderer>();
 
                 containerBuilder
                     .RegisterInstance(await variableBuilderTask)
@@ -185,11 +190,17 @@ namespace Gunter
                     .As<ICssParser>();
 
                 containerBuilder
-                    .Register<Func<string, IMarkupVisitor>>(context => (cssFileName) =>
+                    .Register<Func<string, StyleVisitor>>(c =>
                     {
-                        var cssFullName = context.Resolve<IPathResolver>().ResolveFilePath(cssFileName);
-                        var css = context.Resolve<ICssParser>().Parse(cssFullName);
-                        return new StyleVisitor((Dictionary<string, string>)css);
+                        var context = c.Resolve<IComponentContext>();
+
+                        return cssFileName =>
+                        {
+                            cssFileName = Path.Combine(Configuration.Load<Program, Workspace>().Themes, cssFileName);
+                            var cssFullName = context.Resolve<IPathResolver>().ResolveFilePath(cssFileName);
+                            var css = context.Resolve<ICssParser>().Parse(File.ReadAllText(cssFullName));
+                            return new StyleVisitor((Dictionary<string, string>)css);
+                        };
                     });
 
                 LogEntry.New().Debug().Message("IoC initialized.").Log(Logger);
@@ -218,7 +229,7 @@ namespace Gunter
 
                 LogEntry.New().Debug().Message("Globals initialized.").Log(Logger);
 
-                return globals.MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Context>()));
+                return globals.MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Workspace>()));
             }
             catch (Exception ex)
             {

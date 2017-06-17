@@ -5,13 +5,12 @@ using System.Data;
 using System.Linq;
 using Gunter.Data;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Reusable.Data;
 
-namespace Gunter.Reporting.Details
+namespace Gunter.Reporting.Modules
 {
     [PublicAPI]
-    public class DataSummary : ISectionDetail
+    public class DataSummary : Module, ITabular
     {
         private delegate double AggregateCallback(IEnumerable<DataRow> aggregate, string columnName);
 
@@ -20,17 +19,19 @@ namespace Gunter.Reporting.Details
             [Column.Option.Min] = (rows, column) => rows.Min(row => row.Field<double>(column)),
             [Column.Option.Max] = (rows, column) => rows.Max(row => row.Field<double>(column)),
             [Column.Option.Count] = (rows, column) => rows.Count(),
-            [Column.Option.Sum] = (rows, column) => rows.Where(row => row[column] != DBNull.Value).Sum(row => row.Field<double>(column)),
+            [Column.Option.Sum] = (rows, column) => rows.Where(row => row[column] != DBNull.Value).Sum(row => Convert.ToDouble(row[column])),
             [Column.Option.Avg] = (rows, column) => rows.Average(row => row.Field<double>(column)),
         };
 
         public TableOrientation Orientation => TableOrientation.Horizontal;
 
+        public bool HasFooter => true;
+
         [NotNull]
         [ItemNotNull]
         public List<string> Columns { get; set; } = new List<string>();
 
-        public DataSet Create(TestUnit testUnit)
+        public DataTable Create(TestUnit testUnit)
         {
             // Use default columns if none-specified.
             var columns = 
@@ -64,16 +65,16 @@ namespace Gunter.Reporting.Details
             var rows = groups.Select(CreateRow);
             foreach (var row in rows) body.Rows.Add(row);
 
-            var footer = new DataTable(nameof(DataSummary) + "Footer");
-            foreach (var column in columns) footer.AddColumn(column.Name, c => c.DataType = typeof(string));
-            footer.AddRow(columns.Select(column =>
+            //var footer = new DataTable(nameof(DataSummary) + "Footer");
+            //foreach (var column in columns) footer.AddColumn(column.Name, c => c.DataType = typeof(string));
+            body.AddRow(columns.Select(column =>
             {
                 var options = string.Join(", ", column.Options);
                 return (object)(string.IsNullOrEmpty(options) ? Column.Option.First : options).ToLower();
             })
             .ToArray());
 
-            return new DataSet { Tables = { body, footer } };
+            return body;
 
             DataRow CreateRow(IGrouping<IDictionary<string, string>, DataRow> group)
             {

@@ -13,8 +13,8 @@ namespace Gunter.Messaging.Email
             Encoding = Encoding.UTF8;
         }
 
-        public List<string> Sections { get; set; } = new List<string>();
+        public string Html { get; set; }
 
-        public override string ToString() => string.Join(Environment.NewLine, Sections);
+        public override string ToString() => Html;
     }
 }

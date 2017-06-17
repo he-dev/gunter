@@ -3,15 +3,17 @@ using System.Linq;
 using Gunter.Data;
 using Reusable.Data;
 
-namespace Gunter.Reporting.Details
+namespace Gunter.Reporting.Modules
 {
-    public class TestCaseInfo : ISectionDetail
+    public class TestCaseInfo : Module, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
-        public DataSet Create(TestUnit testUnit)
+        public bool HasFooter => false;
+
+        public DataTable Create(TestUnit testUnit)
         {
-            var body =
+            var table =
                 new DataTable(nameof(TestCaseInfo))
                     .AddColumn("Property", c => c.DataType = typeof(string))
                     .AddColumn("Value", c => c.DataType = typeof(string))
@@ -23,8 +25,7 @@ namespace Gunter.Reporting.Details
                     .AddRow(nameof(TestCase.AlertTrigger), testUnit.Test.AlertTrigger)
                     .AddRow(nameof(TestCase.Profiles), $"[{string.Join(", ", testUnit.Test.Profiles.Select(p => $"'{p}'"))}]");
 
-            return new DataSet { Tables = { body } };
+            return table;
         }
     }
-
 }

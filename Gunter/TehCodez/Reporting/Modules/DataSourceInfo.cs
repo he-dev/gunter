@@ -7,11 +7,13 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable.Data;
 
-namespace Gunter.Reporting.Details
+namespace Gunter.Reporting.Modules
 {
-    public class DataSourceInfo : ISectionDetail
+    public class DataSourceInfo : Module, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
+
+        public bool HasFooter => false;
 
         [PublicAPI]
         [DefaultValue("Timestamp")]
@@ -23,7 +25,7 @@ namespace Gunter.Reporting.Details
         [DefaultValue(@"dd\.hh\:mm\:ss")]
         public string TimespanFormat { get; set; }
 
-        public DataSet Create(TestUnit testUnit)
+        public DataTable Create(TestUnit testUnit)
         {
             var body =
                 new DataTable(nameof(DataSourceInfo))
@@ -46,10 +48,10 @@ namespace Gunter.Reporting.Details
                 var timespan =
                     testUnit.DataSource.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn)) -
                     testUnit.DataSource.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
-                body.AddRow("TimeSpan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture));
+                body.AddRow("Timespan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture));
             }
 
-            return new DataSet { Tables = { body } };
+            return body;
         }
     }
 }
