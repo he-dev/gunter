@@ -59,7 +59,7 @@ namespace Gunter.Tests.Testing
                         Filter = null,
                         Expression = null,
                         Assert = false,
-                        ContinueOnFailure = false,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     }
                 },
@@ -89,8 +89,7 @@ namespace Gunter.Tests.Testing
                         Filter = "[LogLevel] = 'info' AND [Environment] = 'test'",
                         Expression = "COUNT([LogLevel]) = 2",
                         Assert = true,
-                        ContinueOnFailure = false,
-                        AlertTrigger = AlertTrigger.Success,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     }
                 },
@@ -148,7 +147,7 @@ namespace Gunter.Tests.Testing
                         Filter = null,
                         Expression = "COUNT([Id]) = 0",
                         Assert = false,
-                        ContinueOnFailure = false,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     }
                 },
@@ -180,7 +179,7 @@ namespace Gunter.Tests.Testing
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        ContinueOnFailure = false,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     },
                     new TestCase
@@ -192,7 +191,7 @@ namespace Gunter.Tests.Testing
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        ContinueOnFailure = false,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     }
                 },
@@ -224,7 +223,7 @@ namespace Gunter.Tests.Testing
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        ContinueOnFailure = true,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     },
                     new TestCase
@@ -236,7 +235,7 @@ namespace Gunter.Tests.Testing
                         Filter = null,
                         Assert = true,
                         Expression = "COUNT([Id]) = 0",
-                        ContinueOnFailure = false,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     }
                 },
@@ -268,7 +267,7 @@ namespace Gunter.Tests.Testing
                         Filter = "[LogLevel] IN ('debug')",
                         Assert = true,
                         Expression = "COUNT([Id]) = 1",
-                        ContinueOnFailure = true,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     },
                 },
@@ -300,7 +299,7 @@ namespace Gunter.Tests.Testing
                         Filter = null,
                         Assert = true,
                         Expression = "[LogLevel] IN ('debug')",
-                        ContinueOnFailure = true,
+                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
                         Alerts = { 1 }
                     },
                 },

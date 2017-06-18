@@ -11,9 +11,11 @@ namespace Gunter.Services
     {
         public static IEnumerable<TestUnit> ComposeTests(TestFile testFile, IVariableResolver globalVariables)
         {
+            var localVariables = globalVariables.MergeWith(testFile.Locals);
+
+            var count = 1;
             var testUnits =
                 from test in testFile.Tests
-                let localVariables = globalVariables.MergeWith(testFile.Locals)
                 let dataSources =
                     (from id in test.DataSources
                      join ds in testFile.DataSources on id equals ds.Id
@@ -29,8 +31,9 @@ namespace Gunter.Services
                      select report).Distinct().ToList()
                 select new TestUnit
                 {
-                    //FileName = testFile.FileName,
-                    Test = test.UpdateVariables(localVariables),
+                    FullName = testFile.FullName,
+                    TestCase = test.UpdateVariables(localVariables),
+                    TestNumber = count++,
                     DataSource = dataSource.UpdateVariables(localVariables),
                     Alerts = alerts,
                     Reports = reports,

@@ -37,10 +37,10 @@ namespace Gunter.Messaging.Email.ModuleRenderers
                     .Append(Html
                         .Element("p", p => p
                             .Element("span", span => span
-                                .Class("test-case-severity", $"severity-{testUnit.Test.Severity.ToString().ToLower()}")
-                                .Append($"» {testUnit.Test.Severity.ToString().ToUpper()} »"))
+                                .Class("test-case-severity", $"severity-{testUnit.TestCase.Severity.ToString().ToLower()}")
+                                .Append($"» {testUnit.TestCase.Severity.ToString().ToUpper()} »"))
                             .Class("text")
-                            .Append($" {testUnit.Test.Message}"))
+                            .Append($" {testUnit.TestCase.Message}"))
                         .ToHtml(MarkupFormatting.Empty, new[] { styleVisitor }));
             }
 

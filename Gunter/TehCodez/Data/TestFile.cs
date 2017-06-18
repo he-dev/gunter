@@ -18,7 +18,8 @@ namespace Gunter.Data
         [JsonIgnore]
         public string FullName { get; set; }
 
-        public string Name => Path.GetFileNameWithoutExtension(FullName);
+        [JsonIgnore]
+        public string FileName => Path.GetFileName(FullName);
 
         public Dictionary<string, object> Locals { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 

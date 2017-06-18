@@ -23,7 +23,11 @@ namespace Gunter.Messaging.Email
 
         private string _to;
 
-        public HtmlEmail(ILogger logger, IEnumerable<ModuleRenderer> renderers, Func<string, StyleVisitor> createStyleVisitor) : base(logger)
+        public HtmlEmail(
+            ILogger logger, 
+            IEnumerable<ModuleRenderer> renderers, 
+            Func<string, StyleVisitor> createStyleVisitor) 
+            : base(logger)
         {
             _renderers = renderers;
             _createStyleVisitor = createStyleVisitor;
@@ -47,7 +51,7 @@ namespace Gunter.Messaging.Email
             var styleVisitor = _createStyleVisitor(Theme);
             var serviceProvider = new ServiceProvider()
                 .AddService(styleVisitor)
-                .AddService(testUnit.Test.Variables);
+                .AddService(testUnit.TestCase.Variables);
 
             var body = new StringBuilder();
 
@@ -57,15 +61,12 @@ namespace Gunter.Messaging.Email
                 body.AppendLine(renderer.Render(module, testUnit, serviceProvider));
             }
 
-            LogEntry.New().Debug().Message($"To: {To}").Log(Logger);
+            LogEntry.New().Info().Message($"Sending report {report.Id} to \"{To}\".").Log(Logger);
 
             var email = new Email<HtmlEmailSubject, HtmlEmailBody>
             {
                 Subject = new HtmlEmailSubject(report.Title),
-                Body = new HtmlEmailBody
-                {
-                    Html = body.ToString()
-                },
+                Body = new HtmlEmailBody { Html = body.ToString() },
                 To = To
             };
             EmailClient.Send(email);

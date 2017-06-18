@@ -21,7 +21,7 @@ namespace Gunter.Reporting.Modules
             [Column.Option.Min] = (rows, column) => rows.NotNull(column).Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Min, double.NaN),
             [Column.Option.Max] = (rows, column) => rows.NotNull(column).Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Max, double.NaN),
             [Column.Option.Count] = (rows, column) => rows.NotNull(column).Count(),
-            [Column.Option.Sum] = (rows, column) => rows.NotNull(column).ToDouble(column).Sum(),
+            [Column.Option.Sum] = (rows, column) => rows.NotNull(column).Select(Convert.ToDouble).Sum(),
             [Column.Option.Avg] = (rows, column) => rows.NotNull(column).Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
         };
 
@@ -35,10 +35,10 @@ namespace Gunter.Reporting.Modules
 
         public DataTable Create(TestUnit testUnit)
         {
-            // Use default columns if none-specified.
             var columns =
                 (Columns.Any()
                     ? Columns.Select(Column.Parse).ToList()
+                    // Use default columns if none-specified.
                     : testUnit.DataSource.Data.Columns.Cast<DataColumn>().Select(c => new Column(c.ColumnName)))
                 // Add the GroupCount column anyway.
                 .Concat(new[] { Column.GroupCount }).ToList();
@@ -47,7 +47,7 @@ namespace Gunter.Reporting.Modules
             var keyColumns = columns.Where(x => x.Options.Contains(Column.Option.Key)).ToList();
 
             // Group-by keyed columns.
-            var rowGroups = testUnit.DataSource.Data.Select(testUnit.Test.Filter).GroupBy(x =>
+            var rowGroups = testUnit.DataSource.Data.Select(testUnit.TestCase.Filter).GroupBy(x =>
                 keyColumns.ToDictionary(
                     column => column.Name,
                     // Get field's first line if it's a string and this option is set or the value unchanged.
@@ -74,10 +74,15 @@ namespace Gunter.Reporting.Modules
                 dataTable.Rows.Add(row);
             }
 
+            // Add the footer row with column options.
             dataTable.AddRow(columns.Select(column =>
             {
                 var options = string.Join(", ", column.Options);
-                return (object)(string.IsNullOrEmpty(options) ? Column.Option.First : options).ToLower();
+                return
+                    (object)(string.IsNullOrEmpty(options)
+                        // If no option is specified then use "first" as default.
+                        ? Column.Option.First
+                        : options).ToLower();
             })
             .ToArray());
 
@@ -114,13 +119,13 @@ namespace Gunter.Reporting.Modules
         }
 
         // Represents an aggregated column and its options.
-        [DebuggerDisplay("")]
+        [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
         private class Column : IEquatable<Column>
         {
             // https://regex101.com/r/6UiDaq/2
-            private static readonly Regex ColumnMatcher = new Regex(
-                @"(?<name>\[[a-z0-9_\s]+\]|[a-z0-9_]+)(?:\s+as\s+(?<alias>\[[a-z0-9_\s]+\]|[a-z0-9_]+))?",
-                RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+            //private static readonly Regex ColumnMatcher = new Regex(
+            //    @"(?<name>\[[a-z0-9_\s]+\]|[a-z0-9_]+)(?:\s+as\s+(?<alias>\[[a-z0-9_\s]+\]|[a-z0-9_]+))?",
+            //    RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
             public Column(string name) : this(name, Enumerable.Empty<string>()) { }
 
@@ -223,16 +228,16 @@ namespace Gunter.Reporting.Modules
     {
         public static IEnumerable<object> NotNull(this IEnumerable<DataRow> dataRows, string columnName)
         {
-            return 
+            return
                 dataRows
                     .Where(dataRow => dataRow[columnName] != DBNull.Value)
                     .Select(dataRow => dataRow[columnName]);
         }
 
-        public static IEnumerable<double> ToDouble(this IEnumerable<object> values, string columnName)
-        {
-            return values.Select(Convert.ToDouble);
-        }
+        //public static IEnumerable<double> ToDouble(this IEnumerable<object> values, string columnName)
+        //{
+        //    return values.Select(Convert.ToDouble);
+        //}
     }
 
     internal static class DoubleExtensions

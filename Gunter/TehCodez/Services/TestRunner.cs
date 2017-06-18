@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Gunter.Data;
@@ -9,6 +10,7 @@ using Gunter.Services;
 using Gunter.Extensions;
 using System.Threading.Tasks;
 using Gunter.Reporting;
+using JetBrains.Annotations;
 using Reusable.Extensions;
 
 namespace Gunter.Services
@@ -30,14 +32,18 @@ namespace Gunter.Services
 
         public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
 
-        public void RunTestFiles(IEnumerable<TestFile> testFiles, IVariableResolver variables)
+        public void RunTestFiles(
+            [NotNull, ItemNotNull] IEnumerable<TestFile> testFiles,
+            [NotNull, ItemNotNull] ICollection<string> runnableProfiles,
+            [NotNull] IVariableResolver variables)
         {
             //LogEntry.New().Debug().Message($"Test configuration count: {tests.Count}").Log(_logger);
 
             var testUnitGroups =
                 (from testFile in testFiles
                  let testFileVariables = variables.MergeWith(_variableBuilder.BuildVariables(testFile))
-                 select TestComposer.ComposeTests(testFile, testFileVariables)).ToList();
+                 let testUnits = TestComposer.ComposeTests(testFile, testFileVariables)
+                 select GetRunnableTestUnits(testUnits, runnableProfiles)).ToList();
 
             try
             {
@@ -57,57 +63,90 @@ namespace Gunter.Services
             }
         }
 
-        public void RunTests(IEnumerable<TestUnit> testUnits)
+        [NotNull, ItemNotNull]
+        private static IEnumerable<TestUnit> GetRunnableTestUnits(
+            [NotNull, ItemNotNull] IEnumerable<TestUnit> testUnits,
+            [NotNull, ItemNotNull] ICollection<string> runnableProfiles)
         {
-            //LogEntry.New().Info().Message($"Executing \"{Path.GetFileNameWithoutExtension(tuple.FileName)}\".").Log(_logger);
+            var runnableTestUnits =
+                from testUnit in testUnits
+                where
+                    testUnit.TestCase.Enabled &&
+                    ProfileMatches(testUnit.TestCase.Profiles)
+                select testUnit;
+
+            return runnableTestUnits;
+
+            bool ProfileMatches(IEnumerable<string> profiles)
+            {
+                return
+                    runnableProfiles.Count == 0 ||
+                    runnableProfiles.Any(runnableProfile => profiles.Contains(runnableProfile, StringComparer.OrdinalIgnoreCase));
+            }
+        }
+
+        private void RunTests([NotNull, ItemNotNull] IEnumerable<TestUnit> testUnits)
+        {
             var testFileEntry = default(LogEntry);
 
-            var counter = 1;
-            foreach (var testUnit in testUnits.Where(testUnit => testUnit.Test.Enabled))
+            foreach (var testUnit in testUnits)
             {
-                testFileEntry = testFileEntry ?? LogEntry.New().Stopwatch(sw => sw.Start()).Message("{TestFile.FileName}");
+                testFileEntry = testFileEntry ?? LogEntry.New().Stopwatch(sw => sw.Start());
 
                 var testUnitEntry = LogEntry.New().Stopwatch(sw => sw.Start());
                 try
                 {
-                    if (testUnit.DataSource.Data.Compute(testUnit.Test.Expression, testUnit.Test.Filter) is bool testResult)
+                    var stopwatch = Stopwatch.StartNew();
+                    if (testUnit.DataSource.Data.Compute(testUnit.TestCase.Expression, testUnit.TestCase.Filter) is bool result)
                     {
-                        //LogEntry.New().Info().Message($"{(success ? "Success" : "Failure")}");
+                        stopwatch.Stop();
+                        testUnit.TestCase.Elapsed = stopwatch.Elapsed;
 
-                        var success = testResult == testUnit.Test.Assert;
+                        var testResult = result == testUnit.TestCase.Assert ? TestResult.Passed : TestResult.Failed;
 
+                        LogEntry.New().Info().Message($"Test {testUnit.TestNumber} in {testUnit.FileName} {testResult.ToString().ToUpper()}.").Log(_logger);
 
                         var mustAlert =
-                            (success && testUnit.Test.AlertTrigger == AlertTrigger.Success) ||
-                            (!success && testUnit.Test.AlertTrigger == AlertTrigger.Failure);
+                            (testResult == TestResult.Passed && testUnit.TestCase.OnPassed.HasFlag(TestResultActions.Alert)) ||
+                            (testResult == TestResult.Failed && testUnit.TestCase.OnFailed.HasFlag(TestResultActions.Alert));
 
                         if (mustAlert)
                         {
-                            var testVariables = testUnit.Test.Variables.MergeWith(_variableBuilder.BuildVariables(testUnit.Test));
+                            var testVariables = testUnit.TestCase.Variables
+                                .MergeWith(_variableBuilder.BuildVariables(testUnit.TestCase))
+                                .MergeWith(_variableBuilder.BuildVariables(testUnit.DataSource));
+
                             foreach (var alert in testUnit.Alerts)
                             {
                                 alert.UpdateVariables(testVariables);
                                 alert.Publish(testUnit);
+
+                                LogEntry.New().Info().Message($"Published alert {alert.Id} for test {testUnit.TestNumber} in {testUnit.FileName}.").Log(_logger);
                             }
                         }
 
-                        if (!success && !testUnit.Test.ContinueOnFailure)
+                        var mustHalt =
+                            (testResult == TestResult.Passed && testUnit.TestCase.OnPassed.HasFlag(TestResultActions.Halt)) ||
+                            (testResult == TestResult.Failed && testUnit.TestCase.OnFailed.HasFlag(TestResultActions.Halt));
+
+                        if (mustHalt)
                         {
+                            LogEntry.New().Info().Message($"Halt at test {testUnit.TestNumber} in {testUnit.FileName}.").Log(_logger);
                             return;
                         }
                     }
                     else
                     {
-                        throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}.");
+                        throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}. Affected test {testUnit.TestNumber} in {testUnit.FileName}.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogEntry.New().Error().Exception(ex).Message($"Inconclusive. The expression must evaluate to {nameof(Boolean)}.");
+                    LogEntry.New().Error().Exception(ex).Message(ex.Message).Log(_logger);
                 }
                 finally
                 {
-                    testUnitEntry.Message($"Test completed.").Log(_logger);
+                    testUnitEntry.Message($"Test {testUnit.TestNumber} in {testUnit.FileName} completed.").Log(_logger);
                 }
             }
         }

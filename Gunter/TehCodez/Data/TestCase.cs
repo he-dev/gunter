@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using Gunter.Services;
@@ -38,15 +39,18 @@ namespace Gunter.Data
         [DefaultValue(true)]
         public bool Assert { get; set; }
 
-        [DefaultValue(false)]
-        public bool ContinueOnFailure { get; set; }
+        [DefaultValue(TestResultActions.None)]
+        public TestResultActions OnPassed { get; set; }
 
-        [DefaultValue(AlertTrigger.Failure)]
-        public AlertTrigger AlertTrigger { get; set; }
+        [DefaultValue(TestResultActions.Alert | TestResultActions.Halt)]
+        public TestResultActions OnFailed { get; set; }
 
         public List<int> Alerts { get; set; } = new List<int>();
 
         public List<string> Profiles { get; set; } = new List<string>();
+
+        [JsonIgnore]
+        public TimeSpan Elapsed { get; set; }
     }
 }
 

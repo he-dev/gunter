@@ -29,7 +29,7 @@ namespace Gunter.Tests.Services
                         Filter = "[LogLevel] = 'info' AND [Environment] = 'test'",
                         Expression = "COUNT([LogLevel]) = 2",
                         Assert = true,
-                        ContinueOnFailure = false,
+                        OnPassed = TestResultActions.Halt | TestResultActions.Alert,
                         Alerts = { 1 }
                     }
                 },

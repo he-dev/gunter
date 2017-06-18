@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using Reusable.Logging;
 using Gunter.Services;
@@ -42,8 +43,10 @@ namespace Gunter.Data.SqlClient
         }
 
         public int Id { get; set; }
-                
+
         public DataTable Data => _data.Value;
+
+        public TimeSpan Elapsed { get; private set; }
 
         [PublicAPI]
         [NotNull]
@@ -80,8 +83,9 @@ namespace Gunter.Data.SqlClient
                 throw new InvalidOperationException($"You need to specify at least the one command.");
             }
 
-            LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
+            //LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
 
+            var stopwatch = Stopwatch.StartNew();
             using (var conn = new SqlConnection(ConnectionString))
             {
                 conn.Open();
@@ -91,11 +95,11 @@ namespace Gunter.Data.SqlClient
                     cmd.CommandText = Commands.First().Text;
                     cmd.CommandType = CommandType.Text;
 
-                    LogEntry.New().Debug().Message($"Command: {cmd.CommandText}").Log(_logger);
+                    //LogEntry.New().Debug().Message($"Command: {cmd.CommandText}").Log(_logger);
 
                     foreach (var parameter in Commands.First())
                     {
-                        LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameter.Value}'").Log(_logger);
+                        //LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameter.Value}'").Log(_logger);
                         cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
                     }
 
@@ -103,7 +107,11 @@ namespace Gunter.Data.SqlClient
                     {
                         var dataTable = new DataTable();
                         dataTable.Load(dataReader);
-                        LogEntry.New().Debug().Message($"Row count: {dataTable.Rows.Count}").Log(_logger);
+                        //LogEntry.New().Debug().Message($"Row count: {dataTable.Rows.Count}").Log(_logger);
+
+                        stopwatch.Stop();
+                        Elapsed = stopwatch.Elapsed;
+
                         return dataTable;
                     }
                 }

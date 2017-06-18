@@ -58,11 +58,11 @@ namespace Gunter
 
                     var globals = InitializeGlobals(testDirectoryName, GlobalsFileName, container.Resolve<IVariableBuilder>());
                     var testFileNames = GetTestFileNames(testDirectoryName);
-                    var tests = InitializeTests(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
+                    var testFiles = InitializeTests(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
 
                     LogEntry.New().Info().Message($"*** {Name} v{Version} started. ***").Log(Logger);
 
-                    scope.Resolve<TestRunner>().RunTestFiles(tests, globals);
+                    scope.Resolve<TestRunner>().RunTestFiles(testFiles, args, globals);
                 }
 
                 return 0;
@@ -124,10 +124,13 @@ namespace Gunter
                     new VariableBuilder()
                         .AddVariables<TestFile>(
                             x => x.FullName,
-                            x => x.Name)
+                            x => x.FileName)
+                        .AddVariables<IDataSource>(
+                            x => x.Elapsed)
                         .AddVariables<TestCase>(
                             x => x.Severity,
-                            x => x.Message)
+                            x => x.Message,
+                            x => x.Elapsed)
                         .AddVariables<Workspace>(
                             x => x.Environment,
                             x => x.AppName));
@@ -144,15 +147,11 @@ namespace Gunter
                     .RegisterType<HtmlEmail>()
                     .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(HtmlEmail))));
 
-                #region Initialize reporting componenets
+                #region Initialize reporting modules
 
                 containerBuilder
                     .RegisterType<Report>()
                     .As<IReport>();
-
-                containerBuilder
-                    .RegisterType<Module>()
-                    .As<IModule>();
 
                 containerBuilder
                     .RegisterType<TestCaseInfo>();
@@ -165,6 +164,8 @@ namespace Gunter
 
                 #endregion
 
+                #region Initialize renderers
+
                 containerBuilder
                     .RegisterType<GreetingRenderer>()
                     .As<ModuleRenderer>();
@@ -176,6 +177,8 @@ namespace Gunter
                 containerBuilder
                     .RegisterType<SignatureRenderer>()
                     .As<ModuleRenderer>();
+                
+                #endregion
 
                 containerBuilder
                     .RegisterInstance(await variableBuilderTask)
@@ -217,19 +220,20 @@ namespace Gunter
         {
             var fullName = Path.Combine(directoryName, fileName);
 
+            if (!File.Exists(fullName)) { return VariableResolver.Empty; }
+
             try
             {
-                var globals = VariableResolver.Empty;
-
-                if (File.Exists(fullName))
-                {
-                    globals = globals.MergeWith(JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(fullName)));
-                    VariableValidator.ValidateNamesNotReserved(globals, variableBuilder.Names);
-                }
+                var globalsFile = File.ReadAllText(fullName);
+                var globals = JsonConvert.DeserializeObject<Dictionary<string, object>>(globalsFile);
+                VariableValidator.ValidateNamesNotReserved(globals, variableBuilder.Names);
+                var variableResolver = VariableResolver.Empty
+                    .MergeWith(globals)
+                    .MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Workspace>()));
 
                 LogEntry.New().Debug().Message("Globals initialized.").Log(Logger);
 
-                return globals.MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Workspace>()));
+                return variableResolver;
             }
             catch (Exception ex)
             {
@@ -259,7 +263,7 @@ namespace Gunter
                     });
                     testFile.FullName = fileName;
 
-                    VariableValidator.ValidateNamesNotReserved(VariableResolver.Empty.MergeWith(testFile.Locals), reservedNames);
+                    VariableValidator.ValidateNamesNotReserved(testFile.Locals, reservedNames);
 
                     logEntry.Message($"Test initialized: {fileName}");
                     return testFile;

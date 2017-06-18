@@ -10,7 +10,7 @@ namespace Gunter.Services.Validators
 {
     internal static class VariableValidator
     {
-        public static void ValidateNamesNotReserved(IVariableResolver variables, IEnumerable<string> reservedNames)
+        public static void ValidateNamesNotReserved(IDictionary<string, object> variables, IEnumerable<string> reservedNames)
         {
             if (reservedNames.Any(variables.ContainsKey))
             {

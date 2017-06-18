@@ -18,6 +18,9 @@ namespace Gunter.Data
         [JsonIgnore]
         DataTable Data { get; }
 
+        [JsonIgnore]
+        TimeSpan Elapsed { get; }
+
         [NotNull]
         IEnumerable<(string Name, string Text)> GetCommands();
     }

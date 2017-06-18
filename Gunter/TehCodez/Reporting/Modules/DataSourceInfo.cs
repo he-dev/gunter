@@ -27,31 +27,44 @@ namespace Gunter.Reporting.Modules
 
         public DataTable Create(TestUnit testUnit)
         {
-            var body =
+            // Initialize the data-table;
+            var dataTable =
                 new DataTable(nameof(DataSourceInfo))
                     .AddColumn("Property", c => c.DataType = typeof(string))
-                    .AddColumn("Value", c => c.DataType = typeof(string))
-                    .AddRow("Type", testUnit.DataSource.GetType().Name);
+                    .AddColumn("Value", c => c.DataType = typeof(string));
+
+            dataTable.AddRow("Type", testUnit.DataSource.GetType().Name);
 
             var commandNumber = 0;
             foreach (var tuple in testUnit.DataSource.GetCommands())
             {
-                body.AddRow($"Command: {(string.IsNullOrEmpty(tuple.Name) ? commandNumber++.ToString() : tuple.Name)}", tuple.Text);
+                var commandNameOrCounter =
+                    string.IsNullOrEmpty(tuple.Name)
+                        ? commandNumber++.ToString()
+                        : tuple.Name;
+
+                dataTable.AddRow($"Command: {commandNameOrCounter}", tuple.Text);
             }
 
-            body
-                .AddRow("Results", testUnit.DataSource.Data.Rows.Count);
+            dataTable.AddRow("Results", testUnit.DataSource.Data.Rows.Count);
+            dataTable.AddRow("Elapsed", testUnit.DataSource.Elapsed.ToString(@"hh\:mm\:ss\.f"));
 
-            if (testUnit.DataSource.Data.Columns.Contains(TimestampColumn) && testUnit.DataSource.Data.Rows.Count > 0)
+            var hasTimestampColumn = testUnit.DataSource.Data.Columns.Contains(TimestampColumn);
+            var hasRows = testUnit.DataSource.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
+
+            if (hasTimestampColumn && hasRows)
             {
-                body.AddRow("CreatedOn", testUnit.DataSource.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn)));
-                var timespan =
-                    testUnit.DataSource.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn)) -
-                    testUnit.DataSource.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
-                body.AddRow("Timespan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture));
+                var timestampMin = testUnit.DataSource.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
+                var timestampMax = testUnit.DataSource.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn));
+
+                dataTable.AddRow("Timestamp Min", timestampMin);
+                dataTable.AddRow("Timestamp Max", timestampMax);
+
+                var timespan = timestampMax - timestampMin;
+                dataTable.AddRow("Timespan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture));
             }
 
-            return body;
+            return dataTable;
         }
     }
 }

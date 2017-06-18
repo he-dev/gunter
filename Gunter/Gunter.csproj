@@ -136,7 +136,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TehCodez\Data\AlertTrigger.cs" />
+    <Compile Include="TehCodez\Data\TestResult.cs" />
+    <Compile Include="TehCodez\Data\TestResultActions.cs" />
     <Compile Include="TehCodez\Data\TestUnit.cs" />
     <Compile Include="TehCodez\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\GreetingRenderer.cs" />

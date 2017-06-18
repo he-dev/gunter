@@ -17,13 +17,14 @@ namespace Gunter.Reporting.Modules
                 new DataTable(nameof(TestCaseInfo))
                     .AddColumn("Property", c => c.DataType = typeof(string))
                     .AddColumn("Value", c => c.DataType = typeof(string))
-                    .AddRow(nameof(TestCase.Severity), testUnit.Test.Severity.ToString())
-                    .AddRow(nameof(TestCase.Filter), testUnit.Test.Filter)
-                    .AddRow(nameof(TestCase.Expression), testUnit.Test.Expression)
-                    .AddRow(nameof(TestCase.Assert), testUnit.Test.Assert)
-                    .AddRow(nameof(TestCase.ContinueOnFailure), testUnit.Test.ContinueOnFailure)
-                    .AddRow(nameof(TestCase.AlertTrigger), testUnit.Test.AlertTrigger)
-                    .AddRow(nameof(TestCase.Profiles), $"[{string.Join(", ", testUnit.Test.Profiles.Select(p => $"'{p}'"))}]");
+                    //.AddRow(nameof(TestCase.Severity), testUnit.Test.Severity.ToString())
+                    .AddRow(nameof(TestCase.Filter), testUnit.TestCase.Filter)
+                    .AddRow(nameof(TestCase.Expression), testUnit.TestCase.Expression)
+                    .AddRow(nameof(TestCase.Assert), testUnit.TestCase.Assert)
+                    .AddRow(nameof(TestCase.OnPassed), testUnit.TestCase.OnPassed)
+                    .AddRow(nameof(TestCase.OnFailed), testUnit.TestCase.OnFailed)
+                    .AddRow(nameof(TestCase.Elapsed), testUnit.TestCase.Elapsed.ToString(@"hh\:mm\:ss\.f"))
+                    .AddRow(nameof(TestCase.Profiles), $"[{string.Join(", ", testUnit.TestCase.Profiles.Select(p => $"'{p}'"))}]");
 
             return table;
         }

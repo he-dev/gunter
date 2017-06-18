@@ -42,7 +42,7 @@ namespace Gunter.Messaging
 
         public void Publish(TestUnit context)
         {
-            LogEntry.New().Debug().Message($"Publishing alert {Id}").Log(Logger);
+            LogEntry.New().Debug().Message($"Publishing alert {Id}.").Log(Logger);
 
             var reports =
                 from id in Reports
@@ -51,9 +51,21 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                LogEntry.New().Debug().Message($"Publishing report {report.Id} with {report.Modules.Count} section(s).").Log(Logger);
+                var publishLogEntry = LogEntry.New().Stopwatch(sw => sw.Start());
 
-                PublishCore(context, report);
+                try
+                {
+                    PublishCore(context, report);
+                    publishLogEntry.Info().Message($"Published report {report.Id}.");
+                }
+                catch (Exception ex)
+                {
+                    publishLogEntry.Error().Exception(ex).Message($"Could not publish report {report.Id}.");
+                }
+                finally
+                {
+                    publishLogEntry.Log(Logger);
+                }
             }
         }
 

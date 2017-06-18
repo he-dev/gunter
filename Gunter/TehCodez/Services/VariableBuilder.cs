@@ -28,7 +28,9 @@ namespace Gunter.Services
 
             foreach (var expression in expressions)
             {
-                var variable = Variable<T>.Create(name: CreateVarialbeName(expression), getValue: expression.Compile());
+                var variable = Variable<T>.Create(
+                    name: CreateVarialbeName(expression), 
+                    getValue: expression.Compile());
 
                 if (_variables.TryGetValue(typeof(T), out var variables))
                 {
