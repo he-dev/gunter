@@ -142,6 +142,7 @@
     <Compile Include="TehCodez\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\GreetingRenderer.cs" />
     <Compile Include="TehCodez\Reporting\Filters\FirstLine.cs" />
+    <Compile Include="TehCodez\Reporting\Filters\Unchanged.cs" />
     <Compile Include="TehCodez\Reporting\Modules\Greeting.cs" />
     <Compile Include="TehCodez\Reporting\Modules\Signature.cs" />
     <Compile Include="TehCodez\Reporting\Report.cs" />

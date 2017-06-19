@@ -1,6 +1,6 @@
 {
 	"Locals": {
-		"MainLog": "[robots].[Gunter_MainLog]",
+		"TestLog": "[robots].[Gunter_TestLog]",
 		"Top1k": "1000",
 		"To": "test@email.com"
 	},
@@ -12,9 +12,8 @@
 			"Commands": [
 				{
 					"Name": "Main",
-					//"Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
-					"Text": "SELECT * FROM {MainLog}",
-					"Parameters": { "@Environment": "{Environment}" }
+					"Text": "SELECT * FROM {TestLog}",
+					"Parameters": { "@Environment": "{Workspace.Environment}" }
 				},
 				{
 					"Name": "Debug",
@@ -32,8 +31,8 @@
 			"Filter": "[LogLevel] IN ('error', 'fatal')",
 			"Expression": "Count([LogLevel]) = 0",
 			"Assert": true,
-			"ContinueOnFailure": true,
-			"AlertTrigger": "Failure",
+			"OnPassed": "Alert",
+			"OnFailed": "Halt",
 			"Alerts": [1],
 			"Profiles": []
 		}
@@ -44,49 +43,49 @@
 			"Id": 1,
 			"EmailClient": { "$type": "Reusable.EmailClients.SmtpClient, Reusable.EmailClients.SmtpClient" },
 			"To": "example@email.com",
-			"Css": "Default.css",
+			"Theme": "Default.css",
 			"Reports": [1]
 		}
 	],
 	"Reports": [
 		{
 			"Id": 1,
-			"Title": "Glitch alert for {MainLog} - {TestCase.Severity}",
-			"Sections": [
+			"Title": "Glitch alert for {TestLog} - {TestCase.Severity}",
+			"Modules": [
 				{
+					"$type": "Gunter.Reporting.Modules.Greeting, Gunter",
 					"Heading": "Glitch detected!",
 					"Text": "{TestCase.Message}"
 				},
 				{
-					"Heading": "Test case",
-					"Detail":
-					{
-						"$type": "Gunter.Reporting.Details.TestCaseInfo, Gunter"
-					}
+					"$type": "Gunter.Reporting.Modules.TestCaseInfo, Gunter",
+					"Heading": "Test case"
 				},
 				{
+					"$type": "Gunter.Reporting.Modules.DataSourceInfo, Gunter",
 					"Heading": "Data-source",
-					"Detail":
-					{
-						"$type": "Gunter.Reporting.Details.DataSourceInfo, Gunter",
-						"TimestampColumn": "Timestamp",
-						"TimespanFormat": "dd\\.hh\\:mm\\:ss"
-					}
+					"TimestampColumn": "Timestamp",
+					"TimespanFormat": "dd\\.hh\\:mm\\:ss"
 				},
 				{
-					"Heading": "Exceptions",
-					"Detail":
-					{
-						"$type": "Gunter.Reporting.Details.DataSummary, Gunter",
-						"Columns": [
-							"Timestamp",
-							"LogLevel | key",
-							"Logger | key",
-							"ElapsedSeconds | sum",
-							"Message",
-							"Exception | key firstline"
-						]
-					}
+					"$type": "Gunter.Reporting.Modules.DataSummary, Gunter",
+					"Heading": "Data summary",
+					"Columns": [
+						{
+							"Name": "_nvarchar",
+							"IsKey": true,
+							"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
+						},
+						{ "Name": "_int", "Total": "Sum" },
+						{ "Name": "_datetime2" },
+						{ "Name": "_float", "Total": "Average" },
+						{ "Name": "_bit", "Total": "Count" },
+						{ "Name": "_money" },
+						{ "Name": "_numeric" }
+					]
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.Signature, Gunter"
 				}
 			]
 		}

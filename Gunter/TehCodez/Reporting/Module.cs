@@ -58,8 +58,8 @@ namespace Gunter.Reporting
         Vertical
     }
 
-    internal interface IDataFilter
+    public interface IDataFilter
     {
-        object Filter(object data);
+        object Apply(object data);
     }
 }

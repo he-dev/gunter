@@ -259,7 +259,8 @@ namespace Gunter
                     {
                         ContractResolver = new AutofacContractResolver(container),
                         DefaultValueHandling = DefaultValueHandling.Populate,
-                        TypeNameHandling = TypeNameHandling.Auto
+                        TypeNameHandling = TypeNameHandling.Auto,
+                        //NullValueHandling = NullValueHandling.Ignore
                     });
                     testFile.FullName = fileName;
 
