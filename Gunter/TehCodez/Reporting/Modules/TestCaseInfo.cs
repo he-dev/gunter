@@ -23,7 +23,7 @@ namespace Gunter.Reporting.Modules
                     .AddRow(nameof(TestCase.Assert), testUnit.TestCase.Assert)
                     .AddRow(nameof(TestCase.OnPassed), testUnit.TestCase.OnPassed)
                     .AddRow(nameof(TestCase.OnFailed), testUnit.TestCase.OnFailed)
-                    .AddRow(nameof(TestCase.Elapsed), testUnit.TestCase.Elapsed.ToString(@"hh\:mm\:ss\.f"))
+                    .AddRow(nameof(TestCase.Elapsed), testUnit.TestCase.Elapsed.ToString(@"hh\:mm\:ss\.f")) // todo hardcoded timespan format
                     .AddRow(nameof(TestCase.Profiles), $"[{string.Join(", ", testUnit.TestCase.Profiles.Select(p => $"'{p}'"))}]");
 
             return table;

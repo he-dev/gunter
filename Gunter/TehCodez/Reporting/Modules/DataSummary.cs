@@ -213,6 +213,25 @@ namespace Gunter.Reporting.Modules
         }
     }
 
+    internal class ColumnOption
+    {
+        public bool IsKey { get; set; }
+
+        public IDataFilter Filter { get; set; }
+
+        public ColumnTotal Total { get; set; }
+    }
+
+    internal enum ColumnTotal
+    {
+        Min,
+        Max,
+        Count,
+        Sum,
+        Average,
+        Avg = Average,
+    }
+
     public class DictionaryComparer<TKey, TValue> : IEqualityComparer<IDictionary<TKey, TValue>>
     {
         public bool Equals(IDictionary<TKey, TValue> x, IDictionary<TKey, TValue> y)

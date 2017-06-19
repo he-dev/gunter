@@ -47,7 +47,7 @@ namespace Gunter.Reporting.Modules
             }
 
             dataTable.AddRow("Results", testUnit.DataSource.Data.Rows.Count);
-            dataTable.AddRow("Elapsed", testUnit.DataSource.Elapsed.ToString(@"hh\:mm\:ss\.f"));
+            dataTable.AddRow("Elapsed", testUnit.DataSource.Elapsed.ToString(@"hh\:mm\:ss\.f")); // todo hardcoded timespan format
 
             var hasTimestampColumn = testUnit.DataSource.Data.Columns.Contains(TimestampColumn);
             var hasRows = testUnit.DataSource.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.

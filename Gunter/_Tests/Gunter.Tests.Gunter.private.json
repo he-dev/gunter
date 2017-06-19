@@ -1,0 +1,93 @@
+{
+	"Locals": {
+		"MainLog": "[robots].[Gunter_MainLog]",
+		"Top1k": "1000",
+		"To": "test@email.com"
+	},
+	"DataSources": [
+		{
+			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
+			"Id": 1,
+			"ConnectionString": "{TEST_LOG}",
+			"Commands": [
+				{
+					"Name":  "Main",
+					//"Text": "SELECT TOP({Top1k}) * FROM (SELECT * FROM {MainLog} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t",
+					"Text": "SELECT * FROM {MainLog}",
+					"Parameters": { "@Environment": "{Environment}" }
+				},
+				{
+					"Name":  "Debug",
+					"Text": "{DebugCommand}"
+				}
+			]
+		}
+	],
+	"Tests": [
+		{
+			"Enabled": false,
+			"Severity": "Warning",
+			"Message": "Trace logging is on.",
+			"DataSources": [1],
+			"Filter": "[LogLevel] IN ('error', 'fatal')",
+			"Expression": "Count([LogLevel]) = 0",
+			"Assert": true,
+			"ContinueOnFailure": true,
+			"AlertTrigger": "Failure",
+			"Alerts": [1],
+			"Profiles": []
+		}
+	],
+	"Alerts": [
+		{
+			"$type": "Gunter.Messaging.Email.HtmlEmail, Gunter",
+			"Id": 1,
+			"EmailClient": { "$type": "Reusable.EmailClients.SmtpClient, Reusable.EmailClients.SmtpClient" },
+			"To": "example@email.com",
+			"Reports": [1]
+		}
+	],
+	"Reports": [
+		{
+			"Id": 1,
+			"Title": "Glitch alert for {MainLog} - {TestCase.Severity}",
+			"Sections": [
+				{
+					"Heading": "Glitch detected!",
+					"Text": "{TestCase.Message}"
+				},
+				{
+					"Heading": "Test case",
+					"Detail":
+					{
+						"$type": "Gunter.Reporting.Details.TestCaseInfo, Gunter"
+					}
+				},
+				{
+					"Heading": "Data-source",
+					"Detail":
+					{
+						"$type": "Gunter.Reporting.Details.DataSourceInfo, Gunter",
+						"TimestampColumn":  "Timestamp",
+						"TimespanFormat":  "dd\\.hh\\:mm\\:ss"
+					}
+				},
+				{
+					"Heading": "Exceptions",
+					"Detail":
+					{
+						"$type": "Gunter.Reporting.Details.DataSummary, Gunter",
+						"Columns": [
+							"Timestamp",
+							"LogLevel | key",
+							"Logger | key",
+							"ElapsedSeconds | sum",
+							"Message",
+							"Exception | key firstline"
+						]
+					}
+				}
+			]
+		}
+	]
+}

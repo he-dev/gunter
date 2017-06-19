@@ -57,4 +57,9 @@ namespace Gunter.Reporting
         // Header on the left
         Vertical
     }
+
+    internal interface IDataFilter
+    {
+        object Filter(object data);
+    }
 }
