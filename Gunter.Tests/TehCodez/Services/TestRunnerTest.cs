@@ -4,6 +4,7 @@ using System.Linq;
 using Gunter.Data;
 using Gunter.Messaging;
 using Gunter.Reporting;
+using Gunter.Reporting.Data;
 using Gunter.Reporting.Modules;
 using Gunter.Services;
 using Gunter.Tests.Data.Fakes;
@@ -11,41 +12,107 @@ using Gunter.Tests.Messaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reusable.Logging;
 
-namespace Gunter.Tests.Testing
+namespace Gunter.Tests.Services
 {
     [TestClass]
     public class TestRunnerTest
     {
         private readonly List<IDataSource> _dataSources = new List<IDataSource>
         {
-            new FakeDataSource(1),
-            new FakeDataSource(2)
-                .AddRow(row => row.Timestamp(DateTime.UtcNow).Environment("test").LogLevel("info").ElapsedSeconds(0f).Message("foo").Exception(null).ItemCount(1).Completed(true))
-                .AddRow(row => row.Timestamp(DateTime.UtcNow).Environment("test").LogLevel("info").ElapsedSeconds(2f).Message("foo").Exception(null).ItemCount(3).Completed(true))
-                .AddRow(row => row.Timestamp(DateTime.UtcNow).Environment("test").LogLevel("debug").ElapsedSeconds(3f).Message("bar").Exception(null).ItemCount(10).Completed(true))
-                .AddRow(row => row.Timestamp(DateTime.UtcNow).Environment("test").LogLevel("error").ElapsedSeconds(40f).Message("baz").Exception(new DivideByZeroException().ToString()).ItemCount(50).Completed(false))
-                .AddRow(row => row.Timestamp(DateTime.UtcNow).Environment("test").LogLevel("error").ElapsedSeconds(10f).Message("qux").Exception(new DivideByZeroException().ToString()).ItemCount(50).Completed(false))
-                .AddRow(row => row.Timestamp(DateTime.UtcNow).Environment("test").LogLevel("error").ElapsedSeconds(0f).Message("qux").Exception(new InvalidOperationException().ToString()).ItemCount(5).Completed(false))
-                .AddRow(row => row.Timestamp(DateTime.UtcNow).Environment("prod").LogLevel("info").ElapsedSeconds(5f).Message("foo").Exception(null).ItemCount(8).Completed(true))            
+            new TestDataSource(1),
+            new TestDataSource(2)
+                .AddRow(row => row._string("foo")._int(1)._double(2.2)._decimal(3.5m)._datetime(new DateTime(2017, 5, 1))._bool(true))
+                .AddRow(row => row._string("foo")._int(3)._double(null)._decimal(5m)._datetime(new DateTime(2017, 5, 2))._bool(true))
+                .AddRow(row => row._string("bar")._int(8)._double(null)._decimal(1m)._datetime(null)._bool(false))
+                .AddRow(row => row._string("bar")._int(null)._double(3.5)._decimal(null)._datetime(new DateTime(2017, 5, 3))._bool(false))
+                .AddRow(row => row._string("bar")._int(4)._double(7)._decimal(2m)._datetime(new DateTime(2017, 5, 4))._bool(null))
+                .AddRow(row => row._string(null)._int(null)._double(2.5)._decimal(8m)._datetime(new DateTime(2017, 5, 5))._bool(true))
+                .AddRow(row => row._string("")._int(2)._double(6)._decimal(1.5m)._datetime(new DateTime(2017, 5, 6))._bool(null))
         };
 
-        private List<IAlert> _alerts;
-
-        private TestAlert _alert;
+        private readonly List<TestAlert> _alerts = new List<TestAlert>
+        {
+            new TestAlert { Id = 1 }
+        };
 
         private readonly TestRunner _testRunner = new TestRunner(new NullLogger(), new VariableBuilder());
 
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            var testFile = new TestFile
+            {
+                DataSources = _dataSources,
+                Tests =
+                {
+                    new TestCase
+                    {
+                        Enabled = false,
+                        Severity = TestSeverity.Debug,
+                        Message = "Empty test.",
+                        DataSources = { 1, 2 },
+                        Filter = null,
+                        Expression = null,
+                        Assert = false,
+                        OnPassed = TestResultActions.None,
+                        OnFailed = TestResultActions.None,
+                        Alerts = { 1 }
+                    }
+                },
+                Alerts =
+                {
+                    new TestAlert { Id = 1 }                     
+                },
+                Reports =
+                {
+                    new Report
+                    {
+                        Id = 1,
+                        Title = "Test report",
+                        Modules =
+                        {
+                            new Greeting
+                            {
+                                Heading = "Hallo test!",
+                                Text = "{TestCase.Message}"
+                            },
+                            new TestCaseInfo
+                            {
+                                Heading = "Test case"
+                            },
+                            new DataSourceInfo
+                            {
+                                Heading = "Data source"
+                            },
+                            new DataSummary
+                            {
+                                Heading = "Data summary",
+                                Columns =
+                                {
+                                    new ColumnOption
+                                    {
+                                        Name = "_nvarchar",
+                                        IsKey = true,
+                                        Filter = new Gunter.Reporting.Filters.FirstLine(),
+                                        Total = ColumnTotal.First
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
         [TestCleanup]
         public void TestCleanup()
         {
-            _alert.Dispose();
+            foreach (var alert in _alerts) alert.Dispose();
         }
 
         [TestMethod]
         public void RunTests_TestCaseDisabled_TestNotRun()
         {
-            _alert = new TestAlert();
-            var testConfig = new TestFile
+            var testFile = new TestFile
             {
                 DataSources = _dataSources,
                 Tests =
@@ -63,17 +130,17 @@ namespace Gunter.Tests.Testing
                         Alerts = { 1 }
                     }
                 },
-                Alerts = { _alert }
+                Alerts = _alerts.Cast<IAlert>().ToList()
             };
 
-            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
-            Assert.AreEqual(0, _alert.PublishedReports.Count);
+            _testRunner.RunTestFiles(new[] { testFile }, new string[0], VariableResolver.Empty);
+            Assert.AreEqual(0, _alerts.ElementAt(0).PublishedReports.Count);
         }
 
         [TestMethod]
         public void RunTests_TestCaseSeverityInfo_Success()
         {
-            _alert = new TestAlert { Id = 1, Reports = { 1 }};
+            _alert = new TestAlert { Id = 1, Reports = { 1 } };
 
             var testConfig = new TestFile
             {

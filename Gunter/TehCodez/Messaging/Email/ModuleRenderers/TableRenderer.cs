@@ -23,7 +23,8 @@ namespace Gunter.Messaging.Email.ModuleRenderers
         {
             if (module is ITabular tabular)
             {
-                var styleVisitor = serviceProvider.GetService<StyleVisitor>();
+                var cssInliner = serviceProvider.GetService<CssInliner>();
+                var css = serviceProvider.GetService<Css>();
                 var variables = serviceProvider.GetService<IVariableResolver>();
 
 
@@ -31,13 +32,15 @@ namespace Gunter.Messaging.Email.ModuleRenderers
                     .Element("h2", h2 => h2
                         .Class("module-heading")
                         .Append(module.Heading))
-                    .ToHtml(MarkupFormatting.Empty, new[] { styleVisitor });
+                    .InlineCss(cssInliner, css)
+                    .ToHtml(MarkupFormatting.Empty);
 
                 var text = string.IsNullOrEmpty(module.Text) ? null : Html
                     .Element("p", p => p
                         .Class("text")
                         .Append(module.Heading))
-                    .ToHtml(MarkupFormatting.Empty, new[] { styleVisitor });
+                    .InlineCss(cssInliner, css)
+                    .ToHtml(MarkupFormatting.Empty);
 
                 var table = RenderTable(tabular, testUnit, serviceProvider);
 
@@ -120,20 +123,13 @@ namespace Gunter.Messaging.Email.ModuleRenderers
 
                 table.Add(tbody);
 
-                //if (tabular.HasFooter)
-                //{
-                //    table
-                //        .Element("tfoot", tfoot => tfoot
-                //            .Elements("tr", dataTable.AsEnumerable(), (tr, row) => tr
-                //                .Elements("td", dataTable.Columns.Cast<DataColumn>(), (td, x) => td
-                //                    .Append(row.Field<string>(x.ColumnName))
-                //                    .Style(Styles[Style.tbody_td_value])))
-                //            //.Style(Styles[Style.tfoot])
-                //            );
-                //}
+                var cssInliner = serviceProvider.GetService<CssInliner>();
+                var css = serviceProvider.GetService<Css>();
 
-                var styleVisitor = serviceProvider.GetService<StyleVisitor>();
-                return table.ToHtml(MarkupFormatting.Empty, new[] { styleVisitor });
+                return 
+                    table
+                        .InlineCss(cssInliner, css)
+                        .ToHtml(MarkupFormatting.Empty);
             }
         }
     }

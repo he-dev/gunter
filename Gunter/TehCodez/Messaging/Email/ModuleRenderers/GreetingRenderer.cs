@@ -16,17 +16,23 @@ namespace Gunter.Messaging.Email.ModuleRenderers
     {
         public override string Render(IModule module, TestUnit testUnit, IServiceProvider serviceProvider)
         {
-            var styleVisitor = serviceProvider.GetService<StyleVisitor>();
+            var cssInliner = serviceProvider.GetService<CssInliner>();
+            var css = serviceProvider.GetService<Css>();
 
             var html = new StringBuilder();
 
             if (module.Heading.IsNotNullOrEmpty())
             {
+                var h1 = Html
+                    .Element("h1", module.Heading)
+                    .Class("module-heading");
+
+                h1 = cssInliner.Inline(css, h1);
                 html
                     .Append(Html
                         .Element("h1", module.Heading)
                         .Class("module-heading")
-                        .ToHtml(MarkupFormatting.Empty, new[] { styleVisitor }));
+                        .ToHtml(MarkupFormatting.Empty));
             }
 
             if (module.Text.IsNotNullOrEmpty())
@@ -41,7 +47,7 @@ namespace Gunter.Messaging.Email.ModuleRenderers
                                 .Append($"» {testUnit.TestCase.Severity.ToString().ToUpper()} »"))
                             .Class("text")
                             .Append($" {testUnit.TestCase.Message}"))
-                        .ToHtml(MarkupFormatting.Empty, new[] { styleVisitor }));
+                        .ToHtml(MarkupFormatting.Empty));
             }
 
             return html.ToString();

@@ -19,11 +19,11 @@ namespace Gunter.Tests.Messaging
         protected override void PublishCore(TestUnit testUnit, IReport report)
         {
             var sections =
-                from s in report.Modules
+                from module in report.Modules
                 select new TestSection
                 {
-                    Heading = s.Heading,
-                    Text = s.Text,
+                    Heading = module.Heading,
+                    Text = module.Text,
                     //Detail = s.Detail?.Create(testUnit)
                 };
 

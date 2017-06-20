@@ -40,7 +40,7 @@ namespace Gunter
             Configuration = InitializeConfiguration();
         }
 
-        public static readonly string GlobalsFileName = "_Globals.json";
+        public static readonly string GlobalFileName = "_Global.json";
 
         public static Configuration Configuration { get; }
 
@@ -54,12 +54,25 @@ namespace Gunter
                 var container = InitializeContainer().GetAwaiter().GetResult();
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    var testDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().Targets);
+                    var variableBuilder = container.Resolve<IVariableBuilder>();
 
-                    var globals = InitializeGlobals(testDirectoryName, GlobalsFileName, container.Resolve<IVariableBuilder>());
-                    var testFileNames = GetTestFileNames(testDirectoryName);
-                    var testFiles = InitializeTests(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
+                    var targetsDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().Targets);
 
+                    LogEntry.New().Debug().Message($"Targets directory: \"{targetsDirectoryName}\".").Log(Logger);
+
+                    var globalFileName = Path.Combine(targetsDirectoryName, GlobalFileName);
+                    var globalFile = LoadGlobalFile(globalFileName);
+
+                    VariableValidator.ValidateNamesNotReserved(globalFile.Globals, variableBuilder.Names);
+
+                    var globals = VariableResolver.Empty
+                        .MergeWith(globalFile.Globals)
+                        .MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Workspace>()));
+                    
+                    var testFileNames = GetTestFileNames(targetsDirectoryName);
+                    var testFiles = LoadTestFiles(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
+
+                    LogEntry.New().Debug().Message($"Test files ({testFiles.Count}) loaded.").Log(Logger);
                     LogEntry.New().Info().Message($"*** {Name} v{Version} started. ***").Log(Logger);
 
                     scope.Resolve<TestRunner>().RunTestFiles(testFiles, args, globals);
@@ -79,6 +92,7 @@ namespace Gunter
             }
         }
 
+        [NotNull, ItemNotNull]
         private static IEnumerable<string> GetTestFileNames(string directoryName)
         {
             return
@@ -189,11 +203,15 @@ namespace Gunter
                     .As<IPathResolver>();
 
                 containerBuilder
+                    .RegisterType<CssInliner>();
+                    //.As<ICssInliner>();
+
+                containerBuilder
                     .RegisterType<SimpleCssParser>()
                     .As<ICssParser>();
 
                 containerBuilder
-                    .Register<Func<string, StyleVisitor>>(c =>
+                    .Register<Func<string, Css>>(c =>
                     {
                         var context = c.Resolve<IComponentContext>();
 
@@ -202,7 +220,7 @@ namespace Gunter
                             cssFileName = Path.Combine(Configuration.Load<Program, Workspace>().Themes, cssFileName);
                             var cssFullName = context.Resolve<IPathResolver>().ResolveFilePath(cssFileName);
                             var css = context.Resolve<ICssParser>().Parse(File.ReadAllText(cssFullName));
-                            return new StyleVisitor((Dictionary<string, string>)css);
+                            return css;
                         };
                     });
 
@@ -216,34 +234,28 @@ namespace Gunter
             }
         }
 
-        private static IVariableResolver InitializeGlobals(string directoryName, string fileName, IVariableBuilder variableBuilder)
+        private static GlobalFile LoadGlobalFile(string fileName)
         {
-            var fullName = Path.Combine(directoryName, fileName);
-
-            if (!File.Exists(fullName)) { return VariableResolver.Empty; }
+            if (!File.Exists(fileName)) { return new GlobalFile(); }
 
             try
             {
-                var globalsFile = File.ReadAllText(fullName);
-                var globals = JsonConvert.DeserializeObject<Dictionary<string, object>>(globalsFile);
-                VariableValidator.ValidateNamesNotReserved(globals, variableBuilder.Names);
-                var variableResolver = VariableResolver.Empty
-                    .MergeWith(globals)
-                    .MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Workspace>()));
+                var globalFileJson = File.ReadAllText(fileName);
+                var globalFile = JsonConvert.DeserializeObject<GlobalFile>(globalFileJson);                
+                
+                LogEntry.New().Debug().Message($"{Path.GetFileName(fileName)} loaded.").Log(Logger);
 
-                LogEntry.New().Debug().Message("Globals initialized.").Log(Logger);
-
-                return variableResolver;
+                return globalFile;
             }
             catch (Exception ex)
             {
-                throw new InitializationException("Could not initialize globals.", ex);
+                throw new InitializationException($"Could not load {Path.GetFileName(fileName)}.", ex);
             }
         }
 
         [NotNull]
         [ItemNotNull]
-        private static IEnumerable<TestFile> InitializeTests(IEnumerable<string> fileNames, IContainer container, IEnumerable<string> reservedNames)
+        private static IEnumerable<TestFile> LoadTestFiles(IEnumerable<string> fileNames, IContainer container, IEnumerable<string> reservedNames)
         {
             LogEntry.New().Debug().Message("Initializing tests...").Log(Logger);
 
@@ -260,7 +272,6 @@ namespace Gunter
                         ContractResolver = new AutofacContractResolver(container),
                         DefaultValueHandling = DefaultValueHandling.Populate,
                         TypeNameHandling = TypeNameHandling.Auto,
-                        //NullValueHandling = NullValueHandling.Ignore
                     });
                     testFile.FullName = fileName;
 

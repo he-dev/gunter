@@ -19,18 +19,21 @@ namespace Gunter.Messaging.Email
     {
         private readonly IEnumerable<ModuleRenderer> _renderers;
 
-        private readonly Func<string, StyleVisitor> _createStyleVisitor;
+        private readonly CssInliner _cssInliner;
+        private readonly Func<string, Css> _loadCss;
 
         private string _to;
 
         public HtmlEmail(
-            ILogger logger, 
-            IEnumerable<ModuleRenderer> renderers, 
-            Func<string, StyleVisitor> createStyleVisitor) 
+            ILogger logger,
+            CssInliner cssInliner,
+            Func<string, Css> loadCss,
+            IEnumerable<ModuleRenderer> renderers)
             : base(logger)
         {
             _renderers = renderers;
-            _createStyleVisitor = createStyleVisitor;
+            _cssInliner = cssInliner;
+            _loadCss = loadCss;
         }
 
         [JsonRequired]
@@ -48,9 +51,10 @@ namespace Gunter.Messaging.Email
 
         protected override void PublishCore(TestUnit testUnit, IReport report)
         {
-            var styleVisitor = _createStyleVisitor(Theme);
+            var css = _loadCss(Theme);
             var serviceProvider = new ServiceProvider()
-                .AddService(styleVisitor)
+                .AddService(_cssInliner)
+                .AddService(css)
                 .AddService(testUnit.TestCase.Variables);
 
             var body = new StringBuilder();

@@ -85,34 +85,34 @@
       <HintPath>..\packages\NLog.4.4.3\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ConfigWhiz.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ConfigWhiz.Core.3.41.1\lib\net452\Reusable.ConfigWhiz.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.ConfigWhiz.Core.3.42.0\lib\net452\Reusable.ConfigWhiz.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ConfigWhiz.Datastores.AppConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ConfigWhiz.Datastores.AppConfig.3.41.1\lib\net452\Reusable.ConfigWhiz.Datastores.AppConfig.dll</HintPath>
+      <HintPath>..\packages\Reusable.ConfigWhiz.Datastores.AppConfig.3.42.0\lib\net452\Reusable.ConfigWhiz.Datastores.AppConfig.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Core.3.41.1\lib\net452\Reusable.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.Core.3.42.0\lib\net452\Reusable.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Email, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Email.3.41.1\lib\net452\Reusable.Email.dll</HintPath>
+      <HintPath>..\packages\Reusable.Email.3.42.0\lib\net452\Reusable.Email.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.EmailClients.SmtpClient, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.EmailClients.SmtpClient.3.41.1\lib\net452\Reusable.EmailClients.SmtpClient.dll</HintPath>
+      <HintPath>..\packages\Reusable.EmailClients.SmtpClient.3.42.0\lib\net452\Reusable.EmailClients.SmtpClient.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.3.41.1\lib\net452\Reusable.Logging.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.3.42.0\lib\net452\Reusable.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.Adapters.NLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.3.41.1\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.Adapters.NLog.3.42.0\lib\net452\Reusable.Logging.Adapters.NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.NLog.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.41.1\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.42.0\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Markup, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Markup.3.41.1\lib\net452\Reusable.Markup.dll</HintPath>
+      <HintPath>..\packages\Reusable.Markup.3.42.0\lib\net452\Reusable.Markup.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.TypeConversion, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.TypeConversion.3.41.1\lib\net452\Reusable.TypeConversion.dll</HintPath>
+      <HintPath>..\packages\Reusable.TypeConversion.3.42.0\lib\net452\Reusable.TypeConversion.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -142,6 +142,7 @@
     <Compile Include="TehCodez\Data\TestUnit.cs" />
     <Compile Include="TehCodez\Extensions\DataRowExtensions.cs" />
     <Compile Include="TehCodez\Extensions\EnumberableExtensions.cs" />
+    <Compile Include="TehCodez\Extensions\MarkupElementExtensions.cs" />
     <Compile Include="TehCodez\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\GreetingRenderer.cs" />
     <Compile Include="TehCodez\Reporting\Data\ColumnOption.cs" />
@@ -178,6 +179,7 @@
     <Compile Include="TehCodez\Data\SqlClient\TableOrView.cs" />
     <Compile Include="TehCodez\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TehCodez\Data\GlobalFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="NLog.config">
@@ -192,7 +194,7 @@
     <None Include="_AppConfigs\Debug.he-dev.App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="assets\targets\_globals.json">
+    <None Include="assets\targets\_Global.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />

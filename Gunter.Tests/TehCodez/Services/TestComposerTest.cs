@@ -17,7 +17,7 @@ namespace Gunter.Tests.Services
         {
             var testFile = new TestFile
             {
-                DataSources = { new FakeDataSource(2) },
+                DataSources = { new TestDataSource(2) },
                 Tests =
                 {
                     new TestCase
