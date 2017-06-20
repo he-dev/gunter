@@ -136,11 +136,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TehCodez\Data\CompositeKey.cs" />
     <Compile Include="TehCodez\Data\TestResult.cs" />
     <Compile Include="TehCodez\Data\TestResultActions.cs" />
     <Compile Include="TehCodez\Data\TestUnit.cs" />
+    <Compile Include="TehCodez\Extensions\DataRowExtensions.cs" />
+    <Compile Include="TehCodez\Extensions\EnumberableExtensions.cs" />
     <Compile Include="TehCodez\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\GreetingRenderer.cs" />
+    <Compile Include="TehCodez\Reporting\Data\ColumnOption.cs" />
+    <Compile Include="TehCodez\Reporting\Data\ColumnTotal.cs" />
     <Compile Include="TehCodez\Reporting\Filters\FirstLine.cs" />
     <Compile Include="TehCodez\Reporting\Filters\Unchanged.cs" />
     <Compile Include="TehCodez\Reporting\Modules\Greeting.cs" />
