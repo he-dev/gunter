@@ -285,7 +285,7 @@ namespace Gunter
 
             try
             {
-                var globalFileJson = File.ReadAllText(fileName);
+                var globalFileJson = _fileSystem.ReadAllText(fileName);
                 var globalFile = JsonConvert.DeserializeObject<GlobalFile>(globalFileJson);
 
                 VariableValidator.ValidateNamesNotReserved(globalFile.Globals, _variableBuilder.Names);
