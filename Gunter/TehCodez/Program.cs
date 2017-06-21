@@ -20,6 +20,7 @@ using Gunter.Services.Validators;
 using JetBrains.Annotations;
 using NLog.Fluent;
 using Reusable.ConfigWhiz;
+using Reusable.ConfigWhiz.Data.Annotations;
 using Reusable.ConfigWhiz.Datastores.AppConfig;
 using Reusable.Extensions;
 using Reusable.Markup.Html;
@@ -29,9 +30,6 @@ namespace Gunter
 {
     internal class Program
     {
-        public static readonly string Name = Assembly.GetAssembly(typeof(Program)).GetName().Name;
-        public static readonly string Version = "2.0.0";
-
         private static readonly ILogger Logger;
 
         static Program()
@@ -40,67 +38,39 @@ namespace Gunter
             Configuration = InitializeConfiguration();
         }
 
-        public static readonly string GlobalFileName = "_Global.json";
-
         public static Configuration Configuration { get; }
-
-        // We need this before the IoC is created.
-        public static readonly IPathResolver PathResolver = new PathResolver();
 
         private static int Main(string[] args)
         {
+            var mainLogEntry = 
+                LogEntry
+                    .New()
+                    .MessageBuilder(sb => sb.Append($"*** {TehApplicashun.Name} v{TehApplicashun.Version}"))
+                    .Stopwatch(sw => sw.Start());
+
             try
             {
                 var container = InitializeContainer().GetAwaiter().GetResult();
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    var variableBuilder = container.Resolve<IVariableBuilder>();
-
-                    var targetsDirectoryName = PathResolver.ResolveDirectoryPath(Configuration.Load<Program, Workspace>().Targets);
-
-                    LogEntry.New().Debug().Message($"Targets directory: \"{targetsDirectoryName}\".").Log(Logger);
-
-                    var globalFileName = Path.Combine(targetsDirectoryName, GlobalFileName);
-                    var globalFile = LoadGlobalFile(globalFileName);
-
-                    VariableValidator.ValidateNamesNotReserved(globalFile.Globals, variableBuilder.Names);
-
-                    var globals = VariableResolver.Empty
-                        .MergeWith(globalFile.Globals)
-                        .MergeWith(variableBuilder.BuildVariables(Configuration.Load<Program, Workspace>()));
-                    
-                    var testFileNames = GetTestFileNames(targetsDirectoryName);
-                    var testFiles = LoadTestFiles(testFileNames, container, container.Resolve<IVariableBuilder>().Names).ToList();
-
-                    LogEntry.New().Debug().Message($"Test files ({testFiles.Count}) loaded.").Log(Logger);
-                    LogEntry.New().Info().Message($"*** {Name} v{Version} started. ***").Log(Logger);
-
-                    scope.Resolve<TestRunner>().RunTestFiles(testFiles, args, globals);
+                    var tehApp = scope.Resolve<TehApplicashun>();
+                    tehApp.Start(args);                    
                 }
 
+                mainLogEntry.Info().MessageBuilder(sb => sb.Append("completed."));
                 return 0;
             }
-            // Exception should already be logged elsewhere and rethrown to exit the application.
             catch (Exception ex)
             {
-                LogEntry.New().Fatal().Message($"*** {Name} v{Version} crashed. ***").Exception(ex).Log(Logger);
+                mainLogEntry.Fatal().MessageBuilder(sb => sb.Append("crashed.")).Exception(ex);
                 return 1;
             }
             finally
             {
-                LogEntry.New().Info().Message($"*** {Name} v{Version} exited. ***").Log(Logger);
+                mainLogEntry.MessageBuilder(sb => sb.Append(" ***")).Log(Logger);
             }
         }
-
-        [NotNull, ItemNotNull]
-        private static IEnumerable<string> GetTestFileNames(string directoryName)
-        {
-            return
-                from fullName in Directory.GetFiles(directoryName, "*.json")
-                where !Path.GetFileName(fullName).StartsWith("_", StringComparison.OrdinalIgnoreCase)
-                select fullName;
-        }
-
+       
         #region Initialization
 
         private static ILogger InitializeLogging()
@@ -191,7 +161,7 @@ namespace Gunter
                 containerBuilder
                     .RegisterType<SignatureRenderer>()
                     .As<ModuleRenderer>();
-                
+
                 #endregion
 
                 containerBuilder
@@ -199,12 +169,12 @@ namespace Gunter
                     .As<IVariableBuilder>();
 
                 containerBuilder
-                    .RegisterInstance(PathResolver)
+                    .RegisterType<PathResolver>()
                     .As<IPathResolver>();
 
                 containerBuilder
                     .RegisterType<CssInliner>();
-                    //.As<ICssInliner>();
+                //.As<ICssInliner>();
 
                 containerBuilder
                     .RegisterType<SimpleCssParser>()
@@ -217,12 +187,33 @@ namespace Gunter
 
                         return cssFileName =>
                         {
-                            cssFileName = Path.Combine(Configuration.Load<Program, Workspace>().Themes, cssFileName);
+                            cssFileName = Path.Combine(context.Resolve<Workspace>().Themes, cssFileName);
                             var cssFullName = context.Resolve<IPathResolver>().ResolveFilePath(cssFileName);
-                            var css = context.Resolve<ICssParser>().Parse(File.ReadAllText(cssFullName));
+                            var fileSystem = context.Resolve<IFileSystem>();
+                            var css = context.Resolve<ICssParser>().Parse(fileSystem.ReadAllText(cssFullName));
                             return css;
                         };
                     });
+
+                containerBuilder
+                    .Register(c =>
+                    {
+                        var context = c.Resolve<IComponentContext>();
+                        return new AutofacContractResolver(context);
+                    }).SingleInstance();
+
+                containerBuilder
+                    .RegisterType<FileSystem>()
+                    .As<IFileSystem>();
+
+                containerBuilder
+                    .RegisterInstance(Configuration.Load<TehApplicashun, Workspace>());
+
+                containerBuilder
+                    .RegisterType<TehApplicashun>()
+                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TehApplicashun))))
+                    .PropertiesAutowired();
+                    //.WithProperty(nameof(TehApplicashun.Workspace));//, Configuration.Load<TehApplicashun, Workspace>());
 
                 LogEntry.New().Debug().Message("IoC initialized.").Log(Logger);
 
@@ -233,17 +224,73 @@ namespace Gunter
                 throw new InitializationException("Could not initialize container.", ex);
             }
         }
+       
+        #endregion
+    }
 
-        private static GlobalFile LoadGlobalFile(string fileName)
+    [SettingName("TehApp")]
+    internal class TehApplicashun
+    {
+        public static readonly string Name = Assembly.GetAssembly(typeof(Program)).GetName().Name;
+        public static readonly string Version = "2.0.0";
+        private static readonly string GlobalFileName = "_Global.json";
+
+        private readonly ILogger _logger;
+        private readonly IPathResolver _pathResolver;
+        private readonly IFileSystem _fileSystem;
+        private readonly IVariableBuilder _variableBuilder;
+        private readonly AutofacContractResolver _autofacContractResolver;
+        private readonly TestRunner _testRunner;
+
+        public TehApplicashun(
+            ILogger logger,
+            IPathResolver pathResolver,
+            IFileSystem fileSystem,
+            IVariableBuilder variableBuilder,
+            AutofacContractResolver autofacContractResolver,
+            TestRunner testRunner)
         {
+            _logger = logger;
+            _pathResolver = pathResolver;
+            _fileSystem = fileSystem;
+            _variableBuilder = variableBuilder;
+            _autofacContractResolver = autofacContractResolver;
+            _testRunner = testRunner;
+        }
+
+        public Workspace Workspace { get; set; }
+
+        public void Start(string[] args)
+        {
+            var globalFile = LoadGlobalFile();
+
+            var globals = VariableResolver.Empty
+                .MergeWith(globalFile.Globals)
+                .MergeWith(_variableBuilder.BuildVariables(Workspace));
+
+            var testFiles = LoadTestFiles().ToList();
+
+            LogEntry.New().Debug().Message($"Test files ({testFiles.Count}) loaded.").Log(_logger);
+            LogEntry.New().Info().Message($"*** {Name} v{Version} started. ***").Log(_logger);
+
+            _testRunner.RunTestFiles(testFiles, args, globals);
+        }
+
+        private GlobalFile LoadGlobalFile()
+        {
+            var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Workspace.Targets);
+            var fileName = Path.Combine(targetsDirectoryName, GlobalFileName);
+
             if (!File.Exists(fileName)) { return new GlobalFile(); }
 
             try
             {
                 var globalFileJson = File.ReadAllText(fileName);
-                var globalFile = JsonConvert.DeserializeObject<GlobalFile>(globalFileJson);                
-                
-                LogEntry.New().Debug().Message($"{Path.GetFileName(fileName)} loaded.").Log(Logger);
+                var globalFile = JsonConvert.DeserializeObject<GlobalFile>(globalFileJson);
+
+                VariableValidator.ValidateNamesNotReserved(globalFile.Globals, _variableBuilder.Names);
+
+                LogEntry.New().Debug().Message($"{Path.GetFileName(fileName)} loaded.").Log(_logger);
 
                 return globalFile;
             }
@@ -253,46 +300,78 @@ namespace Gunter
             }
         }
 
-        [NotNull]
-        [ItemNotNull]
-        private static IEnumerable<TestFile> LoadTestFiles(IEnumerable<string> fileNames, IContainer container, IEnumerable<string> reservedNames)
+        [NotNull, ItemNotNull]
+        private IEnumerable<TestFile> LoadTestFiles()
         {
-            LogEntry.New().Debug().Message("Initializing tests...").Log(Logger);
+            LogEntry.New().Debug().Message("Initializing tests...").Log(_logger);
 
-            return fileNames.Select(LoadTest).Where(Conditional.IsNotNull);
-
-            TestFile LoadTest(string fileName)
-            {
-                var logEntry = LogEntry.New().Info();
-                try
-                {
-                    var json = File.ReadAllText(fileName);
-                    var testFile = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
-                    {
-                        ContractResolver = new AutofacContractResolver(container),
-                        DefaultValueHandling = DefaultValueHandling.Populate,
-                        TypeNameHandling = TypeNameHandling.Auto,
-                    });
-                    testFile.FullName = fileName;
-
-                    VariableValidator.ValidateNamesNotReserved(testFile.Locals, reservedNames);
-
-                    logEntry.Message($"Test initialized: {fileName}");
-                    return testFile;
-                }
-                catch (Exception ex)
-                {
-                    logEntry.Error().Message($"Could not initialize test: {fileName}").Exception(ex);
-                    return null;
-                }
-                finally
-                {
-                    logEntry.Log(Logger);
-                }
-            }
+            return 
+                GetTestFileNames()
+                    .Select(LoadTest)
+                    .Where(Conditional.IsNotNull);
         }
 
-        #endregion
+        [NotNull, ItemNotNull]
+        private IEnumerable<string> GetTestFileNames()
+        {
+            var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Workspace.Targets);
+
+            return
+                from fullName in _fileSystem.GetFiles(targetsDirectoryName, "*.json")
+                where !Path.GetFileName(fullName).StartsWith("_", StringComparison.OrdinalIgnoreCase)
+                select fullName;
+        }
+
+        [CanBeNull]
+        private TestFile LoadTest(string fileName)
+        {
+            var logEntry = LogEntry.New().Info();
+            try
+            {
+                var json = _fileSystem.ReadAllText(fileName);
+                var testFile = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
+                {
+                    ContractResolver = _autofacContractResolver,
+                    DefaultValueHandling = DefaultValueHandling.Populate,
+                    TypeNameHandling = TypeNameHandling.Auto,
+                });
+                testFile.FullName = fileName;
+
+                VariableValidator.ValidateNamesNotReserved(testFile.Locals, _variableBuilder.Names);
+
+                logEntry.Message($"Test initialized: {fileName}");
+                return testFile;
+            }
+            catch (Exception ex)
+            {
+                logEntry.Error().Message($"Could not initialize test: {fileName}").Exception(ex);
+                return null;
+            }
+            finally
+            {
+                logEntry.Log(_logger);
+            }
+        }
+    }
+
+    [PublicAPI]
+    internal interface IFileSystem
+    {
+        string ReadAllText(string fileName);
+        string[] GetFiles(string path, string searchPattern);
+    }
+
+    internal class FileSystem : IFileSystem
+    {
+        public string ReadAllText(string fileName)
+        {
+            return File.ReadAllText(fileName);
+        }
+
+        public string[] GetFiles(string path, string searchPattern)
+        {
+            return Directory.GetFiles(path, searchPattern);
+        }
     }
 
     internal class InitializationException : Exception

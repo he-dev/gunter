@@ -63,39 +63,39 @@ namespace Gunter.Tests.Data.Fakes
             return dataSource;
         }
 
-        public static DataRow _string(this DataRow row, string _string)
+        public static DataRow _string(this DataRow row, object _string)
         {
-            row[nameof(TestDataSourceExtensions._string)] = _string;
+            row[nameof(TestDataSourceExtensions._string)] = _string ?? DBNull.Value;
             return row;
         }
 
-        public static DataRow _int(this DataRow row, int? _int)
+        public static DataRow _int(this DataRow row, object _int)
         {
-            row[nameof(TestDataSourceExtensions._int)] = _int;
+            row[nameof(TestDataSourceExtensions._int)] = _int ?? DBNull.Value;
             return row;
         }
 
-        public static DataRow _double(this DataRow row, double? _double)
+        public static DataRow _double(this DataRow row, object _double)
         {
-            row[nameof(_double)] = _double;
+            row[nameof(_double)] = _double ?? DBNull.Value;
             return row;
         }
 
-        public static DataRow _decimal(this DataRow row, decimal? _decimal)
+        public static DataRow _decimal(this DataRow row, object _decimal)
         {
-            row[nameof(TestDataSourceExtensions._decimal)] = _decimal;
+            row[nameof(TestDataSourceExtensions._decimal)] = _decimal ?? DBNull.Value;
             return row;
         }
 
-        public static DataRow _datetime(this DataRow row, DateTime? _datetime)
+        public static DataRow _datetime(this DataRow row, object _datetime)
         {
-            row[nameof(TestDataSourceExtensions._datetime)] = _datetime;
+            row[nameof(TestDataSourceExtensions._datetime)] = _datetime ?? DBNull.Value;
             return row;
         }
 
-        public static DataRow _bool(this DataRow row, bool? _bool)
+        public static DataRow _bool(this DataRow row, object _bool)
         {
-            row[nameof(TestDataSourceExtensions._bool)] = _bool;
+            row[nameof(TestDataSourceExtensions._bool)] = _bool ?? DBNull.Value;
             return row;
         }
     }

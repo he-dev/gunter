@@ -28,19 +28,16 @@ namespace Gunter.Tests.Services
                 .AddRow(row => row._string("bar")._int(4)._double(7)._decimal(2m)._datetime(new DateTime(2017, 5, 4))._bool(null))
                 .AddRow(row => row._string(null)._int(null)._double(2.5)._decimal(8m)._datetime(new DateTime(2017, 5, 5))._bool(true))
                 .AddRow(row => row._string("")._int(2)._double(6)._decimal(1.5m)._datetime(new DateTime(2017, 5, 6))._bool(null))
-        };
+        };        
 
-        private readonly List<TestAlert> _alerts = new List<TestAlert>
-        {
-            new TestAlert { Id = 1 }
-        };
+        private TestFile TestFile { get; set; }
 
         private readonly TestRunner _testRunner = new TestRunner(new NullLogger(), new VariableBuilder());
 
         [TestInitialize]
         public void TestInitialize()
         {
-            var testFile = new TestFile
+            TestFile = new TestFile
             {
                 DataSources = _dataSources,
                 Tests =
@@ -57,11 +54,24 @@ namespace Gunter.Tests.Services
                         OnPassed = TestResultActions.None,
                         OnFailed = TestResultActions.None,
                         Alerts = { 1 }
+                    },
+                    new TestCase
+                    {
+                        Enabled = false,
+                        Severity = TestSeverity.Info,
+                        Message = "Only foos.",
+                        DataSources = { 2 },
+                        Filter = "[_string] = 'foo'",
+                        Expression = "Count([_string]) = 2",
+                        Assert = true,
+                        OnPassed = TestResultActions.Alert,
+                        OnFailed = TestResultActions.None,
+                        Alerts = { 1 }
                     }
                 },
                 Alerts =
                 {
-                    new TestAlert { Id = 1 }                     
+                    new TestAlert { Id = 1, Reports = { 1 }}
                 },
                 Reports =
                 {
@@ -91,10 +101,45 @@ namespace Gunter.Tests.Services
                                 {
                                     new ColumnOption
                                     {
-                                        Name = "_nvarchar",
+                                        Name = "_string",
                                         IsKey = true,
                                         Filter = new Gunter.Reporting.Filters.FirstLine(),
                                         Total = ColumnTotal.First
+                                    },
+                                    new ColumnOption
+                                    {
+                                        Name = "_int",
+                                        IsKey = false,
+                                        Filter = new Gunter.Reporting.Filters.Unchanged(),
+                                        Total = ColumnTotal.Sum
+                                    },
+                                    new ColumnOption
+                                    {
+                                        Name = "_double",
+                                        IsKey = false,
+                                        Filter = new Gunter.Reporting.Filters.Unchanged(),
+                                        Total = ColumnTotal.Average
+                                    },
+                                    new ColumnOption
+                                    {
+                                        Name = "_decimal",
+                                        IsKey = false,
+                                        Filter = new Gunter.Reporting.Filters.Unchanged(),
+                                        Total = ColumnTotal.Sum
+                                    },
+                                    new ColumnOption
+                                    {
+                                        Name = "_datetime",
+                                        IsKey = false,
+                                        Filter = new Gunter.Reporting.Filters.Unchanged(),
+                                        Total = ColumnTotal.Max
+                                    },
+                                    new ColumnOption
+                                    {
+                                        Name = "_bool",
+                                        IsKey = false,
+                                        Filter = new Gunter.Reporting.Filters.Unchanged(),
+                                        Total = ColumnTotal.Count
                                     }
                                 }
                             }
@@ -106,277 +151,22 @@ namespace Gunter.Tests.Services
         [TestCleanup]
         public void TestCleanup()
         {
-            foreach (var alert in _alerts) alert.Dispose();
+            foreach (var alert in TestFile.Alerts.Cast<TestAlert>()) alert.Dispose();
         }
 
         [TestMethod]
-        public void RunTests_TestCaseDisabled_TestNotRun()
+        public void RunTests_AllTestsDisabled_TestNotRun()
         {
-            var testFile = new TestFile
-            {
-                DataSources = _dataSources,
-                Tests =
-                {
-                    new TestCase
-                    {
-                        Enabled = false,
-                        Severity = TestSeverity.Fatal,
-                        Message = "This test should not run.",
-                        //DataSources = { 2 },
-                        Filter = null,
-                        Expression = null,
-                        Assert = false,
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    }
-                },
-                Alerts = _alerts.Cast<IAlert>().ToList()
-            };
-
-            _testRunner.RunTestFiles(new[] { testFile }, new string[0], VariableResolver.Empty);
-            Assert.AreEqual(0, _alerts.ElementAt(0).PublishedReports.Count);
+            _testRunner.RunTestFiles(new[] { TestFile }, new string[0], VariableResolver.Empty);
+            Assert.AreEqual(0, TestFile.Alerts.Cast<TestAlert>().ElementAt(0).PublishedReports.Count);
         }
 
         [TestMethod]
-        public void RunTests_TestCaseSeverityInfo_Success()
+        public void RunTests_SeverityInfo_Alert()
         {
-            _alert = new TestAlert { Id = 1, Reports = { 1 } };
-
-            var testConfig = new TestFile
-            {
-                DataSources = _dataSources,
-                Tests =
-                {
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Info,
-                        Message = "Service runs smoothly.",
-                        DataSources = { 2 },
-                        Filter = "[LogLevel] = 'info' AND [Environment] = 'test'",
-                        Expression = "COUNT([LogLevel]) = 2",
-                        Assert = true,
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    }
-                },
-                Alerts = { _alert },
-                Reports =
-                {
-                    new Report
-                    {
-                        Id = 1,
-                        Modules =
-                        {
-                            //new Module
-                            //{
-                            //    //Detail = new TestCaseInfo()
-                            //},
-                            //new Module
-                            //{
-                            //    //Detail = new DataSourceInfo()
-                            //},
-                            //new Module
-                            //{
-                            //    //Detail = new DataSummary()
-                            //}
-                        }
-                    }
-                }
-            };
-
-            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
-            Assert.AreEqual(1, _alert.PublishedReports.Count);
-            var report = _alert.PublishedReports.Single();
-
-            var testCaseInfo = report.Sections.ElementAt(0).Detail.Tables[nameof(TestCaseInfo)];
-            Assert.AreEqual(7, testCaseInfo.Rows.Count);
-            Assert.AreEqual("Info", testCaseInfo.Rows[0]["Value"]);
-            Assert.AreEqual("Info", testCaseInfo.Rows[0]["Value"]);
-        }
-
-        [TestMethod]
-        public void RunTests_TestCaseWithAssertFalseEvaluatesToTrue_TestFails()
-        {
-            // This test verifies that a data-source is not empty but it is so it fails.
-
-            var testConfig = new Gunter.Data.TestFile
-            {
-                DataSources = _dataSources,
-                Tests =
-                {
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Warn,
-                        Message = "Data-source must be empty.",
-                        DataSources = { 1 },
-                        Filter = null,
-                        Expression = "COUNT([Id]) = 0",
-                        Assert = false,
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    }
-                },
-                Alerts = _alerts
-            };
-
-            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
-            var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
-            Assert.IsNotNull(mockAlert);
-            Assert.AreEqual(1, mockAlert.PublishedReports.Count);
-        }
-
-        [TestMethod]
-        public void RunTests_TestCaseWithBreakOnFailureFalse_ExecutionContinues()
-        {
-            // This test verfies with two identical tests that the execution breaks as soon as the first test fails.
-
-            var testConfig = new Gunter.Data.TestFile
-            {
-                DataSources = _dataSources,
-                Tests =
-                {
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Warn,
-                        Message = "Data-source must be empty.",
-                        DataSources = { 2 },
-                        Filter = null,
-                        Assert = true,
-                        Expression = "COUNT([Id]) = 0",
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    },
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Warn,
-                        Message = "Data-source must be empty.",
-                        DataSources = { 2 },
-                        Filter = null,
-                        Assert = true,
-                        Expression = "COUNT([Id]) = 0",
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    }
-                },
-                Alerts = _alerts
-            };
-
-            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
-            var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
-            Assert.IsNotNull(mockAlert);
-            Assert.AreEqual(2, mockAlert.PublishedReports.Count);
-        }
-
-        [TestMethod]
-        public void RunTests_BreakOnFailureTrue_ExcutionBreaks()
-        {
-            // This test verfies with two identical tests that the execution continues even though the first test fails.
-
-            var testConfig = new Gunter.Data.TestFile
-            {
-                DataSources = _dataSources,
-                Tests =
-                {
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Warn,
-                        Message = "Data-source must be empty.",
-                        DataSources = { 2 },
-                        Filter = null,
-                        Assert = true,
-                        Expression = "COUNT([Id]) = 0",
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    },
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Warn,
-                        Message = "Data-source must be empty.",
-                        DataSources = { 2 },
-                        Filter = null,
-                        Assert = true,
-                        Expression = "COUNT([Id]) = 0",
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    }
-                },
-                Alerts = _alerts
-            };
-
-            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
-            var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
-            Assert.IsNotNull(mockAlert);
-            Assert.AreEqual(1, mockAlert.PublishedReports.Count);
-        }
-
-        [TestMethod]
-        public void RunTests_TestCaseWithFilter_TestPasses()
-        {
-            // This test verfies that only filtered rows are tested.
-
-            var testConfig = new Gunter.Data.TestFile
-            {
-                DataSources = _dataSources,
-                Tests =
-                {
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Warn,
-                        Message = "Debug logging is enabled.",
-                        DataSources = { 2 },
-                        Filter = "[LogLevel] IN ('debug')",
-                        Assert = true,
-                        Expression = "COUNT([Id]) = 1",
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    },
-                },
-                Alerts = _alerts
-            };
-
-            _testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
-            var mockAlert = _alerts.ElementAtOrDefault(0) as TestAlert;
-            Assert.IsNotNull(mockAlert);
-            Assert.AreEqual(0, mockAlert.PublishedReports.Count);
-        }
-
-        [TestMethod]
-        public void RunTests_TestCaseWithInvalidExpression_Inconclusive()
-        {
-            // This test verfies that only filtered rows are tested.
-
-            var testConfig = new Gunter.Data.TestFile
-            {
-                DataSources = _dataSources,
-                Tests =
-                {
-                    new TestCase
-                    {
-                        Enabled = true,
-                        Severity = TestSeverity.Warn,
-                        Message = "Debug logging is enabled.",
-                        DataSources = { 2 },
-                        Filter = null,
-                        Assert = true,
-                        Expression = "[LogLevel] IN ('debug')",
-                        OnFailed = TestResultActions.Alert | TestResultActions.Halt,
-                        Alerts = { 1 }
-                    },
-                },
-                Alerts = _alerts
-            };
-
-            var testRunner = new TestRunner(new NullLogger(), new VariableBuilder());
-            testRunner.RunTestFiles(new[] { testConfig }, VariableResolver.Empty);
-
-            Assert.AreEqual(0, (_alerts[0] as TestAlert).PublishedReports.Count);
+            TestFile.Tests[1].Enabled = true;
+            _testRunner.RunTestFiles(new[] { TestFile }, new string[0], VariableResolver.Empty);
+            Assert.AreEqual(1, TestFile.Alerts.Cast<TestAlert>().ElementAt(0).PublishedReports.Count);
         }
     }
 }

@@ -6,9 +6,12 @@ namespace Gunter.Services
 {
     public class AutofacContractResolver : DefaultContractResolver
     {
-        private readonly IContainer _container;
+        private readonly IComponentContext _container;
 
-        public AutofacContractResolver(IContainer container) => _container = container ?? throw new ArgumentNullException(nameof(container));
+        public AutofacContractResolver(IComponentContext context)
+        {
+            _container = context ?? throw new ArgumentNullException(nameof(context));
+        }
 
         protected override JsonObjectContract CreateObjectContract(Type objectType)
         {

@@ -23,15 +23,11 @@ namespace Gunter.Messaging.Email.ModuleRenderers
 
             if (module.Heading.IsNotNullOrEmpty())
             {
-                var h1 = Html
-                    .Element("h1", module.Heading)
-                    .Class("module-heading");
-
-                h1 = cssInliner.Inline(css, h1);
                 html
                     .Append(Html
                         .Element("h1", module.Heading)
                         .Class("module-heading")
+                        .InlineCss(cssInliner, css)
                         .ToHtml(MarkupFormatting.Empty));
             }
 
@@ -47,6 +43,7 @@ namespace Gunter.Messaging.Email.ModuleRenderers
                                 .Append($"» {testUnit.TestCase.Severity.ToString().ToUpper()} »"))
                             .Class("text")
                             .Append($" {testUnit.TestCase.Message}"))
+                        .InlineCss(cssInliner, css)
                         .ToHtml(MarkupFormatting.Empty));
             }
 
