@@ -1,16 +1,14 @@
-﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using Reusable.Data.Annotations;
 
-// ReSharper disable once CheckNamespace
-namespace Gunter.Data.Configuration
+namespace Gunter.Data
 {
     internal class Workspace
     {
         [Ignore]
-        public string AppName { get; } = Program.Name;
+        public string AppName { get; } = TehApplicashun.Name;
 
         [Required]
         public string Environment { get; set; }
@@ -23,5 +21,5 @@ namespace Gunter.Data.Configuration
 
         [Ignore]
         public string Themes => Path.Combine(Assets, nameof(Themes));
-    }    
+    }
 }

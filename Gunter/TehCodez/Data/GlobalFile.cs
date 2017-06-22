@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using Gunter.Data.Configuration;
 using Gunter.Services;
 using Gunter.Services.Validators;
 using JetBrains.Annotations;
