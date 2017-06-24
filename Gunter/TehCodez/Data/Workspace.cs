@@ -8,7 +8,7 @@ namespace Gunter.Data
     internal class Workspace
     {
         [Ignore]
-        public string AppName { get; } = TehApplicashun.Name;
+        public string AppName { get; } = Program.Name;
 
         [Required]
         public string Environment { get; set; }

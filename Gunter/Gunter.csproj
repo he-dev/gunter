@@ -150,6 +150,7 @@
     <Compile Include="TehCodez\Extensions\MarkupElementExtensions.cs" />
     <Compile Include="TehCodez\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="TehCodez\Messaging\Email\ModuleRenderers\GreetingRenderer.cs" />
+    <Compile Include="TehCodez\Program.Instance.cs" />
     <Compile Include="TehCodez\Reporting\Data\ColumnOption.cs" />
     <Compile Include="TehCodez\Reporting\Data\ColumnTotal.cs" />
     <Compile Include="TehCodez\Reporting\Filters\FirstLine.cs" />
@@ -182,10 +183,9 @@
     <Compile Include="TehCodez\Messaging\Email\HtmlEmailSubject.cs" />
     <Compile Include="TehCodez\Messaging\Alert.cs" />
     <Compile Include="TehCodez\Data\SqlClient\TableOrView.cs" />
-    <Compile Include="TehCodez\Program.cs" />
+    <Compile Include="TehCodez\Program.Entry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TehCodez\Data\GlobalFile.cs" />
-    <Compile Include="TehCodez\TehApplicashun.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="NLog.config">

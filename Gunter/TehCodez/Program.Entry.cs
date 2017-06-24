@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Autofac;
 using Reusable.Logging;
 using Reusable;
@@ -19,53 +21,55 @@ using Reusable.Markup.Html;
 using Module = Gunter.Reporting.Module;
 
 namespace Gunter
-{
-    internal class Program
+{    
+    internal partial class Program
     {
-        private static readonly ILogger Logger;
-
-        static Program()
+        internal static int Main(string[] args)
         {
-            Logger = InitializeLogging();
-            Configuration = InitializeConfiguration();
+            return Start(args, InitializeLogging, InitializeConfiguration, InitializeContainer);
         }
 
-        public static Configuration Configuration { get; }
-
-        private static int Main(string[] args)
+        public static int Start(
+            string[] args, 
+            Action initializeLogging, 
+            Func<Configuration> initializeConfiguration, 
+            Func<Configuration, IEnumerable<Autofac.Module>, IContainer> initializeContainer)
         {
-            var mainLogEntry =
-                LogEntry
-                    .New()
-                    .MessageBuilder(sb => sb.Append($"*** {TehApplicashun.Name} v{TehApplicashun.Version}"))
-                    .Stopwatch(sw => sw.Start());
+            initializeLogging();
+
+            var mainLogger = LoggerFactory.CreateLogger(nameof(Program)); LogEntry.New().Debug().Message("Logging initialized.").Log(mainLogger);
+            var mainLogEntry = LogEntry.New().Stopwatch(sw => sw.Start());
 
             try
             {
-                var container = InitializeContainer();
+                var configuration = initializeConfiguration(); LogEntry.New().Debug().Message("Configuration initialized.").Log(mainLogger);
+                var container = initializeContainer(configuration, Enumerable.Empty<Autofac.Module>()); LogEntry.New().Debug().Message("IoC initialized.").Log(mainLogger);
+
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    var tehApp = scope.Resolve<TehApplicashun>();
-                    tehApp.Start(args);
+                    var program = scope.Resolve<Program>();
+                    LogEntry.New().Info().Message($"Created {Name} v{Version}").Log(mainLogger);
+                    program.Start(args);
                 }
 
-                mainLogEntry.Info().MessageBuilder(sb => sb.Append("completed."));
+                mainLogEntry.Info().Message("Completed.");
                 return 0;
             }
             catch (Exception ex)
             {
-                mainLogEntry.Fatal().MessageBuilder(sb => sb.Append("crashed.")).Exception(ex);
+                mainLogEntry.Fatal().Message("Crashed.").Exception(ex);
                 return 1;
             }
             finally
             {
-                mainLogEntry.MessageBuilder(sb => sb.Append(" ***")).Log(Logger);
+                mainLogEntry.Log(mainLogger);
+                LogEntry.New().Info().Message("Exited.").Log(mainLogger);
             }
         }
 
         #region Initialization
 
-        private static ILogger InitializeLogging()
+        private static void InitializeLogging()
         {
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
 
@@ -73,9 +77,6 @@ namespace Gunter
             Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
 
             Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
-            var logger = LoggerFactory.CreateLogger(nameof(Program));
-            LogEntry.New().Debug().Message("Logging initialized.").Log(logger);
-            return logger;
         }
 
         private static Configuration InitializeConfiguration()
@@ -90,14 +91,14 @@ namespace Gunter
             }
         }
 
-        private static IContainer InitializeContainer()
+        private static IContainer InitializeContainer(Configuration configuration, IEnumerable<Autofac.Module> moduleOverrides)
         {
             try
             {
                 var builder = new ContainerBuilder();
 
                 builder
-                    .RegisterInstance(Configuration.Load<TehApplicashun, Workspace>());
+                    .RegisterInstance(configuration.Load<Program, Workspace>());
 
                 builder
                     .RegisterModule<SystemModule>();
@@ -116,11 +117,15 @@ namespace Gunter
                     .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
 
                 builder
-                    .RegisterType<TehApplicashun>()
-                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TehApplicashun))))
+                    .RegisterType<Program>()
+                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Program))))
                     .PropertiesAutowired();
 
-                LogEntry.New().Debug().Message("IoC initialized.").Log(Logger);
+                foreach (var module in moduleOverrides)
+                {
+                    builder
+                        .RegisterModule(module);
+                }
 
                 return builder.Build();
             }
