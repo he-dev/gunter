@@ -33,6 +33,25 @@ namespace Gunter.Tests
             Assert.AreEqual(0, exitCode);
             Assert.AreEqual(5, TestAlert.GetReports("five-tests").Count);
         }
+
+        [TestMethod]
+        public void Start_InvalidSeverity_NoAlerts()
+        {
+            var exitCode = Program.Start(
+                new string[0],
+                Program.InitializeLogging,
+                Program.InitializeConfiguration,
+                configuration => Program.InitializeContainer(configuration, new TestModule
+                {
+                    FileSystem = new TestFileSystem
+                    {
+                        Files = { "invalid-severity" }
+                    }
+                }));
+
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(0, TestAlert.GetReports("invalid-severity").Count);
+        }
     }
 
     internal class TestModule : Autofac.Module
