@@ -3,7 +3,7 @@ using System.Linq;
 using Gunter.Data;
 using Gunter.Reporting;
 using Gunter.Services;
-using Gunter.Tests.Data.Fakes;
+using Gunter.Tests.Data;
 using Gunter.Tests.Messaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

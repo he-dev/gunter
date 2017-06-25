@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using Gunter.Data;
 using Gunter.Messaging;
 using Gunter.Reporting;
@@ -12,9 +15,15 @@ namespace Gunter.Tests.Messaging
 {
     internal class TestAlert : Alert, IDisposable
     {
+        private static readonly IDictionary<string, List<TestReport>> PublishedReports = new Dictionary<string, List<TestReport>>(StringComparer.OrdinalIgnoreCase);
+
         public TestAlert() : base(new NullLogger()) { }
 
-        public List<TestReport> PublishedReports { get; } = new List<TestReport>();
+        public static List<TestReport> GetReports(string testName)
+        {
+            //var testName = Regex.Split(callerName, "_")[1];
+            return PublishedReports.TryGetValue($"{testName}.json", out var reports) ? reports : new List<TestReport>();
+        }
 
         protected override void PublishCore(TestUnit testUnit, IReport report)
         {
@@ -27,18 +36,28 @@ namespace Gunter.Tests.Messaging
                     //Detail = s.Detail?.Create(testUnit)
                 };
 
-            PublishedReports.Add(new TestReport
+            var testName = Path.GetFileName(testUnit.FullName);
+            var testReport = new TestReport
             {
                 Title = report.Title,
                 Sections = sections.ToList()
-            });
+            };
+
+            if (PublishedReports.TryGetValue(testName, out var reports))
+            {
+                reports.Add(testReport);
+            }
+            else
+            {
+                PublishedReports.Add(testName, new List<TestReport> { testReport });
+            }
         }
 
         public void Dispose()
         {
             foreach (var report in PublishedReports)
             {
-                report.Dispose();
+                //report.Dispose();
             }
         }
     }

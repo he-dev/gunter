@@ -21,19 +21,23 @@ using Reusable.Markup.Html;
 using Module = Gunter.Reporting.Module;
 
 namespace Gunter
-{    
+{
     internal partial class Program
     {
         internal static int Main(string[] args)
         {
-            return Start(args, InitializeLogging, InitializeConfiguration, InitializeContainer);
+            return Start(
+                args,
+                InitializeLogging,
+                InitializeConfiguration,
+                InitializeContainer);
         }
 
         public static int Start(
-            string[] args, 
-            Action initializeLogging, 
-            Func<Configuration> initializeConfiguration, 
-            Func<Configuration, IEnumerable<Autofac.Module>, IContainer> initializeContainer)
+            string[] args,
+            Action initializeLogging,
+            Func<Configuration> initializeConfiguration,
+            Func<Configuration, IContainer> initializeContainer)
         {
             initializeLogging();
 
@@ -43,7 +47,7 @@ namespace Gunter
             try
             {
                 var configuration = initializeConfiguration(); LogEntry.New().Debug().Message("Configuration initialized.").Log(mainLogger);
-                var container = initializeContainer(configuration, Enumerable.Empty<Autofac.Module>()); LogEntry.New().Debug().Message("IoC initialized.").Log(mainLogger);
+                var container = initializeContainer(configuration); LogEntry.New().Debug().Message("IoC initialized.").Log(mainLogger);
 
                 using (var scope = container.BeginLifetimeScope())
                 {
@@ -69,7 +73,7 @@ namespace Gunter
 
         #region Initialization
 
-        private static void InitializeLogging()
+        internal static void InitializeLogging()
         {
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
 
@@ -79,7 +83,7 @@ namespace Gunter
             Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
         }
 
-        private static Configuration InitializeConfiguration()
+        internal static Configuration InitializeConfiguration()
         {
             try
             {
@@ -91,26 +95,23 @@ namespace Gunter
             }
         }
 
-        private static IContainer InitializeContainer(Configuration configuration, IEnumerable<Autofac.Module> moduleOverrides)
+        internal static IContainer InitializeContainer(Configuration configuration)
+        {
+            return InitializeContainer(configuration, null);
+        }
+
+        internal static IContainer InitializeContainer(Configuration configuration, Autofac.Module overrideModule)
         {
             try
             {
                 var builder = new ContainerBuilder();
 
-                builder
-                    .RegisterInstance(configuration.Load<Program, Workspace>());
+                builder.RegisterInstance(configuration.Load<Program, Workspace>());
 
-                builder
-                    .RegisterModule<SystemModule>();
-
-                builder
-                    .RegisterModule<DataModule>();
-
-                builder
-                    .RegisterModule<ReportingModule>();
-
-                builder
-                    .RegisterModule<HtmlModule>();
+                builder.RegisterModule<SystemModule>();
+                builder.RegisterModule<DataModule>();
+                builder.RegisterModule<ReportingModule>();
+                builder.RegisterModule<HtmlModule>();
 
                 builder
                     .RegisterType<TestRunner>()
@@ -121,11 +122,7 @@ namespace Gunter
                     .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Program))))
                     .PropertiesAutowired();
 
-                foreach (var module in moduleOverrides)
-                {
-                    builder
-                        .RegisterModule(module);
-                }
+                if (overrideModule != null) { builder.RegisterModule(overrideModule); }
 
                 return builder.Build();
             }
