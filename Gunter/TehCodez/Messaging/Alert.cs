@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.Logging;
+using Reusable.Logging.Loggex;
 
 namespace Gunter.Messaging
 {
@@ -42,7 +43,7 @@ namespace Gunter.Messaging
 
         public void Publish(TestUnit context)
         {
-            LogEntry.New().Debug().Message($"Publishing alert {Id}.").Log(Logger);
+            Logger.Log(e => e.Debug().Message($"Publishing alert {Id}."));
 
             var reports =
                 from id in Reports
@@ -51,20 +52,20 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                var publishLogEntry = LogEntry.New().Stopwatch(sw => sw.Start());
+                var logger = Logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
 
                 try
                 {
                     PublishCore(context, report);
-                    publishLogEntry.Info().Message($"Published report {report.Id}.");
+                    logger.LogEntry.Info().Message($"Published report {report.Id}.");
                 }
                 catch (Exception ex)
                 {
-                    publishLogEntry.Error().Exception(ex).Message($"Could not publish report {report.Id}.");
+                    logger.LogEntry.Error().Exception(ex).Message($"Could not publish report {report.Id}.");
                 }
                 finally
                 {
-                    publishLogEntry.Log(Logger);
+                    logger.EndLog();
                 }
             }
         }

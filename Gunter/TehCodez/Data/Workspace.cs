@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using Reusable.Data.Annotations;
+using Reusable.SmartConfig.Annotations;
 
 namespace Gunter.Data
 {
@@ -10,7 +11,7 @@ namespace Gunter.Data
         [Ignore]
         public string AppName { get; } = Program.Name;
 
-        [Required]
+        [Required, SimpleSetting]
         public string Environment { get; set; }
 
         [DefaultValue(nameof(Assets))]

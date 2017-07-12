@@ -8,7 +8,6 @@ using Reusable.Logging;
 using Reusable;
 using Gunter.Data;
 using System.Threading.Tasks;
-using Autofac.Extras.AggregateService;
 using Gunter.AutofacModules;
 using Gunter.Messaging.Email;
 using Gunter.Messaging.Email.ModuleRenderers;
@@ -19,9 +18,8 @@ using Gunter.Services.Validators;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using NLog.Fluent;
-using Reusable.ConfigWhiz;
-using Reusable.ConfigWhiz.Datastores.AppConfig;
 using Reusable.Extensions;
+using Reusable.Logging.Loggex;
 using Reusable.Markup.Html;
 using Module = Gunter.Reporting.Module;
 
@@ -68,8 +66,8 @@ namespace Gunter
 
             var testFiles = LoadTestFiles().ToList();
 
-            LogEntry.New().Debug().Message($"Test files ({testFiles.Count}) loaded.").Log(_logger);
-            LogEntry.New().Info().Message($"*** {Name} v{Version} started. ***").Log(_logger);
+            _logger.Log(e => e.Debug().Message($"Test files ({testFiles.Count}) loaded."));
+            _logger.Log(e => e.Message($"*** {Name} v{Version} started. ***"));
 
             _testRunner.RunTestFiles(testFiles, args, globals);
         }
@@ -88,7 +86,7 @@ namespace Gunter
 
                 VariableValidator.ValidateNamesNotReserved(globalFile.Globals, _variableBuilder.Names);
 
-                LogEntry.New().Debug().Message($"{Path.GetFileName(fileName)} loaded.").Log(_logger);
+                _logger.Log(e => e.Debug().Message($"{Path.GetFileName(fileName)} loaded."));
 
                 return globalFile;
             }
@@ -101,7 +99,7 @@ namespace Gunter
         [NotNull, ItemNotNull]
         private IEnumerable<TestFile> LoadTestFiles()
         {
-            LogEntry.New().Debug().Message("Initializing tests...").Log(_logger);
+            _logger.Log(e => e.Debug().Message("Initializing tests..."));
 
             return
                 GetTestFileNames()
@@ -123,7 +121,7 @@ namespace Gunter
         [CanBeNull]
         private TestFile LoadTest(string fileName)
         {
-            var logEntry = LogEntry.New().Info();
+            var logger = _logger.BeginLog();
             try
             {
                 var json = _fileSystem.ReadAllText(fileName);
@@ -137,17 +135,17 @@ namespace Gunter
 
                 VariableValidator.ValidateNamesNotReserved(testFile.Locals, _variableBuilder.Names);
 
-                logEntry.Message($"Test initialized: {fileName}");
+                logger.LogEntry.Message($"Test initialized: {fileName}");
                 return testFile;
             }
             catch (Exception ex)
             {
-                logEntry.Error().Message($"Could not initialize test: {fileName}").Exception(ex);
+                logger.LogEntry.Error().Message($"Could not initialize test: {fileName}").Exception(ex);
                 return null;
             }
             finally
             {
-                logEntry.Log(_logger);
+                logger.EndLog();
             }
         }
     }

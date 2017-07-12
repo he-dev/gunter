@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.Logging;
+using Reusable.Logging.Loggex;
 using Reusable.Markup.Html;
 
 namespace Gunter.Messaging.Email
@@ -65,7 +66,7 @@ namespace Gunter.Messaging.Email
                 body.AppendLine(renderer.Render(module, testUnit, serviceProvider));
             }
 
-            LogEntry.New().Info().Message($"Sending report {report.Id} to \"{To}\".").Log(Logger);
+            base.Logger.Log(e => e.Message($"Sending report {report.Id} to \"{To}\"."));
 
             var email = new Email<HtmlEmailSubject, HtmlEmailBody>
             {

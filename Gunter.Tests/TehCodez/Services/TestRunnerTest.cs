@@ -10,6 +10,7 @@ using Gunter.Services;
 using Gunter.Tests.Data;
 using Gunter.Tests.Messaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NLog;
 using Reusable.Logging;
 
 namespace Gunter.Tests.Services
@@ -32,7 +33,7 @@ namespace Gunter.Tests.Services
 
         private TestFile TestFile { get; set; }
 
-        private readonly TestRunner _testRunner = new TestRunner(new NullLogger(), new VariableBuilder());
+        private readonly TestRunner _testRunner = new TestRunner(Reusable.Logging.Loggex.Logger.Create<TestRunnerTest>(), new VariableBuilder());
 
         [TestInitialize]
         public void TestInitialize()

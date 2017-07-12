@@ -6,7 +6,6 @@ using Reusable.Logging;
 using Reusable;
 using Gunter.Data;
 using System.Threading.Tasks;
-using Autofac.Extras.AggregateService;
 using Gunter.AutofacModules;
 using Gunter.Messaging.Email;
 using Gunter.Messaging.Email.ModuleRenderers;
@@ -15,9 +14,12 @@ using Gunter.Reporting.Modules;
 using Gunter.Services;
 using JetBrains.Annotations;
 using NLog.Fluent;
-using Reusable.ConfigWhiz;
-using Reusable.ConfigWhiz.Datastores.AppConfig;
+using Reusable.Logging.Loggex;
+using Reusable.Logging.Loggex.ComputedProperties;
+using Reusable.Logging.Loggex.Recorders.NLogRecorder.Recorders;
 using Reusable.Markup.Html;
+using Reusable.SmartConfig;
+using Reusable.SmartConfig.Datastores.AppConfig;
 using Module = Gunter.Reporting.Module;
 
 namespace Gunter
@@ -41,33 +43,34 @@ namespace Gunter
         {
             initializeLogging();
 
-            var mainLogger = LoggerFactory.CreateLogger(nameof(Program)); LogEntry.New().Debug().Message("Logging initialized.").Log(mainLogger);
-            var mainLogEntry = LogEntry.New().Stopwatch(sw => sw.Start());
+            var mainLogger = Logger.Create<Program>();
+            mainLogger.Log(e => e.Debug().Message("Logging initialized."));
+            var mainLogEntry = mainLogger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
 
             try
             {
-                var configuration = initializeConfiguration(); LogEntry.New().Debug().Message("Configuration initialized.").Log(mainLogger);
-                var container = initializeContainer(configuration); LogEntry.New().Debug().Message("IoC initialized.").Log(mainLogger);
+                var configuration = initializeConfiguration(); mainLogger.Log(e => e.Debug().Message("Configuration initialized."));
+                var container = initializeContainer(configuration); mainLogger.Log(e => e.Debug().Message("IoC initialized."));
 
                 using (var scope = container.BeginLifetimeScope())
                 {
                     var program = scope.Resolve<Program>();
-                    LogEntry.New().Info().Message($"Created {Name} v{Version}").Log(mainLogger);
+                    mainLogger.Log(e => e.Message($"Created {Name} v{Version}"));
                     program.Start(args);
                 }
 
-                mainLogEntry.Info().Message("Completed.");
+                mainLogEntry.LogEntry.Message("Completed.");
                 return 0;
             }
             catch (Exception ex)
             {
-                mainLogEntry.Fatal().Message("Crashed.").Exception(ex);
+                mainLogEntry.LogEntry.Fatal().Message("Crashed.").Exception(ex);
                 return 1;
             }
             finally
             {
-                mainLogEntry.Log(mainLogger);
-                LogEntry.New().Info().Message("Exited.").Log(mainLogger);
+                mainLogEntry.EndLog();
+                mainLogger.Log(e => e.Message("Exited."));
             }
         }
 
@@ -76,18 +79,27 @@ namespace Gunter
         internal static void InitializeLogging()
         {
             Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
-            
-            Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.AppSetting(name: "Environment", key: $"Gunter.Program.Config.Environment"));
-            Reusable.Logging.Logger.ComputedProperties.Add(new Reusable.Logging.ComputedProperties.ElapsedSeconds());
 
-            Reusable.Logging.LoggerFactory.Initialize<Reusable.Logging.Adapters.NLogFactory>();
+            Logger.Configuration = new LoggerConfiguration
+            {
+                ComputedProperties = { new ElapsedSeconds(), new AppSetting(name: "Environment", key: "Environment") },
+                Recorders = { new NLogRecorder("NLog") },
+                Filters =
+                {
+                    new LogFilter
+                    {
+                        LogLevel = LogLevel.Debug,
+                        Recorders = { "NLog" }
+                    }
+                }
+            };            
         }
 
         internal static Configuration InitializeConfiguration()
         {
             try
             {
-                return new Configuration(new AppSettings());
+                return new Configuration(new[] { new AppSettings() });
             }
             catch (Exception ex)
             {
@@ -106,7 +118,7 @@ namespace Gunter
             {
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance(configuration.Load<Program, Workspace>());
+                builder.RegisterInstance(configuration.Get<Workspace>());
 
                 builder.RegisterModule<SystemModule>();
                 builder.RegisterModule<DataModule>();
@@ -115,11 +127,11 @@ namespace Gunter
 
                 builder
                     .RegisterType<TestRunner>()
-                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(TestRunner))));
+                    .WithParameter(new TypedParameter(typeof(ILogger), Logger.Create(nameof(TestRunner))));
 
                 builder
                     .RegisterType<Program>()
-                    .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Program))))
+                    .WithParameter(new TypedParameter(typeof(ILogger), Logger.Create(nameof(Program))))
                     .PropertiesAutowired();
 
                 if (overrideModule != null) { builder.RegisterModule(overrideModule); }

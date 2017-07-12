@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Reusable.Extensions;
+using Reusable.Logging.Loggex;
 
 namespace Gunter.Services
 {
@@ -86,14 +87,11 @@ namespace Gunter.Services
         }
 
         private void RunTests([NotNull, ItemNotNull] IEnumerable<TestUnit> testUnits)
-        {
-            var testFileEntry = default(LogEntry);
-
+        {            
             foreach (var testUnit in testUnits)
             {
-                testFileEntry = testFileEntry ?? LogEntry.New().Stopwatch(sw => sw.Start());
-
-                var testUnitEntry = LogEntry.New().Stopwatch(sw => sw.Start());
+                //var testFileLogger = _logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
+                var testUnitLogger = _logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
                 try
                 {
                     var stopwatch = Stopwatch.StartNew();
@@ -104,7 +102,7 @@ namespace Gunter.Services
 
                         var testResult = result == testUnit.TestCase.Assert ? TestResult.Passed : TestResult.Failed;
 
-                        LogEntry.New().Info().Message($"Test {testUnit.TestNumber} in {testUnit.FileName} {testResult.ToString().ToUpper()}.").Log(_logger);
+                        _logger.Log(e => e.Message($"Test {testUnit.TestNumber} in {testUnit.FileName} {testResult.ToString().ToUpper()}."));
 
                         var mustAlert =
                             (testResult == TestResult.Passed && testUnit.TestCase.OnPassed.HasFlag(TestResultActions.Alert)) ||
@@ -121,7 +119,7 @@ namespace Gunter.Services
                                 alert.UpdateVariables(testVariables);
                                 alert.Publish(testUnit);
 
-                                LogEntry.New().Info().Message($"Published alert {alert.Id} for test {testUnit.TestNumber} in {testUnit.FileName}.").Log(_logger);
+                                _logger.Log(e => e.Message($"Published alert {alert.Id} for test {testUnit.TestNumber} in {testUnit.FileName}."));
                             }
                         }
 
@@ -131,7 +129,7 @@ namespace Gunter.Services
 
                         if (mustHalt)
                         {
-                            LogEntry.New().Info().Message($"Halt at test {testUnit.TestNumber} in {testUnit.FileName}.").Log(_logger);
+                            _logger.Log(e => e.Message($"Halt at test {testUnit.TestNumber} in {testUnit.FileName}."));
                             return;
                         }
                     }
@@ -142,11 +140,12 @@ namespace Gunter.Services
                 }
                 catch (Exception ex)
                 {
-                    LogEntry.New().Error().Exception(ex).Message(ex.Message).Log(_logger);
+                    _logger.Log(e => e.Error().Exception(ex).Message(ex.Message));
                 }
                 finally
                 {
-                    testUnitEntry.Message($"Test {testUnit.TestNumber} in {testUnit.FileName} completed.").Log(_logger);
+                    testUnitLogger.LogEntry.Message($"Test {testUnit.TestNumber} in {testUnit.FileName} completed.");
+                    testUnitLogger.EndLog();
                 }
             }
         }

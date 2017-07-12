@@ -1,5 +1,7 @@
 using Autofac;
+using Gunter.Data.SqlClient;
 using Reusable.Logging;
+using Reusable.Logging.Loggex;
 
 namespace Gunter.AutofacModules
 {
@@ -9,7 +11,7 @@ namespace Gunter.AutofacModules
         {
             builder
                 .RegisterType<Data.SqlClient.TableOrView>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(Data.SqlClient.TableOrView))));
+                .WithParameter(new TypedParameter(typeof(ILogger), Logger.Create<TableOrView>()));
 
         }
     }

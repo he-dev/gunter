@@ -9,7 +9,7 @@ using Gunter.Data;
 using Gunter.Messaging;
 using Gunter.Reporting;
 using Gunter.Services;
-using Reusable.Logging;
+using Reusable.Logging.Loggex;
 
 namespace Gunter.Tests.Messaging
 {
@@ -17,7 +17,7 @@ namespace Gunter.Tests.Messaging
     {
         private static readonly IDictionary<string, List<TestReport>> PublishedReports = new Dictionary<string, List<TestReport>>(StringComparer.OrdinalIgnoreCase);
 
-        public TestAlert() : base(new NullLogger()) { }
+        public TestAlert() : base(Reusable.Logging.Loggex.Logger.Create<TestAlert>()) { }
 
         public static List<TestReport> GetReports(string testName)
         {

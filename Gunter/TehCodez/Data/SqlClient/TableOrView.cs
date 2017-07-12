@@ -9,6 +9,7 @@ using Reusable.Logging;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable.Logging.Loggex;
 
 namespace Gunter.Data.SqlClient
 {

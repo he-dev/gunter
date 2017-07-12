@@ -6,6 +6,7 @@ using Gunter.Messaging.Email;
 using Gunter.Messaging.Email.ModuleRenderers;
 using Gunter.Services;
 using Reusable.Logging;
+using Reusable.Logging.Loggex;
 using Reusable.Markup.Html;
 
 namespace Gunter.AutofacModules
@@ -51,7 +52,7 @@ namespace Gunter.AutofacModules
 
             builder
                 .RegisterType<HtmlEmail>()
-                .WithParameter(new TypedParameter(typeof(ILogger), LoggerFactory.CreateLogger(nameof(HtmlEmail))));
+                .WithParameter(new TypedParameter(typeof(ILogger), Logger.Create<HtmlEmail>()));
         }
     }
 }
