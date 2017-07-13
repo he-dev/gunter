@@ -146,6 +146,7 @@
     <EmbeddedResource Include="Resources\assets\targets\InvalidGlobalsJson.json" />
     <EmbeddedResource Include="Resources\assets\targets\InvalidTestJson-ok.json" />
     <EmbeddedResource Include="Resources\assets\targets\InvalidTestJson-invalid.json" />
+    <EmbeddedResource Include="Resources\assets\targets\FaultingDataSource.json" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

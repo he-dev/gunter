@@ -14,7 +14,7 @@ namespace Gunter.Data
         [JsonRequired]
         int Id { get; set; }
 
-        [NotNull]
+        [CanBeNull]
         [JsonIgnore]
         DataTable Data { get; }
 

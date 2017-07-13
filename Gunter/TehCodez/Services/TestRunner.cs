@@ -100,7 +100,7 @@ namespace Gunter.Services
                 try
                 {
                     var stopwatch = Stopwatch.StartNew();
-                    if (testUnit.DataSource.Data.Compute(testUnit.TestCase.Expression, testUnit.TestCase.Filter) is bool result)
+                    if (testUnit.DataSource.Data?.Compute(testUnit.TestCase.Expression, testUnit.TestCase.Filter) is bool result)
                     {
                         stopwatch.Stop();
                         testUnit.TestCase.Elapsed = stopwatch.Elapsed;
@@ -145,7 +145,7 @@ namespace Gunter.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.Log(e => e.Error().Exception(ex).Message(ex.Message));
+                    _logger.Log(e => e.Error().Exception(ex).Message($"Could not run test '{testUnit.FileName}'."));
                 }
                 finally
                 {

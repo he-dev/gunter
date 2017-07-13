@@ -6,7 +6,6 @@ using System.Linq;
 using Gunter.Data;
 using Gunter.Services;
 using Newtonsoft.Json;
-using Reusable.Data;
 
 namespace Gunter.Tests.Data
 {
@@ -16,7 +15,7 @@ namespace Gunter.Tests.Data
         public TestDataSource(int id)
         {
             Id = id;
-            Data = new DataTable("TestData");            
+            Data = new DataTable("TestData");
             Data.Columns.Add("_id", typeof(int));
             Data.Columns.Add(nameof(TestDataSourceExtensions._string), typeof(string));
             Data.Columns.Add(nameof(TestDataSourceExtensions._int), typeof(int));
@@ -39,11 +38,11 @@ namespace Gunter.Tests.Data
 
         public int Id { get; set; }
 
-        [JsonIgnore]
         public DataTable Data { get; }
 
-        [JsonIgnore]
         public TimeSpan Elapsed { get; }
+
+        public bool IsFaulted { get; }
 
         public IEnumerable<(string Name, string Text)> GetCommands()
         {
@@ -52,7 +51,7 @@ namespace Gunter.Tests.Data
 
         public IEnumerator<DataRow> GetEnumerator()
         {
-            return Data.AsEnumerable().GetEnumerator();
+            return Data?.AsEnumerable().GetEnumerator() ?? Enumerable.Empty<DataRow>().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -62,7 +61,7 @@ namespace Gunter.Tests.Data
 
         public void Dispose()
         {
-            Data.Dispose();
+            Data?.Dispose();
         }
     }
 
@@ -70,9 +69,9 @@ namespace Gunter.Tests.Data
     {
         public static TestDataSource AddRow(this TestDataSource dataSource, Action<DataRow> row)
         {
-            var newRow = dataSource.Data.NewRow();
+            var newRow = dataSource.Data?.NewRow();
             row(newRow);
-            dataSource.Data.Rows.Add(newRow);
+            dataSource.Data?.Rows.Add(newRow);
             return dataSource;
         }
 
@@ -116,6 +115,36 @@ namespace Gunter.Tests.Data
         {
             row[nameof(TestDataSourceExtensions._bool)] = _bool ?? DBNull.Value;
             return row;
+        }
+    }
+
+    internal class FaultingDataSource : IDataSource
+    {
+        public IVariableResolver Variables { get; set; }
+        
+        public int Id { get; set; }
+
+        public DataTable Data
+        {
+            get
+            {
+                IsFaulted = true;
+                throw new Exception("Could not get data.");
+            }
+        }
+
+        public bool IsFaulted { get; private set; }
+
+        public TimeSpan Elapsed { get; }
+
+        public IEnumerable<(string Name, string Text)> GetCommands()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            
         }
     }
 }

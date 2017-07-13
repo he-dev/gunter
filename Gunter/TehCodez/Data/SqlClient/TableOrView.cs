@@ -61,8 +61,7 @@ namespace Gunter.Data.SqlClient
         }
 
         [PublicAPI]
-        [NotNull]
-        [ItemNotNull]
+        [NotNull, ItemNotNull]
         [JsonRequired]
         public List<Command> Commands
         {

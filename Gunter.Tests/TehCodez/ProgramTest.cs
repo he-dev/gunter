@@ -92,6 +92,27 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
+        public void Start_FaultingDataSource_Ignores()
+        {
+            var exitCode = Program.Start(
+                new string[0],
+                InitializeLogging,
+                InitializeConfiguration,
+                configuration => Program.InitializeContainer(configuration, new OverrideModule
+                {
+                    FileSystem = new TestFileSystem
+                    {
+                        ["test.json"] = "FaultingDataSource.json",
+                    },
+                    TestAlert = _testAlert
+                }));
+
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _memoryRecorder.Logs.Count(l => l.LogLevel() == LogLevel.Error));
+            Assert.AreEqual(4, _memoryRecorder.Logs.Count(l => l.LogLevel() == LogLevel.Warn));
+        }
+
+        [TestMethod]
         public void Start_FiveTests_FiveAlerts()
         {
             var exitCode = Program.Start(
