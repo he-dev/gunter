@@ -18,6 +18,12 @@ namespace Gunter.Data
         [JsonIgnore]
         DataTable Data { get; }
 
+        /// <summary>
+        /// Returns true if data could not be retrieved.
+        /// </summary>
+        [JsonIgnore]
+        bool IsFaulted { get; }
+
         [JsonIgnore]
         TimeSpan Elapsed { get; }
 

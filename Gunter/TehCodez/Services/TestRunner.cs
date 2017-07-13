@@ -87,10 +87,15 @@ namespace Gunter.Services
         }
 
         private void RunTests([NotNull, ItemNotNull] IEnumerable<TestUnit> testUnits)
-        {            
+        {
             foreach (var testUnit in testUnits)
             {
-                //var testFileLogger = _logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
+                if (testUnit.DataSource.IsFaulted)
+                {
+                    _logger.Log(e => e.Warn().Message($"Cannot run test '{testUnit.FileName}' because its data-source is-faulted."));
+                    continue;
+                }
+
                 var testUnitLogger = _logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
                 try
                 {

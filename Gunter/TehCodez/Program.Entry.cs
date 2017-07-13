@@ -21,6 +21,7 @@ using Reusable.Markup.Html;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Datastores.AppConfig;
 using Module = Gunter.Reporting.Module;
+using AutofacModule = Autofac.Module;
 
 namespace Gunter
 {
@@ -32,45 +33,54 @@ namespace Gunter
                 args,
                 InitializeLogging,
                 InitializeConfiguration,
-                InitializeContainer);
+                configuration => InitializeContainer(configuration, null));
         }
 
         public static int Start(
             string[] args,
             Action initializeLogging,
-            Func<Configuration> initializeConfiguration,
-            Func<Configuration, IContainer> initializeContainer)
+            Func<IConfiguration> initializeConfiguration,
+            Func<IConfiguration, IContainer> initializeContainer)
         {
-            initializeLogging();
-
-            var mainLogger = Logger.Create<Program>();
-            mainLogger.Log(e => e.Debug().Message("Logging initialized."));
-            var mainLogEntry = mainLogger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
-
             try
             {
-                var configuration = initializeConfiguration(); mainLogger.Log(e => e.Debug().Message("Configuration initialized."));
-                var container = initializeContainer(configuration); mainLogger.Log(e => e.Debug().Message("IoC initialized."));
+                initializeLogging();
 
-                using (var scope = container.BeginLifetimeScope())
+                var configuration = initializeConfiguration();
+                var container = initializeContainer(configuration);
+
+                var mainLogger = Logger.Create<Program>().BeginLog(e => e.Stopwatch(sw => sw.Start()));
+                try
                 {
-                    var program = scope.Resolve<Program>();
-                    mainLogger.Log(e => e.Message($"Created {Name} v{Version}"));
-                    program.Start(args);
+                    using (var scope = container.BeginLifetimeScope())
+                    {
+                        var program = scope.Resolve<Program>();
+                        mainLogger.LogEntry.Message($"Created {Name} v{Version}");
+                        program.Start(args);
+                    }
+                    mainLogger.LogEntry.Message("Completed.");
+                }
+                catch (Exception ex)
+                {
+                    mainLogger.LogEntry.Fatal().Message("Crashed.").Exception(ex);
+                    return ExitCode.RuntimeError;
+                }
+                finally
+                {
+                    mainLogger.EndLog();
                 }
 
-                mainLogEntry.LogEntry.Message("Completed.");
-                return 0;
+                return ExitCode.Success;
+            }
+            catch (InitializationException ex)
+            {
+                return ex.ExitCode;
             }
             catch (Exception ex)
             {
-                mainLogEntry.LogEntry.Fatal().Message("Crashed.").Exception(ex);
-                return 1;
-            }
-            finally
-            {
-                mainLogEntry.EndLog();
-                mainLogger.Log(e => e.Message("Exited."));
+                Console.Write("Unexpected exception occured.");
+                Console.Write(ex.ToString());
+                return ExitCode.UnexpectedError;
             }
         }
 
@@ -78,41 +88,49 @@ namespace Gunter
 
         internal static void InitializeLogging()
         {
-            Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
-
-            Logger.Configuration = new LoggerConfiguration
+            try
             {
-                ComputedProperties = { new ElapsedSeconds(), new AppSetting(name: "Environment", key: "Environment") },
-                Recorders = { new NLogRecorder("NLog") },
-                Filters =
+                Reusable.Logging.NLog.Tools.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
+
+                Logger.Configuration = new LoggerConfiguration
                 {
-                    new LogFilter
+                    ComputedProperties = { new ElapsedSeconds(), new AppSetting(name: "Environment", key: "Environment") },
+                    Recorders = { new NLogRecorder("NLog") },
+                    Filters =
                     {
-                        LogLevel = LogLevel.Debug,
-                        Recorders = { "NLog" }
+                        new LogFilter
+                        {
+                            LogLevel = LogLevel.Debug,
+                            Recorders = { "NLog" }
+                        }
                     }
-                }
-            };            
+                };
+
+                Logger.Create<Program>().Log(e => e.Debug().Message("Logging initialized."));
+            }
+            catch (Exception ex)
+            {
+                throw new InitializationException("Could not initialize configuration.", ex, ExitCode.LoggingError);
+            }
         }
 
         internal static Configuration InitializeConfiguration()
         {
             try
             {
-                return new Configuration(new[] { new AppSettings() });
+                var configuration = new Configuration(new[] { new AppSettings() });
+
+                Logger.Create<Program>().Log(e => e.Debug().Message("Configuration initialized."));
+
+                return configuration;
             }
             catch (Exception ex)
             {
-                throw new InitializationException("Could not initialize configuration.", ex);
+                throw new InitializationException("Could not initialize configuration.", ex, ExitCode.ConfigurationError);
             }
         }
 
-        internal static IContainer InitializeContainer(Configuration configuration)
-        {
-            return InitializeContainer(configuration, null);
-        }
-
-        internal static IContainer InitializeContainer(Configuration configuration, Autofac.Module overrideModule)
+        internal static IContainer InitializeContainer(IConfiguration configuration, AutofacModule overrideModule)
         {
             try
             {
@@ -136,11 +154,13 @@ namespace Gunter
 
                 if (overrideModule != null) { builder.RegisterModule(overrideModule); }
 
+                Logger.Create<Program>().Log(e => e.Debug().Message("IoC initialized."));
+
                 return builder.Build();
             }
             catch (Exception ex)
             {
-                throw new InitializationException("Could not initialize container.", ex);
+                throw new InitializationException("Could not initialize IoC.", ex, ExitCode.ComponentContainerError);
             }
         }
 
@@ -149,8 +169,22 @@ namespace Gunter
 
     internal class InitializationException : Exception
     {
-        public InitializationException(string message, Exception innerException)
+        public InitializationException(string message, Exception innerException, int exitCode)
             : base(message, innerException)
-        { }
+        {
+            ExitCode = exitCode;
+        }
+
+        public int ExitCode { get; }
+    }
+
+    internal static class ExitCode
+    {
+        public const int Success = 0;
+        public const int LoggingError = 1;
+        public const int ConfigurationError = 2;
+        public const int ComponentContainerError = 3;
+        public const int UnexpectedError = 4;
+        public const int RuntimeError = 5;
     }
 }

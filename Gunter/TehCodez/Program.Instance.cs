@@ -77,7 +77,12 @@ namespace Gunter
             var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Workspace.Targets);
             var fileName = Path.Combine(targetsDirectoryName, GlobalFileName);
 
-            if (!File.Exists(fileName)) { return new GlobalFile(); }
+            // If there is no _Globa.json then use an empty one but if there is one then it needs to be valid.
+
+            if (!_fileSystem.Exists(fileName))
+            {
+                return new GlobalFile();
+            }
 
             try
             {
@@ -92,7 +97,7 @@ namespace Gunter
             }
             catch (Exception ex)
             {
-                throw new InitializationException($"Could not load {Path.GetFileName(fileName)}.", ex);
+                throw new TestConfigurationException($"Could not load {Path.GetFileName(fileName)}.", ex);
             }
         }
 
@@ -148,5 +153,10 @@ namespace Gunter
                 logger.EndLog();
             }
         }
+    }
+
+    public class TestConfigurationException : Exception
+    {
+        public TestConfigurationException(string message, Exception innerException):base(message, innerException) { }
     }
 }

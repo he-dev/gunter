@@ -15,11 +15,11 @@ namespace Gunter.Tests.Messaging
 {
     internal class TestAlert : Alert, IDisposable
     {
-        private static readonly IDictionary<string, List<TestReport>> PublishedReports = new Dictionary<string, List<TestReport>>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<string, List<TestReport>> PublishedReports = new Dictionary<string, List<TestReport>>(StringComparer.OrdinalIgnoreCase);
 
         public TestAlert() : base(Reusable.Logging.Loggex.Logger.Create<TestAlert>()) { }
 
-        public static List<TestReport> GetReports(string testName)
+        public List<TestReport> GetReports(string testName)
         {
             //var testName = Regex.Split(callerName, "_")[1];
             return PublishedReports.TryGetValue($"{testName}.json", out var reports) ? reports : new List<TestReport>();

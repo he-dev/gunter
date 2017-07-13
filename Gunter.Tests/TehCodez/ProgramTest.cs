@@ -8,6 +8,10 @@ using Gunter.Services;
 using Gunter.Tests.Messaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reusable;
+using Reusable.Logging.Loggex;
+using Reusable.Logging.Loggex.Recorders;
+using Reusable.SmartConfig;
+using Reusable.SmartConfig.Datastores;
 
 namespace Gunter.Tests
 {
@@ -15,6 +19,78 @@ namespace Gunter.Tests
     [TestClass]
     public class ProgramTest
     {
+        private MemoryRecorder _memoryRecorder;
+        private TestAlert _testAlert;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            _memoryRecorder = new MemoryRecorder();
+            _testAlert = new TestAlert();
+        }
+
+        [TestMethod]
+        public void Start_InvalidGlobalsJson_Exits()
+        {
+            var exitCode = Program.Start(
+                new string[0],
+                InitializeLogging,
+                InitializeConfiguration,
+                configuration => Program.InitializeContainer(configuration, new OverrideModule
+                {
+                    FileSystem = new TestFileSystem
+                    {
+                        ["_Global.json"] = "_InvalidGlobalsJson.json"
+                    }
+                }));
+
+            Assert.AreEqual(5, exitCode);
+            Assert.IsTrue(_memoryRecorder.Logs.Any(l => l.LogLevel() == LogLevel.Fatal));
+        }
+
+        [TestMethod]
+        public void Start_InvalidTestJson_Ignores()
+        {
+            var exitCode = Program.Start(
+                new string[0],
+                InitializeLogging,
+                InitializeConfiguration,
+                configuration => Program.InitializeContainer(configuration, new OverrideModule
+                {
+                    FileSystem = new TestFileSystem
+                    {
+                        ["test1.json"] = "InvalidTestJson-ok.json",
+                        ["test2.json"] = "InvalidTestJson-invalid.json",
+                    },
+                    TestAlert = _testAlert
+                }));
+
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _memoryRecorder.Logs.Count(l => l.LogLevel() == LogLevel.Error));
+            Assert.AreEqual(1, _testAlert.GetReports("test1").Count);
+        }
+
+        [TestMethod]
+        public void Start_InvalidSeverity_Ignores()
+        {
+            var exitCode = Program.Start(
+                new string[0],
+                InitializeLogging,
+                InitializeConfiguration,
+                configuration => Program.InitializeContainer(configuration, new OverrideModule
+                {
+                    FileSystem = new TestFileSystem
+                    {
+                        ["test.json"] = "InvalidSeverity.json",
+                    },
+                    TestAlert = _testAlert
+                }));
+
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _memoryRecorder.Logs.Count(l => l.LogLevel() == LogLevel.Error));
+            Assert.AreEqual(0, _testAlert.GetReports("test1").Count);
+        }
+
         [TestMethod]
         public void Start_FiveTests_FiveAlerts()
         {
@@ -22,46 +98,58 @@ namespace Gunter.Tests
                 new string[0],
                 Program.InitializeLogging,
                 Program.InitializeConfiguration,
-                configuration => Program.InitializeContainer(configuration, new TestModule
+                configuration => Program.InitializeContainer(configuration, new OverrideModule
                 {
                     FileSystem = new TestFileSystem
                     {
-                        Files = { "five-tests" }
+                        //TestFileNames = { "five-tests" }
                     }
                 }));
 
             Assert.AreEqual(0, exitCode);
-            Assert.AreEqual(5, TestAlert.GetReports("five-tests").Count);
+            //Assert.AreEqual(5, TestAlert.GetReports("five-tests").Count);
         }
 
-        [TestMethod]
-        public void Start_InvalidSeverity_NoAlerts()
+        private void InitializeLogging()
         {
-            var exitCode = Program.Start(
-                new string[0],
-                Program.InitializeLogging,
-                Program.InitializeConfiguration,
-                configuration => Program.InitializeContainer(configuration, new TestModule
+            Logger.Configuration = new LoggerConfiguration
+            {
+                //ComputedProperties = { new ElapsedSeconds(), new AppSetting(name: "Environment", key: "Environment") },
+                Recorders = { _memoryRecorder },
+                Filters =
                 {
-                    FileSystem = new TestFileSystem
+                    new LogFilter
                     {
-                        Files = { "invalid-severity" }
+                        LogLevel = LogLevel.Debug,
+                        Recorders = { "Memory" }
                     }
-                }));
+                }
+            };
+        }
 
-            Assert.AreEqual(0, exitCode);
-            Assert.AreEqual(0, TestAlert.GetReports("invalid-severity").Count);
+        private IConfiguration InitializeConfiguration()
+        {
+            return new Configuration(new[]
+            {
+                new Memory("Memory")
+                {
+                    {"Environment", "test"},
+                    {"Workspace.Assets", "assets"},
+                }
+            });
         }
     }
 
-    internal class TestModule : Autofac.Module
+    internal class OverrideModule : Module
     {
         public TestFileSystem FileSystem { get; set; }
+
+        public TestAlert TestAlert { get; set; }
 
         protected override void Load(ContainerBuilder builder)
         {
             builder
-                .RegisterType<TestAlert>();
+                .RegisterInstance(TestAlert);
 
             builder
                 .RegisterType<TestPathResolver>()
@@ -73,34 +161,31 @@ namespace Gunter.Tests
         }
     }
 
-    internal class TestFileSystem : IFileSystem
+    internal class TestFileSystem : Dictionary<string, string>, IFileSystem
     {
+        public TestFileSystem() : base(StringComparer.OrdinalIgnoreCase) { }
+
         public string WorkingDirectory { get; set; } = @"t:\tests\assets\targets";
 
-        public List<string> Files { get; } = new List<string>();
+        public bool Exists(string path)
+        {
+            return ContainsKey(Path.GetFileName(path));
+        }
 
         public string ReadAllText(string fileName)
         {
-            //var fullName = Path.Combine(WorkingDirectory, $"{fileName}.json");
-
-            if (Path.GetFileName(fileName).Equals("_Global.json", StringComparison.OrdinalIgnoreCase))
+            var actualFileName = this[Path.GetFileName(fileName)];
+            var allText = ResourceReader.ReadEmbeddedResource<ProgramTest>($"Resources.assets.targets.{actualFileName}");
+            if (string.IsNullOrEmpty(allText))
             {
-                return ResourceReader.ReadEmbeddedResource<ProgramTest>("Resources.assets.targets._Global.json");
+                throw new FileNotFoundException($"File \"{fileName}\" does not exist.");
             }
-            else
-            {
-                var json = ResourceReader.ReadEmbeddedResource<ProgramTest>($"Resources.assets.targets.{Path.GetFileName(fileName)}");
-                if (string.IsNullOrEmpty(json))
-                {
-                    throw new FileNotFoundException($"File \"{fileName}\" does not exist.");
-                }
-                return json;
-            }
+            return allText;
         }
 
         public string[] GetFiles(string path, string searchPattern)
         {
-            return Files.Select(name => Path.Combine(WorkingDirectory, $"{name}.json")).ToArray();
+            return Keys.Select(name => Path.Combine(WorkingDirectory, $"{name}")).ToArray();
         }
     }
 

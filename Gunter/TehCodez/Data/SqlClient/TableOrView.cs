@@ -49,6 +49,8 @@ namespace Gunter.Data.SqlClient
 
         public TimeSpan Elapsed { get; private set; }
 
+        public bool IsFaulted { get; private set; }
+
         [PublicAPI]
         [NotNull]
         [JsonRequired]
@@ -86,36 +88,45 @@ namespace Gunter.Data.SqlClient
 
             //LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
 
-            var stopwatch = Stopwatch.StartNew();
-            using (var conn = new SqlConnection(ConnectionString))
+            try
             {
-                conn.Open();
-
-                using (var cmd = conn.CreateCommand())
+                var stopwatch = Stopwatch.StartNew();
+                using (var conn = new SqlConnection(ConnectionString))
                 {
-                    cmd.CommandText = Commands.First().Text;
-                    cmd.CommandType = CommandType.Text;
+                    conn.Open();
 
-                    //LogEntry.New().Debug().Message($"Command: {cmd.CommandText}").Log(_logger);
-
-                    foreach (var parameter in Commands.First())
+                    using (var cmd = conn.CreateCommand())
                     {
-                        //LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameter.Value}'").Log(_logger);
-                        cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
-                    }
+                        cmd.CommandText = Commands.First().Text;
+                        cmd.CommandType = CommandType.Text;
 
-                    using (var dataReader = cmd.ExecuteReader())
-                    {
-                        var dataTable = new DataTable();
-                        dataTable.Load(dataReader);
-                        //LogEntry.New().Debug().Message($"Row count: {dataTable.Rows.Count}").Log(_logger);
+                        //LogEntry.New().Debug().Message($"Command: {cmd.CommandText}").Log(_logger);
 
-                        stopwatch.Stop();
-                        Elapsed = stopwatch.Elapsed;
+                        foreach (var parameter in Commands.First())
+                        {
+                            //LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameter.Value}'").Log(_logger);
+                            cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
+                        }
 
-                        return dataTable;
+                        using (var dataReader = cmd.ExecuteReader())
+                        {
+                            var dataTable = new DataTable();
+                            dataTable.Load(dataReader);
+                            //LogEntry.New().Debug().Message($"Row count: {dataTable.Rows.Count}").Log(_logger);
+
+                            stopwatch.Stop();
+                            Elapsed = stopwatch.Elapsed;
+
+                            return dataTable;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                IsFaulted = true;
+                _logger.Log(e => e.Error().Exception(ex).Message("Could not get data."));
+                return null;
             }
         }
 
