@@ -184,8 +184,8 @@ namespace Gunter.Data.SqlClient
         {
             return
                 Parameters
-                    .Select(parameter => new KeyValuePair<string, string>(parameter.Key, Variables.Resolve(parameter.Value)))
-                    .GetEnumerator();
+                    ?.Select(parameter => new KeyValuePair<string, string>(parameter.Key, Variables.Resolve(parameter.Value)))
+                    .GetEnumerator() ?? Enumerable.Empty<KeyValuePair<string, string>>().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

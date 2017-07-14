@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
 namespace Gunter.Services
@@ -58,9 +59,16 @@ namespace Gunter.Services
                 {
                     // ReSharper disable once PossibleNullReferenceException
                     // For member expression the DeclaringType cannot be null.
-                    return $"{memberExpression.Member.DeclaringType.Name}.{memberExpression.Member.Name}";
+                    var typeName = memberExpression.Member.DeclaringType.Name;
+                    if (memberExpression.Member.DeclaringType.IsInterface)
+                    {
+                        // Remove the leading "I" from an interface name.
+                        typeName = Regex.Replace(typeName, "^I", string.Empty);
+                    }
+                    return $"{typeName}.{memberExpression.Member.Name}";
                 }
 
+                // There is an unary-expression when using interfaces.
                 if (expression is UnaryExpression unaryExpression)
                 {
                     expression = unaryExpression.Operand;

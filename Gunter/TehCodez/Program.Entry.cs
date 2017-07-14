@@ -1,26 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Autofac;
-using Reusable.Logging;
-using Reusable;
 using Gunter.Data;
-using System.Threading.Tasks;
 using Gunter.AutofacModules;
-using Gunter.Messaging.Email;
-using Gunter.Messaging.Email.ModuleRenderers;
-using Gunter.Reporting;
-using Gunter.Reporting.Modules;
 using Gunter.Services;
-using JetBrains.Annotations;
-using NLog.Fluent;
 using Reusable.Logging.Loggex;
 using Reusable.Logging.Loggex.ComputedProperties;
 using Reusable.Logging.Loggex.Recorders.NLogRecorder.Recorders;
-using Reusable.Markup.Html;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Datastores.AppConfig;
-using Module = Gunter.Reporting.Module;
 using AutofacModule = Autofac.Module;
 
 namespace Gunter

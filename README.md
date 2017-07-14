@@ -1,6 +1,6 @@
 # Gunter v2.0.0
 
-`Gunter` _the ultimate Glitch Hunter_ is a tool for testing data and publishing alerts when a test fails or passes (this is new in v2).
+`Gunter` _the ultimate Glitch Hunter_ is a tool for testing data and publishing alerts when a test either fails or passes (this is new in v2).
 
 `Gunter` is still very young and currently it can only query the the `Sql Server` and send email alerts but its abstraction layers allow to easily add other data sources and alerts which I might do in future.
 
@@ -8,145 +8,147 @@ To use `Gunter` you'll need a service that will run it (like `Aion` or you can u
 
 ## Configuration
 
-### General
-
- `Gunter` uses `JSON` files for test configuration and needs to know where to find them so you need to specify their directory name in the `app.config`. The path can be relative or absolute.
-
- The `app.config` is also used to configure the mail settings.
+You need to provide two setting via the `app.config`. The `Environment` that will appear in the logs and the `Workspace.Assets` where `Guten` will be searching for tests (that does not start with an `_`) and stylesheets. This is the subfolder in `Gunter`'s installation folder.
 
 ```xml
-<appSettings>
+  <appSettings>
 
-  <add key="gunter.Environment" value="debug" />
-  <add key="gunter.Paths.TestsDirectoryName" value="_Tests"/>
+    <add key="Environment" value="debug" />
+    <add key="Workspace.Assets" value="assets"/>
 
-</appSettings>
+  </appSettings>
+```
 
+In order to be able to send emails `Gunter` needs to know the smtp settings.
+
+```xml
   <system.net>
-  <mailSettings>
-    <smtp deliveryMethod="Network" from="...">
-      <network
-        host="..."
-        port="..."
-        enableSsl="true"
-        defaultCredentials="false"
-        userName="..."
-        password="..."
-      />
-    </smtp>
-  </mailSettings>
-</system.net>
+    <mailSettings>
+      <smtp deliveryMethod="Network" from="YOUR_EMAIL">
+        <network
+          host="YOUR_HOST"
+          port="YOUR_PORT"
+          enableSsl="true"
+          defaultCredentials="false"
+          userName="YOUR_USERNAME"
+          password="YOUR_PASSWORD"
+        />
+      </smtp>
+    </mailSettings>
+  </system.net>
 ```
 
-### Tests
+#Tests
 
-The example below shows all possible settings where `<>` means mandatory values and `[]` optional ones. The value provided for optional settings is the default value. Some settings support string interpolation. Those that do are marked with `{yes}` otherwise if they don't support it you'll fine the `{no}`.
+ `Gunter` uses `JSON` files for test configuration. The main file is the `_Globals.json` which is a dictionary for global variables. You can use them in tests for example for connection strings. Other `JSON` files in the `assets\targets` forlder are your test files. You can use here not only the global variables but also local ones that can override the globals. To use them just put the name inside `{}`. Some names are reserved and you may not use them for you own variables but you can use them in strings. The complete list is:
 
-In addition to specific test settings you can use a global dictionary by creating the `Gunter.Globals.json` file in the same directory where the tests are e.g.:
-
-```js
-{
-  "Global.Key": "Global value"
-}
-```
-
-The keys can by any string that complies to C# identifier rules with one exception, it may contain a `.`.
-
-Some keys are reserved for internal use:
-
-- `Environment` (can be set via `app.config`)
-- `TestConfiguration.FileName`
+- `TestFile.FullName`
+- `TestFile.FileName`
+- `DataSource.Elapsed`
 - `TestCase.Severity`
 - `TestCase.Message`
-- `TestCase.Profile`
+- `TestCase.Elapsed`
+- `Workspace.Environment`
+- `Workspace.AppName`
 
-Global values can be overriden with local ones via the `Locals` dictionary (except the reserved ones).
-
-`Gunter` will pick up test files that are named according to this pattern: `Gunter.Tests.*.json`.
+The example below shows all possible settings where `<>` means mandatory values and `[]` optional ones. The value provided for optional settings is the default value. Some settings support string interpolation. Those that do are marked with `{yes}` otherwise if they don't support it you'll find the `{no}`.
 
 ```js
 {
   // <object> - Allows to define local constants and/or override globals.
-  "Locals": {
-    "Log": "[dbo].[Log]",
-    "Top": "1000",
-    "To": "example@email.com"
-  },
+	"Locals": {
+		"TestLog": "[dbo].[Gunter_TestLog]",
+	}, 
   // Data-sources used by the tests.
   "DataSources": [
-    {
-      "$type": "Gunter.Data.SqlClient.TableOrViewDataSource, Gunter", // <string> - The type specification of the data-source. {no}
-      "Id": 1, // <int> - The id of the data-source.
-      "ConnectionString": "{TEST_LOG}", // <string> - The connection string. {yes}
-      // Specified the commands.
-      "Commands": {
-        // The Main command queries the data for testing.
-        "Main": {
-          "Text": "SELECT TOP({Top}) * FROM (SELECT * FROM {Log} WHERE [Environment] = @Environment AND [Timestamp] > DATEADD(HOUR, -1, GETUTCDATE())) AS t", // {yes}
-          "Parameters": { "@Environment": "{Environment}" } // {yes}
-        },
-        // The Debug command can be used to query the data for debugging.
-        "Debug": { "Text": "{DebugCommand}" } // {yes}
-      }
-    }
-  ],
+		{
+			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter", // <string> - The type specification of the data-source. {no}
+			"Id": 1, // <int> - The id of the data-source.
+			"ConnectionString": "{TEST_LOG}", // <string> - The connection string. {yes}
+      // Specifies commands.
+			"Commands": [
+				{
+          // The Main command is mandatory. Other commands can be defined but only the Main one will be used for quering.
+					"Name": "Main",
+					"Text": "SELECT * FROM {TestLog}",
+          // [dictionary] - Allows to specify SqlCommand parameters.
+					"Parameters": { "@Environment": "{Workspace.Environment}" } // {yes}
+				}
+			]
+		}
+	],
   // <object[]> - Test cases.
   "Tests": [
     {
       "Enabled": true, // [bool]
-      "Severity": "Warning", // [Warning | Critical] - {no}
+      "Severity": "Warn", // [Debug | Info | Warn | Error | Fatal] - {no}
       "Message": "Debug logging is on.", // <string> - {yes}
       "DataSources": [ 1 ], // <int[]> - The Id(s) of the data-source(s).
       "Filter": "[LogLevel] IN ('debug')", // [string] - Allows to filter the results. {yes}
       "Expression": "Count([LogLevel]) = 0", // <string> - Must evaluate to boolean. {yes}
       "Assert": true, // [bool] - Specifies whether the result of the expression should be true or false.
-      "BreakOnFailure": false, // [bool] - Specifies whether testing can continue if this one fails.
+      "OnPassed": "None", // <string> [None | Halt | Alert] - Specifies the action when the test passes.
+      "OnFailed": "Alert, Halt", // <string> [None | Halt | Alert] - Specifies the action when the test failes.
       "Alerts": [ 1 ], // <int[]> - The id(s) of the alert(s).
       "Profiles" : [] // [string[]] - Allows to define profiles and use this test only in specific scenarios.
     }   
   ],
   // <objec[]> - Alerts used by the tests.
   "Alerts": [
-    {
-      "$type": "Gunter.Alerts.EmailAlert, Gunter", // <string> - Type specification of the alert. {no}
-      "Id": 1, // <int> - The id of the alert.
-      "Title": "{DataSourceName} - {Severity}", // <string> - {yes}
-      "To": "{To}", // <string> - Comma or semicolon separated list of email. {yes}
-      // Specifies which sections an alert can contain.
-      "Sections": [
-        {
-          "$type": "Gunter.Alerts.Sections.Text, Gunter", // <string>- The type specification of the section. {no}
-          "Heading": "Glitch alert", // <string> - {yes}
-          "Text": "{Test.Message}" // [string] - {yes}
-        },
-        { 
-          "$type": "Gunter.Alerts.Sections.DataSourceInfo, Gunter", 
-          "Heading": "Data-source"
-        }, 
-        { 
-          "$type": "Gunter.Alerts.Sections.TestInfo, Gunter", 
-          "Heading": "Test case"
-        }, 
-        {
-          "$type": "Gunter.Alerts.Sections.DataAggregate, Gunter", 
-          "Title": "Exceptions",
-          // <string[]> - Columns that the data-aggregate should contain.
-          // Columns can be "decorated" with:
-          // - [key] - Used to group the results.
-          // - [firstline] - Extracts the first line of the value (useful for exception strings).
-          // - [min, max, count, sum, avg] - Allosw to aggregate the values, if nothing is specified then "first" is used.
-          "Columns": [
-            "Timestamp",
-            "LogLevel | key",
-            "Logger | key",
-            "ElapsedSeconds | sum",
-            "Message",
-            "Exception | key firstline"
-          ] // {no}
-        }        
-      ]
-    }
-  ]  
+		{
+			"$type": "Gunter.Messaging.Email.HtmlEmail, Gunter", // <string> - Type specification of the alert. {no}
+			"Id": 1, // <int> - The id of the alert.
+			"EmailClient": { "$type": "Reusable.EmailClients.SmtpClient, Reusable.EmailClients.SmtpClient" }, // EmailClient
+			"Theme": "Default.css", // <string> - Email theme.
+			"Reports": [1] // <int[]> - Specifies the reports that should be sent.
+		}
+	],
+  // <object> - Reports used for alerting. Each module is optional and can be removed.
+	"Reports": [
+		{
+			"Id": 1, // <int> - Report id
+			"Title": "Glitch alert for {TestLog} - {TestCase.Severity}", // <string> - The title {yes}
+			"Modules": [
+				{
+					"$type": "Gunter.Reporting.Modules.Greeting, Gunter",
+					"Heading": "Glitch detected!", // <string> - {yes}
+					"Text": "{TestCase.Message}" // <string> - {yes}
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.TestCaseInfo, Gunter",
+					"Heading": "Test case" // <string> - {yes}
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.DataSourceInfo, Gunter",
+					"Heading": "Data-source", // <string> - {yes}
+					"TimestampColumn": "Timestamp", // [string] - Timespan column for statistics.
+					"TimespanFormat": "dd\\.hh\\:mm\\:ss" // [string] - Custom timespan formatting.
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.DataSummary, Gunter",
+					"Heading": "Data summary", // <string> - {yes}
+          // <object> - Specifies columns for aggregation.
+					"Columns": [
+						{
+							"Name": "_nvarchar", // <string> - The name of the column. {no}
+							"IsKey": true, // [bool] - Used as a key for grouping.
+							"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" } // <object> - Allows to specify custom data filter. Currently there is only one "FirstLine"
+						},
+            // Each column can use one of the following aggregates: Sum, Count, Average, Min, Max, First, Last
+						{ "Name": "_int", "Total": "Sum" },
+						{ "Name": "_datetime2" },
+						{ "Name": "_float", "Total": "Average" },
+						{ "Name": "_bit", "Total": "Count" },
+						{ "Name": "_money" },
+						{ "Name": "_numeric" }
+					]
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.Signature, Gunter"
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -196,10 +198,3 @@ CREATE TABLE [dbo].[GunterLog](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 80) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 ```
-
-## Development
-
-You can use create your own private configuration files for testing that will be ignored by repository:
-
-- `_Debug\Debug.private.App.config` 
-- `_Test\Gunter.Tests.Gunter.private.json`

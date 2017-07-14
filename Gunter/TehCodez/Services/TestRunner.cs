@@ -38,7 +38,7 @@ namespace Gunter.Services
             [NotNull, ItemNotNull] ICollection<string> runnableProfiles,
             [NotNull] IVariableResolver variables)
         {
-            //LogEntry.New().Debug().Message($"Test configuration count: {tests.Count}").Log(_logger);
+            _logger.Log(e => e.Info().Message($"Profiles: [{string.Join(", ", runnableProfiles)}]"));
 
             var testUnitGroups =
                 (from testFile in testFiles
@@ -69,6 +69,7 @@ namespace Gunter.Services
             [NotNull, ItemNotNull] IEnumerable<TestUnit> testUnits,
             [NotNull, ItemNotNull] ICollection<string> runnableProfiles)
         {
+            // In order for a test to be runnable it has to be enabled and its profile needs to match the list or the list needs to be empty.
             var runnableTestUnits =
                 from testUnit in testUnits
                 where
@@ -92,7 +93,7 @@ namespace Gunter.Services
             {
                 if (testUnit.DataSource.IsFaulted)
                 {
-                    _logger.Log(e => e.Warn().Message($"Cannot run test '{testUnit.FileName}' because its data-source is-faulted."));
+                    _logger.Log(e => e.Warn().Message($"Cannot run test '{testUnit.FileName}' with data-source '{testUnit.DataSource.Id}' becasue it's faulted."));
                     continue;
                 }
 
