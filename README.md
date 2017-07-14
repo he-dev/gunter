@@ -1,10 +1,10 @@
-# Gunter v1.0.0
+# Gunter v2.0.0
 
-`Gunter` the ultimate Glitch Hunter is a tool for _unit-testing_ data and publishing alerts when a test fails.
+`Gunter` _the ultimate Glitch Hunter_ is a tool for testing data and publishing alerts when a test fails or passes (this is new in v2).
 
 `Gunter` is still very young and currently it can only query the the `Sql Server` and send email alerts but its abstraction layers allow to easily add other data sources and alerts which I might do in future.
 
-To use `Gunter` you'll need a service that will run it (like the `Aion` scheduler or you can use the Windows Task Scheduler).
+To use `Gunter` you'll need a service that will run it (like `Aion` or you can use the Windows Task Scheduler).
 
 ## Configuration
 

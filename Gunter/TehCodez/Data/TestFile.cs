@@ -15,12 +15,6 @@ namespace Gunter.Data
     [PublicAPI]
     public class TestFile
     {
-        [JsonIgnore]
-        public string FullName { get; set; }
-
-        [JsonIgnore]
-        public string FileName => Path.GetFileName(FullName);
-
         public Dictionary<string, object> Locals { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
         [JsonRequired]
@@ -34,6 +28,12 @@ namespace Gunter.Data
 
         [JsonRequired]
         public List<IReport> Reports { get; set; } = new List<IReport>();
+
+        [JsonIgnore]
+        public string FullName { get; set; }
+
+        [JsonIgnore]
+        public string FileName => Path.GetFileName(FullName);
     }
 }
 
