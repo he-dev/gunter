@@ -99,6 +99,7 @@ The example below shows all possible settings where `<>` means mandatory values 
 			"$type": "Gunter.Messaging.Email.HtmlEmail, Gunter", // <string> - Type specification of the alert. {no}
 			"Id": 1, // <int> - The id of the alert.
 			"EmailClient": { "$type": "Reusable.EmailClients.SmtpClient, Reusable.EmailClients.SmtpClient" }, // EmailClient
+			"To": "YOUR_EMAIL", // <string> - Comma or semicolon separated list of emails. {yes}
 			"Theme": "Default.css", // <string> - Email theme.
 			"Reports": [1] // <int[]> - Specifies the reports that should be sent.
 		}

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,20 +20,22 @@ using Gunter.Services.Validators;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using NLog.Fluent;
+using Reusable.Data.Annotations;
 using Reusable.Extensions;
 using Reusable.Logging.Loggex;
 using Reusable.Markup.Html;
+using Reusable.SmartConfig;
 using Module = Gunter.Reporting.Module;
 
 namespace Gunter
 {
     internal partial class Program
-    {
-        public static readonly string Name = Assembly.GetAssembly(typeof(Program)).GetName().Name;
+    {        
         public static readonly string Version = "2.0.0";
-        private static readonly string GlobalFileName = "_Global.json";
+        private static readonly string GlobalFileName = "Global.json";
 
         private readonly ILogger _logger;
+        private readonly IConfiguration _configuration;
         private readonly IPathResolver _pathResolver;
         private readonly IFileSystem _fileSystem;
         private readonly IVariableBuilder _variableBuilder;
@@ -40,6 +44,7 @@ namespace Gunter
 
         public Program(
             ILogger logger,
+            IConfiguration configuration,
             IPathResolver pathResolver,
             IFileSystem fileSystem,
             IVariableBuilder variableBuilder,
@@ -47,14 +52,26 @@ namespace Gunter
             TestRunner testRunner)
         {
             _logger = logger;
+            _configuration = configuration;
             _pathResolver = pathResolver;
             _fileSystem = fileSystem;
             _variableBuilder = variableBuilder;
             _autofacContractResolver = autofacContractResolver;
             _testRunner = testRunner;
+
+            _configuration.Apply(() => Environment);
+            _configuration.Apply(() => Assets);
         }
 
-        public Workspace Workspace { get; set; }
+        [Required]
+        public string Environment { get; }
+
+        [DefaultValue(nameof(Assets))]
+        public string Assets { get; }
+
+        public string Targets => Path.Combine(Assets, nameof(Targets));        
+
+        public string Name => Assembly.GetAssembly(typeof(Program)).GetName().Name;
 
         public void Start(string[] args)
         {
@@ -62,7 +79,7 @@ namespace Gunter
 
             var globals = VariableResolver.Empty
                 .MergeWith(globalFile.Globals)
-                .MergeWith(_variableBuilder.BuildVariables(Workspace));
+                .MergeWith(_variableBuilder.BuildVariables(this));
 
             var testFiles = LoadTestFiles().ToList();
 
@@ -74,7 +91,7 @@ namespace Gunter
 
         private GlobalFile LoadGlobalFile()
         {
-            var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Workspace.Targets);
+            var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Targets);
             var fileName = Path.Combine(targetsDirectoryName, GlobalFileName);
 
             // If there is no _Globa.json then use an empty one but if there is one then it needs to be valid.
@@ -115,11 +132,11 @@ namespace Gunter
         [NotNull, ItemNotNull]
         private IEnumerable<string> GetTestFileNames()
         {
-            var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Workspace.Targets);
+            var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Targets);
 
             return
                 from fullName in _fileSystem.GetFiles(targetsDirectoryName, "*.json")
-                where !Path.GetFileName(fullName).StartsWith("_", StringComparison.OrdinalIgnoreCase)
+                where !Path.GetFileName(fullName).Equals(GlobalFileName, StringComparison.OrdinalIgnoreCase)
                 select fullName;
         }
 

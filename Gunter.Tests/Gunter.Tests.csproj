@@ -54,8 +54,8 @@
     <Reference Include="Autofac, Version=4.6.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <HintPath>..\packages\Autofac.4.6.0\lib\net45\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="JetBrains.Annotations, Version=10.4.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
-      <HintPath>..\packages\JetBrains.Annotations.10.4.0\lib\net\JetBrains.Annotations.dll</HintPath>
+    <Reference Include="JetBrains.Annotations, Version=11.0.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>..\packages\JetBrains.Annotations.11.0.0\lib\net20\JetBrains.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -64,31 +64,31 @@
       <HintPath>..\packages\NLog.4.4.11\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Core.3.50.3\lib\net452\Reusable.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.Core.3.51.1\lib\net452\Reusable.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Email, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Email.3.50.1\lib\net452\Reusable.Email.dll</HintPath>
+      <HintPath>..\packages\Reusable.Email.3.51.1\lib\net452\Reusable.Email.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.Loggex, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.Loggex.3.50.3\lib\net452\Reusable.Logging.Loggex.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.Loggex.3.51.1\lib\net452\Reusable.Logging.Loggex.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.Loggex.Recorders.NLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.Loggex.Recorders.NLog.3.50.1\lib\net452\Reusable.Logging.Loggex.Recorders.NLog.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.Loggex.Recorders.NLog.3.51.1\lib\net452\Reusable.Logging.Loggex.Recorders.NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Logging.NLog.Tools, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.50.1\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
+      <HintPath>..\packages\Reusable.Logging.NLog.Tools.3.51.1\lib\net452\Reusable.Logging.NLog.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Markup, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Markup.3.50.1\lib\net452\Reusable.Markup.dll</HintPath>
+      <HintPath>..\packages\Reusable.Markup.3.51.1\lib\net452\Reusable.Markup.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.SmartConfig.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.SmartConfig.Core.3.50.1\lib\net452\Reusable.SmartConfig.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.SmartConfig.Core.3.51.1\lib\net452\Reusable.SmartConfig.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.SmartConfig.Datastores.AppConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.SmartConfig.Datastores.AppConfig.3.50.1\lib\net452\Reusable.SmartConfig.Datastores.AppConfig.dll</HintPath>
+      <HintPath>..\packages\Reusable.SmartConfig.Datastores.AppConfig.3.51.1\lib\net452\Reusable.SmartConfig.Datastores.AppConfig.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.TypeConversion, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.TypeConversion.3.50.1\lib\net452\Reusable.TypeConversion.dll</HintPath>
+      <HintPath>..\packages\Reusable.TypeConversion.3.51.1\lib\net452\Reusable.TypeConversion.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -142,7 +142,7 @@
     </None>
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\assets\targets\example.json" />
-    <EmbeddedResource Include="Resources\assets\targets\_Global.json" />
+    <EmbeddedResource Include="Resources\assets\targets\Global.json" />
     <EmbeddedResource Include="Resources\assets\targets\he-dev.json" />
     <EmbeddedResource Include="Resources\assets\targets\FiveTests.json" />
     <EmbeddedResource Include="Resources\assets\targets\InvalidSeverity.json" />

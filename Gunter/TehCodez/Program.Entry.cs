@@ -42,7 +42,7 @@ namespace Gunter
                     using (var scope = container.BeginLifetimeScope())
                     {
                         var program = scope.Resolve<Program>();
-                        mainLogger.LogEntry.Message($"Created {Name} v{Version}");
+                        mainLogger.LogEntry.Message($"Created Gunter v{Version}");
                         program.Start(args);
                     }
                     mainLogger.LogEntry.Message("Completed.");
@@ -105,7 +105,7 @@ namespace Gunter
         {
             try
             {
-                var configuration = new Configuration(new[] { new AppSettings() });
+                var configuration = new Configuration(new AppSettings());
 
                 Logger.Create<Program>().Log(e => e.Debug().Message("Configuration initialized."));
 
@@ -123,7 +123,9 @@ namespace Gunter
             {
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance(configuration.Get<Workspace>());
+                builder
+                    .RegisterInstance(configuration)
+                    .As<IConfiguration>();
 
                 builder.RegisterModule<SystemModule>();
                 builder.RegisterModule<DataModule>();

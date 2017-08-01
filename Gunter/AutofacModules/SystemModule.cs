@@ -20,9 +20,9 @@ namespace Gunter.AutofacModules
                         x => x.Severity,
                         x => x.Message,
                         x => x.Elapsed)
-                    .AddVariables<Workspace>(
+                    .AddVariables<Program>(
                         x => x.Environment,
-                        x => x.AppName))
+                        x => x.Name))
                 .As<IVariableBuilder>();
 
             builder

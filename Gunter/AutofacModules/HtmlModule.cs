@@ -8,6 +8,7 @@ using Gunter.Services;
 using Reusable.Logging;
 using Reusable.Logging.Loggex;
 using Reusable.Markup.Html;
+using Reusable.SmartConfig;
 
 namespace Gunter.AutofacModules
 {
@@ -42,7 +43,9 @@ namespace Gunter.AutofacModules
 
                     return cssFileName =>
                     {
-                        cssFileName = Path.Combine(context.Resolve<Workspace>().Themes, cssFileName);
+                        var assets = context.Resolve<IConfiguration>().For<Program>().Select(p => p.Assets);
+                        var themes = Path.Combine(assets, "Themes");
+                        cssFileName = Path.Combine(themes, cssFileName);
                         var cssFullName = context.Resolve<IPathResolver>().ResolveFilePath(cssFileName);
                         var fileSystem = context.Resolve<IFileSystem>();
                         var css = context.Resolve<ICssParser>().Parse(fileSystem.ReadAllText(cssFullName));

@@ -171,7 +171,7 @@ namespace Gunter.Tests
         {
             return new Configuration(new[]
             {
-                new Memory("Memory")
+                new Memory
                 {
                     {"Environment", "test"},
                     {"Workspace.Assets", "assets"},
