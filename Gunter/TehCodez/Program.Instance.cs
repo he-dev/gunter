@@ -91,8 +91,8 @@ namespace Gunter
 
         private GlobalFile LoadGlobalFile()
         {
-            var targetsDirectoryName = _pathResolver.ResolveDirectoryPath(Targets);
-            var fileName = Path.Combine(targetsDirectoryName, GlobalFileName);
+            var assetsDirectoryName = _pathResolver.ResolveDirectoryPath(Assets);
+            var fileName = Path.Combine(assetsDirectoryName, GlobalFileName);
 
             // If there is no _Globa.json then use an empty one but if there is one then it needs to be valid.
 
