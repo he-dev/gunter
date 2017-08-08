@@ -143,7 +143,6 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\assets\targets\example.json" />
     <EmbeddedResource Include="Resources\assets\targets\Global.json" />
-    <EmbeddedResource Include="Resources\assets\targets\he-dev.json" />
     <EmbeddedResource Include="Resources\assets\targets\FiveTests.json" />
     <EmbeddedResource Include="Resources\assets\targets\InvalidSeverity.json" />
     <EmbeddedResource Include="Resources\assets\targets\InvalidGlobalsJson.json" />
@@ -151,6 +150,7 @@
     <EmbeddedResource Include="Resources\assets\targets\InvalidTestJson-invalid.json" />
     <EmbeddedResource Include="Resources\assets\targets\FaultingDataSource.json" />
     <EmbeddedResource Include="Resources\assets\targets\TestsWithProfiles.json" />
+    <EmbeddedResource Include="Resources\assets\targets\GlobalWithTestCaseSeverity.json" />
   </ItemGroup>
   <ItemGroup />
   <Choose>

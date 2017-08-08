@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,10 +8,12 @@ using JetBrains.Annotations;
 
 namespace Gunter.Services
 {
-    internal interface IVariableBuilder
+    internal interface IVariableBuilder : IEnumerable<string>
     {
         IEnumerable<string> Names { get; }
+
         VariableBuilder AddVariables<T>([NotNull] params Expression<Func<T, object>>[] expressions);
+
         IEnumerable<KeyValuePair<string, object>> BuildVariables<T>(T obj);
     }
 
@@ -88,6 +91,16 @@ namespace Gunter.Services
                     yield return new KeyValuePair<string, object>(variable.Name, variable.GetValue(obj));
                 }
             }
+        }
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return _variables.SelectMany(x => x.Value.Select(y => y.Name)).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 

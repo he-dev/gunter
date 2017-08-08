@@ -45,6 +45,27 @@ namespace Gunter.Tests
         }
 
         [TestMethod]
+        public void Start_GlobalWithTestCaseSeverity_Exits()
+        {
+            var exitCode = Program.Start(
+                new string[0],
+                InitializeLogging,
+                InitializeConfiguration,
+                configuration => Program.InitializeContainer(configuration, new OverrideModule
+                {
+                    FileSystem = new TestFileSystem
+                    {
+                        ["Global.json"] = "GlobalWithTestCaseSeverity.json",
+                        ["test.json"] = "FiveTests.json"
+                    },
+                    TestAlert = _testAlert
+                }));
+
+            Assert.AreEqual(5, exitCode);
+            Assert.IsTrue(_memoryRecorder.Logs.Any(l => l.LogLevel() == LogLevel.Fatal));
+        }
+
+        [TestMethod]
         public void Start_InvalidTestJson_IgnoresInvalidFile()
         {
             var exitCode = Program.Start(
@@ -174,7 +195,7 @@ namespace Gunter.Tests
                 new Memory
                 {
                     {"Environment", "test"},
-                    {"Workspace.Assets", "assets"},
+                    {"Assets", "assets"},
                 }
             });
         }

@@ -203,9 +203,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="assets\targets\example.json" />
-    <None Include="assets\targets\he-dev.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="_Scripts\" />
@@ -240,7 +237,8 @@
     <PostBuildEvent>xcopy "$(ProjectDir)_AppConfigs\$(Configuration).App.config" "$(TargetDir)GlitchDetector.exe.config" /Y</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(ProjectDir)_AppConfigs\$(Configuration).App.config" "$(TargetDir)Gunter.exe.config" /Y</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

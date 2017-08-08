@@ -10,6 +10,9 @@ using Reusable.SmartConfig;
 using Reusable.SmartConfig.Datastores.AppConfig;
 using AutofacModule = Autofac.Module;
 
+
+// xcopy "$(ProjectDir)_AppConfigs\$(Configuration).App.config" "$(TargetDir)Gunter.exe.config" /Y
+
 namespace Gunter
 {
     internal partial class Program

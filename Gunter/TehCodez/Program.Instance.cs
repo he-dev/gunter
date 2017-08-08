@@ -79,6 +79,9 @@ namespace Gunter
 
             var globals = VariableResolver.Empty
                 .MergeWith(globalFile.Globals)
+                // Add all reserved variable names because without them the dependency-check 
+                // will fail if the are used in the Globals.json before being initialized.
+                .MergeWith(_variableBuilder.Select(x => new KeyValuePair<string, object>(x, string.Empty)))
                 .MergeWith(_variableBuilder.BuildVariables(this));
 
             var testFiles = LoadTestFiles().ToList();
@@ -107,6 +110,8 @@ namespace Gunter
                 var globalFile = JsonConvert.DeserializeObject<GlobalFile>(globalFileJson);
 
                 VariableValidator.ValidateNamesNotReserved(globalFile.Globals, _variableBuilder.Names);
+
+                
 
                 _logger.Log(e => e.Debug().Message($"{Path.GetFileName(fileName)} loaded."));
 

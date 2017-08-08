@@ -9,6 +9,7 @@ namespace Gunter.Data
         Info,
         Warn,
         Error,
-        Fatal,
+        Critical,
+        None,
     }
 }

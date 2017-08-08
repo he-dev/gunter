@@ -76,19 +76,19 @@
 			"Alerts": [2],
 			"Profiles": []
 		},
-		{
-			"Enabled": true,
-			"Severity": "Fatal",
-			"Message": "Hallo Gunter!",
-			"DataSources": [2],
-			//"Filter": "[LogLevel] IN ('trace', 'debug')",
-			"Expression": "Count([_id]) > 0",
-			"Assert": true,
-			"OnPassed": "Alert",
-			"OnFailed": "Halt",
-			"Alerts": [2],
-			"Profiles": []
-		}
+    {
+      "Enabled": true,
+      "Severity": "Critical",
+      "Message": "Hallo Gunter!",
+      "DataSources": [ 2 ],
+      //"Filter": "[LogLevel] IN ('trace', 'debug')",
+      "Expression": "Count([_id]) > 0",
+      "Assert": true,
+      "OnPassed": "Alert",
+      "OnFailed": "Halt",
+      "Alerts": [ 2 ],
+      "Profiles": []
+    }
 	],
 	"Alerts": [
 		{
