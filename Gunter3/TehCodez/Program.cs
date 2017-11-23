@@ -37,6 +37,10 @@ namespace Gunter
                 var (loggerFactory, logger) = InitializeLogging();
                 _logger = logger;
 
+                _logger.Event(Layer.Application, "ApplicationBegin", Result.Success);
+
+                var container = default(IContainer);
+                var scope = default(ILifetimeScope);
                 try
                 {
                     var configuration = InitializeConfiguration();
@@ -47,17 +51,20 @@ namespace Gunter
 
                     _logger.State(Layer.Application, () => ("ProgramConfiguration", new { Environment, TestsDirectoryName, ThemesDirectoryName }));
 
-                    using (var container = InitializeContainer(loggerFactory, configuration))
-                    using (var scope = container.BeginLifetimeScope())
+                    container = InitializeContainer(loggerFactory, configuration);
+                    scope = container.BeginLifetimeScope();
                     {
                         var testLoader = scope.Resolve<ITestLoader>();
                         var testRunner = scope.Resolve<ITestRunner>();
 
                         _logger.Event(Layer.Application, "ApplicationStart", Result.Success);
 
-                        var current = testLoader.LoadTests(TestsDirectoryName);
-                        testRunner.RunTests(current.GlobalTestFile, current.TestFiles, args);
+                        //var current = testLoader.LoadTests(TestsDirectoryName);
+                        //testRunner.RunTests(current.GlobalTestFile, current.TestFiles, args);
+
+                        _logger.Event(Layer.Application, "ApplicationExit", Result.Success);
                     }
+
 
                     return ExitCode.Success;
                 }
@@ -72,6 +79,11 @@ namespace Gunter
                 {
                     _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Failure, exception: ex);
                     return ExitCode.RuntimeFault;
+                }
+                finally
+                {
+                    scope?.Dispose();
+                    container?.Dispose();
                 }
             }
             catch (Exception ex)
