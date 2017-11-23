@@ -1,0 +1,93 @@
+{
+	"Locals": {
+		"TestLog": "[robots].[Gunter_TestLog]",
+		"Top1k": "1000",
+		"To": "test@email.com"
+	},
+	"DataSources": [
+		{
+			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
+			"Id": 1,
+			"ConnectionString": "{TEST_LOG}",
+			"Commands": [
+				{
+					"Name": "Main",
+					"Text": "SELECT * FROM {TestLog}",
+					"Parameters": { "@Environment": "{Workspace.Environment}" }
+				},
+				{
+					"Name": "Debug",
+					"Text": "{DebugCommand}"
+				}
+			]
+		}
+	],
+	"Tests": [
+		{
+			"Enabled": false,
+			"Severity": "Warning",
+			"Message": "Trace logging is on.",
+			"DataSources": [1],
+			"Filter": "[LogLevel] IN ('error', 'fatal')",
+			"Expression": "Count([LogLevel]) = 0",
+			"Assert": true,
+			"OnPassed": "Alert",
+			"OnFailed": "Halt",
+			"Alerts": [1],
+			"Profiles": []
+		}
+	],
+	"Alerts": [
+		{
+			"$type": "Gunter.Alerting.Emails.HtmlEmail, Gunter",
+			"Id": 1,
+			"EmailClient": { "$type": "Reusable.EmailClients.SmtpClient, Reusable.EmailClients.SmtpClient" },
+			"To": "example@email.com",
+			"Theme": "Default.css",
+			"Reports": [1]
+		}
+	],
+	"Reports": [
+		{
+			"Id": 1,
+			"Title": "Glitch alert for {TestLog} - {TestCase.Severity}",
+			"Modules": [
+				{
+					"$type": "Gunter.Reporting.Modules.Greeting, Gunter",
+					"Heading": "Glitch detected!",
+					"Text": "{TestCase.Message}"
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.TestCaseInfo, Gunter",
+					"Heading": "Test case"
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.DataSourceInfo, Gunter",
+					"Heading": "Data-source",
+					"TimestampColumn": "Timestamp",
+					"TimespanFormat": "dd\\.hh\\:mm\\:ss"
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.DataSummary, Gunter",
+					"Heading": "Data summary",
+					"Columns": [
+						{
+							"Name": "_nvarchar",
+							"IsKey": true,
+							"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
+						},
+						{ "Name": "_int", "Total": "Sum" },
+						{ "Name": "_datetime2" },
+						{ "Name": "_float", "Total": "Average" },
+						{ "Name": "_bit", "Total": "Count" },
+						{ "Name": "_money" },
+						{ "Name": "_numeric" }
+					]
+				},
+				{
+					"$type": "Gunter.Reporting.Modules.Signature, Gunter"
+				}
+			]
+		}
+	]
+}
