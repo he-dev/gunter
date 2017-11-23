@@ -22,7 +22,7 @@ namespace Gunter
         public static readonly string Version = "3.0.0";
 
         [Required]
-        public static string  Environment {get; set; }
+        public static string Environment { get; set; }
 
         [Required]
         public static string TestsDirectoryName { get; set; }
@@ -45,13 +45,17 @@ namespace Gunter
                     configuration.Bind(() => TestsDirectoryName);
                     configuration.Bind(() => ThemesDirectoryName);
 
+                    _logger.State(Layer.Application, () => ("ProgramConfiguration", new { Environment, TestsDirectoryName, ThemesDirectoryName }));
+
                     using (var container = InitializeContainer(loggerFactory, configuration))
                     using (var scope = container.BeginLifetimeScope())
                     {
                         var testLoader = scope.Resolve<ITestLoader>();
-                        var current = testLoader.LoadTests(@"C:\");
-
                         var testRunner = scope.Resolve<ITestRunner>();
+
+                        _logger.Event(Layer.Application, "ApplicationStart", Result.Success);
+
+                        var current = testLoader.LoadTests(TestsDirectoryName);
                         testRunner.RunTests(current.GlobalTestFile, current.TestFiles, args);
                     }
 
@@ -59,6 +63,8 @@ namespace Gunter
                 }
                 catch (InitializationException ex)
                 {
+                    _logger.Event(Layer.Application, "ApplicationStart", Result.Failure);
+
                     /* just prevent double logs */
                     return ex.ExitCode;
                 }
@@ -73,7 +79,7 @@ namespace Gunter
                 Console.WriteLine($"Could not initialize logging: {System.Environment.NewLine} {ex}");
             }
             return ExitCode.UnexpectedFault;
-        }        
+        }
 
         #region Initialization
 
@@ -135,9 +141,11 @@ namespace Gunter
                 var builder = new ContainerBuilder();
                 builder.RegisterModule(new MainModule(loggerFactory, configuration));
 
+                var container = builder.Build();
+
                 _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Success);
 
-                return builder.Build();
+                return container;
             }
             catch (Exception innerException)
             {

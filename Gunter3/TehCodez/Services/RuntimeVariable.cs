@@ -8,49 +8,49 @@ using Reusable.Collections;
 
 namespace Gunter.Services
 {
-    internal interface IVariableContainer
-    {
-        IEnumerable<string> Names { get; }
-        IVariableContainer Add(RuntimeVariable runtimeVariable);
-        //IVariableContainer Add(Type type, string name, Func<object, object> getValueFunc);
-        IEnumerable<KeyValuePair<string, object>> Resolve<T>(T obj);
-    }
+    //internal interface IVariableContainer
+    //{
+    //    IEnumerable<string> Names { get; }
+    //    IVariableContainer Add(RuntimeVariable runtimeVariable);
+    //    //IVariableContainer Add(Type type, string name, Func<object, object> getValueFunc);
+    //    IEnumerable<KeyValuePair<string, object>> Resolve<T>(T obj);
+    //}
 
-    internal class VariableContainer : IVariableContainer
-    {
-        private readonly IDictionary<Type, HashSet<RuntimeVariable>> _variables = new Dictionary<Type, HashSet<RuntimeVariable>>();
+    //internal class VariableContainer : IVariableContainer
+    //{
+    //    private readonly IDictionary<Type, HashSet<RuntimeVariable>> _variables = new Dictionary<Type, HashSet<RuntimeVariable>>();
 
-        public static IVariableContainer Empty => new VariableContainer();
+    //    public static IVariableContainer Empty => new VariableContainer();
 
-        public IEnumerable<string> Names => _variables.Values.SelectMany(x => x).Select(x => x.Name);
+    //    public IEnumerable<string> Names => _variables.Values.SelectMany(x => x).Select(x => x.Name);
 
-        public IVariableContainer Add([NotNull] RuntimeVariable runtimeVariable)
-        {
-            if (runtimeVariable == null) throw new ArgumentNullException(nameof(runtimeVariable));
+    //    public IVariableContainer Add([NotNull] RuntimeVariable runtimeVariable)
+    //    {
+    //        if (runtimeVariable == null) throw new ArgumentNullException(nameof(runtimeVariable));
 
-            if (_variables.TryGetValue(runtimeVariable.DeclaringType, out var testVariables) && !testVariables.Add(runtimeVariable))
-            {
-                //throw new ArgumentException($"Variable \"{variable.Name}\" has already been added.");
-            }
+    //        if (_variables.TryGetValue(runtimeVariable.DeclaringType, out var testVariables) && !testVariables.Add(runtimeVariable))
+    //        {
+    //            //throw new ArgumentException($"Variable \"{variable.Name}\" has already been added.");
+    //        }
 
-            _variables.Add(runtimeVariable.DeclaringType, new HashSet<RuntimeVariable> { runtimeVariable });
+    //        _variables.Add(runtimeVariable.DeclaringType, new HashSet<RuntimeVariable> { runtimeVariable });
 
-            return this;
-        }
+    //        return this;
+    //    }
 
-        public IEnumerable<KeyValuePair<string, object>> Resolve<T>(T obj)
-        {
-            if (_variables.TryGetValue(typeof(T), out var testVariables))
-            {
-                foreach (var variable in testVariables)
-                {
-                    yield return new KeyValuePair<string, object>(variable.Name, variable.GetValue(obj));
-                }
-            }
-        }
-    }
+    //    public IEnumerable<KeyValuePair<string, object>> Resolve<T>(T obj)
+    //    {
+    //        if (_variables.TryGetValue(typeof(T), out var testVariables))
+    //        {
+    //            foreach (var variable in testVariables)
+    //            {
+    //                yield return new KeyValuePair<string, object>(variable.Name, variable.GetValue(obj));
+    //            }
+    //        }
+    //    }
+    //}
 
-    internal interface IRuntimeVariable : IEquatable<IRuntimeVariable>
+    public interface IRuntimeVariable : IEquatable<IRuntimeVariable>
     {
         [AutoEqualityProperty]
         Type DeclaringType { get; }

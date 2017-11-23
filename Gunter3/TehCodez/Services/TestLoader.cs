@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Gunter.Data;
 using Gunter.Services.Validators;
 using JetBrains.Annotations;
@@ -15,24 +16,21 @@ namespace Gunter.Services
     }
 
     [UsedImplicitly]
-    internal class TestLoader
+    internal class TestLoader : ITestLoader
     {
         private readonly ILogger _logger;
         private readonly IPathResolver _pathResolver;
-        private readonly IVariableContainer _variableContainer;
         private readonly IFileSystem _fileSystem;
         private readonly AutofacContractResolver _autofacContractResolver;
 
         public TestLoader(
             ILoggerFactory loggerFactory, 
             IPathResolver pathResolver, 
-            IVariableContainer variableContainer, 
             IFileSystem fileSystem, 
             AutofacContractResolver autofacContractResolver)
         {
             _logger = loggerFactory.CreateLogger(nameof(TestLoader));
             _pathResolver = pathResolver;
-            _variableContainer = variableContainer;
             _fileSystem = fileSystem;
             _autofacContractResolver = autofacContractResolver;
         }
@@ -79,7 +77,7 @@ namespace Gunter.Services
                 });
                 testFile.FullName = fileName;
 
-                VariableValidator.ValidateNamesNotReserved(testFile.Locals, _variableContainer.Names);
+                VariableValidator.ValidateNamesNotReserved(testFile.Locals, testFile.Locals.Select(x => x.Key));
 
                 return true;
             }

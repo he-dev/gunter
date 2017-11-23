@@ -13,16 +13,25 @@ namespace Gunter.Services
     public interface IRuntimeFormatter
     {
         string Format(string text);
+
         IRuntimeFormatter AddRange(IEnumerable<KeyValuePair<string, object>> variables);
     }
 
     [UsedImplicitly]
     public class RuntimeFormatter : IRuntimeFormatter
     {
+        private readonly IEnumerable<IRuntimeVariable> _runtimeVariables;
+
         private readonly IDictionary<string, object> _variables;
 
-        private RuntimeFormatter(IEnumerable<KeyValuePair<string, object>> variables)
+        public RuntimeFormatter(IEnumerable<IRuntimeVariable> runtimeVariables)
         {
+            _runtimeVariables = runtimeVariables.ToList();
+        }
+
+        private RuntimeFormatter(IEnumerable<IRuntimeVariable> runtimeVariables, IEnumerable<KeyValuePair<string, object>> variables)
+        {
+            _runtimeVariables = runtimeVariables;
             _variables = variables.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
         }
 
@@ -30,7 +39,7 @@ namespace Gunter.Services
 
         public IRuntimeFormatter AddRange(IEnumerable<KeyValuePair<string, object>> variables)
         {
-            return new RuntimeFormatter(_variables.Concat(variables).GroupBy(x => x.Key).Select(x => x.Last()));
+            return new RuntimeFormatter(_runtimeVariables, _variables.Concat(variables).GroupBy(x => x.Key).Select(x => x.Last()));
         }
     }
 }

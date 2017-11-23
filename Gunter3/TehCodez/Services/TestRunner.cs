@@ -26,7 +26,7 @@ namespace Gunter.Services
     }
 
     [UsedImplicitly]
-    internal class TestRunner
+    internal class TestRunner : ITestRunner
     {
         private readonly ILogger _logger;
         private readonly IRuntimeFormatter _runtimeFormatter;

@@ -27,6 +27,10 @@ namespace Gunter.Modules
                 .As<IEnumerable<IRuntimeVariable>>();
 
             builder
+                .RegisterType<RuntimeFormatter>()
+                .As<IRuntimeFormatter>();
+
+            builder
                 .RegisterType<PathResolver>()
                 .As<IPathResolver>();
 
