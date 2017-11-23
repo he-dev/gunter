@@ -13,6 +13,9 @@ namespace Gunter.Data
         [JsonRequired]
         int Id { get; set; }
 
+        [CanBeNull]
         DataTable GetData(IRuntimeFormatter formatter);
+
+        IEnumerable<(string Name, string Text)> ToString(IRuntimeFormatter formatter);
     }
 }

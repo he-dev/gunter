@@ -17,8 +17,8 @@ namespace Gunter.Modules
                 RuntimeVariable.FromExpression<TestCase>(x => x.Severity),
                 RuntimeVariable.FromExpression<TestCase>(x => x.Message),
                 //RuntimeVariable.FromExpression<TestCase>(x => x.Elapsed),
-                RuntimeVariable.FromExpression<Program>(x => x.Environment),
-                RuntimeVariable.FromExpression<Program>(x => x.Name),
+                //RuntimeVariable.FromExpression<Program>(x => x.Environment),
+                //RuntimeVariable.FromExpression<Program>(x => x.Name),
                 //RuntimeVariable.FromExpression<IDataSource>(x => x.Elapsed)
             };
             

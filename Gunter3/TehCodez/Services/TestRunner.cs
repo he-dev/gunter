@@ -99,14 +99,7 @@ namespace Gunter.Services
                     var data = cache.GetOrAdd(current.dataSource.Id, id =>
                     {
                         var getDataStopwatch = Stopwatch.StartNew();
-                        try
-                        {
-                            return (current.dataSource.GetData(formatter), getDataStopwatch.Elapsed);
-                        }
-                        catch (Exception dataSourceException)
-                        {
-                            return (null, getDataStopwatch.Elapsed);
-                        }
+                        return (current.dataSource.GetData(formatter), getDataStopwatch.Elapsed);
                     });
 
                     if (data.Value is null)

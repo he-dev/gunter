@@ -36,14 +36,14 @@ namespace Gunter.Reporting.Modules
             dataTable.AddRow("Type", context.DataSource.GetType().Name);
 
             var commandNumber = 0;
-            foreach (var tuple in context.DataSource.GetCommands())
+            foreach (var command in context.DataSource.ToString(context.Formatter))
             {
                 var commandNameOrCounter =
-                    string.IsNullOrEmpty(tuple.Name)
+                    string.IsNullOrEmpty(command.Name)
                         ? commandNumber++.ToString()
-                        : tuple.Name;
+                        : command.Name;
 
-                dataTable.AddRow($"Command: {commandNameOrCounter}", tuple.Text);
+                dataTable.AddRow($"Command: {commandNameOrCounter}", command.Text);
             }
 
             dataTable.AddRow("Results", context.Data.Rows.Count);

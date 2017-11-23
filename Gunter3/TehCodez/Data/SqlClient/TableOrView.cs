@@ -5,51 +5,30 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
-using Reusable.Logging;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable.Logging.Loggex;
 using Reusable.OmniLog;
+using Reusable.OmniLog.SemLog;
 
 namespace Gunter.Data.SqlClient
 {
+    [PublicAPI]
     public class TableOrView : IDataSource
     {
-        private readonly ILogger _logger;
-        private readonly Lazy<DataTable> _data;
-
-        public TableOrView(ILogger logger)
+        public TableOrView(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
-            _data = new Lazy<DataTable>(GetData);
+            Loggger = loggerFactory.CreateLogger(nameof(TableOrView));
         }
 
-        [NotNull]
-        [JsonIgnore]
-        public IRuntimeFormatter Variables
-        {
-            get => _variables;
-            set
-            {
-                _variables = value;
-                foreach (var command in _commands)
-                {
-                    command.UpdateVariables(value);
-                }
-            }
-        }
+        private ILogger Loggger { get; }
 
         public int Id { get; set; }
 
-        public bool IsFaulted { get; private set; }
-
-        [PublicAPI]
         [NotNull]
         [JsonRequired]
-        public string ConnectionString { get; set; }        
+        public string ConnectionString { get; set; }
 
-        [PublicAPI]
         [NotNull, ItemNotNull]
         [JsonRequired]
         public List<Command> Commands { get; set; }
@@ -63,6 +42,8 @@ namespace Gunter.Data.SqlClient
 
             //LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
 
+            var format = (FormatFunc)formatter.Format;
+
             try
             {
                 var stopwatch = Stopwatch.StartNew();
@@ -72,14 +53,16 @@ namespace Gunter.Data.SqlClient
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = Commands.First().Text;
+                        cmd.CommandText = format(Commands.First().Text);
                         cmd.CommandType = CommandType.Text;
 
-                        //LogEntry.New().Debug().Message($"Command: {cmd.CommandText}").Log(_logger);
+                        Loggger.State(Layer.Database, () => (nameof(SqlCommand.CommandText), cmd.CommandText));
 
-                        foreach (var parameter in Commands.First())
+                        var parameters = Commands.First().Parameters.Select(p => (Key: p.Key, Value: format(p.Value)));
+
+                        foreach (var parameter in parameters)
                         {
-                            //LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameter.Value}'").Log(_logger);
+                            Loggger.State(Layer.Database, () => ("CommandParameter", parameter));
                             cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
                         }
 
@@ -92,6 +75,7 @@ namespace Gunter.Data.SqlClient
                             //stopwatch.Stop();
                             //Elapsed = stopwatch.Elapsed;
 
+                            Loggger.Event(Layer.Database, Reflection.CallerMemberName(), Result.Success);
                             return dataTable;
                         }
                     }
@@ -99,17 +83,16 @@ namespace Gunter.Data.SqlClient
             }
             catch (Exception ex)
             {
-                IsFaulted = true;
-                _logger.Log(e => e.Error().Exception(ex).Message("Could not get data."));
+                Loggger.Event(Layer.Database, Reflection.CallerMemberName(), Result.Failure, exception: ex);
                 return null;
             }
         }
 
-        public IEnumerable<(string Name, string Text)> GetCommands()
+        public IEnumerable<(string Name, string Text)> ToString(IRuntimeFormatter formatter)
         {
-            return
-                from command in Commands
-                select (command.Name, command.Text);
+            var format = (FormatFunc)formatter.Format;
+
+            return Commands.Select(cmd => (cmd.Name, Text: format(cmd.Text)));
         }
 
         //public string ToString(string format, IFormatProvider formatProvider)
@@ -122,36 +105,19 @@ namespace Gunter.Data.SqlClient
         //    }
         //}
 
-        public void Dispose()
-        {
-            if (_data.IsValueCreated)
-            {
-                _data.Value.Dispose();
-            }
-        }
     }
 
     //[JsonObject]
     public class Command
     {
-        private string _text;
-
-        [NotNull]
-        [JsonIgnore]
-        public IRuntimeFormatter Variables { get; set; } = RuntimeFormatter.Empty;
-
         [CanBeNull]
         public string Name { get; set; }
 
         [NotNull]
         [JsonRequired]
-        public string Text
-        {
-            get => Variables.Resolve(_text);
-            set => _text = value;
-        }
+        public string Text { get; set; }
 
         [PublicAPI]
-        public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();       
+        public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
     }
 }

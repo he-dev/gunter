@@ -5,6 +5,7 @@
     <TargetFramework>net47</TargetFramework>
     <AssemblyName>Gunter</AssemblyName>
     <RootNamespace>Gunter</RootNamespace>
+    <Configurations>Debug;Release;Debug.he-dev</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -15,9 +16,14 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.he-dev|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="TehCodez\Data\GlobalFile.cs" />
     <Compile Remove="TehCodez\Data\TestUnit.cs" />
+    <Compile Remove="TehCodez\Extensions\StringExtensions.cs" />
     <Compile Remove="TehCodez\Services\TestComposer.cs" />
   </ItemGroup>
 
@@ -40,6 +46,7 @@
     <PackageReference Include="Reusable.SmartConfig.Binding" Version="3.78.1" />
     <PackageReference Include="Reusable.SmartConfig.Core" Version="3.78.1" />
     <PackageReference Include="Reusable.SmartConfig.JsonSettingConverter" Version="3.78.1" />
+    <PackageReference Include="Reusable.SqlSchemaReader" Version="3.78.1" />
     <PackageReference Include="Reusable.ThirdParty.JsonNetUtilities" Version="3.78.1" />
     <PackageReference Include="Reusable.ThirdParty.NLogUtilities" Version="3.78.1" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
@@ -52,8 +59,25 @@
     <Reference Include="System.Data.DataSetExtensions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NLog.tt</DependentUpon>
+    </None>
+    <None Update="NLog.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>NLog.config</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(ProjectDir)_AppConfigs\$(Configuration).App.config&quot; &quot;$(TargetDir)$(TargetName).exe.config&quot; /Y" />
+    <Exec Command="xcopy &quot;$(ProjectDir)_AppConfigs\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
   </Target>
 
 </Project>

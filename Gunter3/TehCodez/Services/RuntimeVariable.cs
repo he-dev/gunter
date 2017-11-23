@@ -84,7 +84,11 @@ namespace Gunter.Services
         [NotNull]
         public static RuntimeVariable FromExpression<T>(Expression<Func<T, object>> expression)
         {
-            return new RuntimeVariable(typeof(T), CreateName(expression), expression.Compile());
+            var parameter = Expression.Parameter(typeof(object), "obj");
+            var converted = ParameterConverter<T>.Convert(expression.Body, parameter);
+            var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
+
+            return new RuntimeVariable(typeof(T), CreateName(expression), getValueFunc);
         }
 
         private static string CreateName(Expression expression)
@@ -132,6 +136,26 @@ namespace Gunter.Services
                 variables
                     .Where(x => typeof(T).IsAssignableFrom(x.DeclaringType))
                     .Select(x => new KeyValuePair<string, object>(x.Name, x.GetValue(obj)));
+        }
+    }
+
+    internal class ParameterConverter<T> : ExpressionVisitor
+    {
+        private readonly ParameterExpression _parameter;
+
+        private ParameterConverter(ParameterExpression parameter)
+        {
+            _parameter = parameter;
+        }
+
+        public static Expression Convert(Expression expression, ParameterExpression parameter)
+        {
+            return new ParameterConverter<T>(parameter).Visit(expression);
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            return Expression.Convert(_parameter, typeof(T));
         }
     }
 }

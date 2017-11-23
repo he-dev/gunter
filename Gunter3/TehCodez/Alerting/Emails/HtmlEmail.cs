@@ -50,7 +50,7 @@ namespace Gunter.Alerting.Emails
 
             _css = new Lazy<Css>(() =>
             {
-                var themesPath = _configuration.From<Program>().Select(p => p.Themes);
+                var themesPath = _configuration.Select(() => Program.ThemesDirectoryName);
                 themesPath = Path.Combine(themesPath, Theme);
                 themesPath = _pathResolver.ResolveFilePath(themesPath);
                 var cssText = _fileSystem.ReadAllText(themesPath);
