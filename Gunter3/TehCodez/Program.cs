@@ -62,6 +62,7 @@ namespace Gunter
                         //var current = testLoader.LoadTests(TestsDirectoryName);
                         //testRunner.RunTests(current.GlobalTestFile, current.TestFiles, args);
 
+                        _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.Success.ToString()));
                         _logger.Event(Layer.Application, "ApplicationExit", Result.Success);
                     }
 
@@ -70,6 +71,7 @@ namespace Gunter
                 }
                 catch (InitializationException ex)
                 {
+                    _logger.State(Layer.Application, () => (nameof(ExitCode), ex.ExitCode.ToString()));
                     _logger.Event(Layer.Application, "ApplicationStart", Result.Failure);
 
                     /* just prevent double logs */
@@ -77,6 +79,7 @@ namespace Gunter
                 }
                 catch (Exception ex)
                 {
+                    _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.RuntimeFault.ToString()));
                     _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Failure, exception: ex);
                     return ExitCode.RuntimeFault;
                 }
