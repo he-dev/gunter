@@ -9,6 +9,7 @@ using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Extensions;
+using Reusable.OmniLog;
 
 namespace Gunter.Data
 {
@@ -18,8 +19,7 @@ namespace Gunter.Data
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
-        [DefaultValue(TestSeverity.Warn)]
-        public TestSeverity Severity { get; set; }
+        public LogLevel Level { get; set; }
 
         [JsonRequired]
         public string Message { get; set; }
@@ -36,11 +36,11 @@ namespace Gunter.Data
         [DefaultValue(true)]
         public bool Assert { get; set; }
 
-        [DefaultValue(TestResultActions.None)]
-        public TestResultActions OnPassed { get; set; }
+        [DefaultValue(TestActions.None)]
+        public TestActions OnPassed { get; set; }
 
-        [DefaultValue(TestResultActions.Alert | TestResultActions.Halt)]
-        public TestResultActions OnFailed { get; set; }
+        [DefaultValue(TestActions.Alert | TestActions.Halt)]
+        public TestActions OnFailed { get; set; }
 
         [JsonProperty("Alerts")]
         public List<int> AlertIds { get; set; } = new List<int>();

@@ -1,6 +1,9 @@
-﻿using System.Data;
+﻿using System.ComponentModel;
+using System.Data;
+using System.Globalization;
 using System.Linq;
 using Gunter.Data;
+using JetBrains.Annotations;
 using Reusable.Data;
 
 namespace Gunter.Reporting.Modules
@@ -10,6 +13,10 @@ namespace Gunter.Reporting.Modules
         public TableOrientation Orientation => TableOrientation.Vertical;
 
         public bool HasFooter => false;
+
+        //[DefaultValue(@"dd\.hh\:mm\:ss")]
+        [DefaultValue(@"mm\:ss\.fff")]
+        public string TimespanFormat { get; set; }
 
         public DataTable Create(TestContext context)
         {
@@ -23,7 +30,7 @@ namespace Gunter.Reporting.Modules
                     .AddRow(nameof(TestCase.Assert), context.TestCase.Assert)
                     .AddRow(nameof(TestCase.OnPassed), context.TestCase.OnPassed)
                     .AddRow(nameof(TestCase.OnFailed), context.TestCase.OnFailed)
-                    .AddRow(nameof(TestContext.GetDataElapsed), context.GetDataElapsed.ToString(@"hh\:mm\:ss\.f")) // todo hardcoded timespan format
+                    .AddRow(nameof(TestContext.GetDataElapsed), context.GetDataElapsed.ToString(TimespanFormat, CultureInfo.InvariantCulture)) // @"hh\:mm\:ss\.f")) /
                     .AddRow(nameof(TestCase.Profiles), $"[{string.Join(", ", context.TestCase.Profiles.Select(p => $"'{p}'"))}]");
 
             return table;

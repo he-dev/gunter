@@ -13,13 +13,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gunter3", "Gunter3\Gunter3.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug.he-dev|Any CPU = Debug.he-dev|Any CPU
+		Debug.clasifid|Any CPU = Debug.clasifid|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F943FB20-EB69-4B84-89AF-5853E5C88516}.Debug.he-dev|Any CPU.ActiveCfg = Debug.he-dev|Any CPU
-		{F943FB20-EB69-4B84-89AF-5853E5C88516}.Debug.he-dev|Any CPU.Build.0 = Debug.he-dev|Any CPU
+		{F943FB20-EB69-4B84-89AF-5853E5C88516}.Debug.clasifid|Any CPU.ActiveCfg = Debug.clasifid|Any CPU
+		{F943FB20-EB69-4B84-89AF-5853E5C88516}.Debug.clasifid|Any CPU.Build.0 = Debug.clasifid|Any CPU
 		{F943FB20-EB69-4B84-89AF-5853E5C88516}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F943FB20-EB69-4B84-89AF-5853E5C88516}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F943FB20-EB69-4B84-89AF-5853E5C88516}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Reporting;
 using Gunter.Services;
@@ -68,8 +69,10 @@ namespace Gunter.Alerting.Emails
         [JsonRequired]
         public IEmailClient EmailClient { get; set; }
 
-        protected override void PublishCore(IReport report, TestContext context)
+        protected override async Task PublishReport(IReport report, TestContext context)
         {
+            var format = (FormatFunc)context.Formatter.Format;
+
             var body = HtmlElement.Builder.Element("body");
 
             foreach (var module in report.Modules)
@@ -85,7 +88,7 @@ namespace Gunter.Alerting.Emails
 
             var email = new Email<HtmlEmailSubject, HtmlEmailBody>
             {
-                Subject = new HtmlEmailSubject(report.Title),
+                Subject = new HtmlEmailSubject(format(report.Title)),
                 Body = new HtmlEmailBody
                 {
                     Html = body.ToHtml(HtmlFormatting.Empty)
@@ -93,7 +96,7 @@ namespace Gunter.Alerting.Emails
                 To = To
             };
 
-            EmailClient.Send(email);
+            await EmailClient.SendAsync(email);
 
             IModuleRenderer FindRenderer(IModule module) => _renderers.Single(r => r.CanRender(module));
         }

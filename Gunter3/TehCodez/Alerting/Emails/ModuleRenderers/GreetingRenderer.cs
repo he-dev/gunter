@@ -23,7 +23,7 @@ namespace Gunter.Alerting.Emails.ModuleRenderers
             {
                 yield return
                     Html
-                        .Element("h1", module.Heading)
+                        .Element("h1", format(module.Heading))
                         .@class("module-heading");
             }
 
@@ -35,10 +35,10 @@ namespace Gunter.Alerting.Emails.ModuleRenderers
                     Html
                         .Element("p", p => p
                             .Element("span", span => span
-                                .@class("test-case-severity", $"severity-{context.TestCase.Severity.ToString().ToLower()}")
-                                .Append($"» {context.TestCase.Severity.ToString().ToUpper()} »"))
+                                .@class("test-case-severity", $"severity-{context.TestCase.Level.ToString().ToLower()}")
+                                .Append($"» {context.TestCase.Level.ToString().ToUpper()} »"))
                             .@class("text")
-                            .Append($" {context.TestCase.Message}"));
+                            .Append($" {format(context.TestCase.Message)}"));
             }
         }
     }

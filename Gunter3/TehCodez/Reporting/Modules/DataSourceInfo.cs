@@ -15,14 +15,12 @@ namespace Gunter.Reporting.Modules
 
         public bool HasFooter => false;
 
-        [PublicAPI]
         [DefaultValue("Timestamp")]
         public string TimestampColumn { get; set; }
 
         // Custom TimeSpan Format Strings https://msdn.microsoft.com/en-us/library/ee372287(v=vs.110).aspx
 
-        [PublicAPI]
-        [DefaultValue(@"dd\.hh\:mm\:ss")]
+        [DefaultValue(@"mm\:ss\.fff")]
         public string TimespanFormat { get; set; }
 
         public DataTable Create(TestContext context)
@@ -47,7 +45,7 @@ namespace Gunter.Reporting.Modules
             }
 
             dataTable.AddRow("Results", context.Data.Rows.Count);
-            dataTable.AddRow("Elapsed", context.GetDataElapsed.ToString(@"hh\:mm\:ss\.f")); // todo hardcoded timespan format
+            dataTable.AddRow("Elapsed", context.GetDataElapsed.ToString(TimespanFormat));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.

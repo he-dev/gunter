@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Reporting;
 using Gunter.Services;
@@ -20,7 +21,7 @@ namespace Gunter.Alerting
         [JsonProperty("Reports")]
         List<int> ReportIds { get; set; }
 
-        void Publish(TestContext context);
+        Task PublishAsync(TestContext context);
     }
 
     public abstract class Alert : IAlert
@@ -36,7 +37,7 @@ namespace Gunter.Alerting
 
         public List<int> ReportIds { get; set; } = new List<int>();
 
-        public void Publish(TestContext context)
+        public async Task PublishAsync(TestContext context)
         {
             //Logger.Log(e => e.Debug().Message($"Publishing alert {Id}."));
 
@@ -51,7 +52,7 @@ namespace Gunter.Alerting
 
                 try
                 {
-                    PublishCore(report, context);
+                    await PublishReport(report, context);
                     //logger.LogEntry.Info().Message($"Published report {report.Id}.");
                 }
                 catch (Exception ex)
@@ -65,6 +66,6 @@ namespace Gunter.Alerting
             }
         }
 
-        protected abstract void PublishCore(IReport report, TestContext context);
+        protected abstract Task PublishReport(IReport report, TestContext context);
     }
 }

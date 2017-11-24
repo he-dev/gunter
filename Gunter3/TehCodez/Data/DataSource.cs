@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Gunter.Data
@@ -14,7 +15,7 @@ namespace Gunter.Data
         int Id { get; set; }
 
         [CanBeNull]
-        DataTable GetData(IRuntimeFormatter formatter);
+        Task<DataTable> GetDataAsync(IRuntimeFormatter formatter);
 
         IEnumerable<(string Name, string Text)> ToString(IRuntimeFormatter formatter);
     }

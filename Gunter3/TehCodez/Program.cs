@@ -5,6 +5,11 @@ using System.Linq;
 using Autofac;
 using Gunter.Modules;
 using Gunter.Services;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Reusable;
 using Reusable.DateTimes;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
@@ -59,8 +64,8 @@ namespace Gunter
 
                         _logger.Event(Layer.Application, "ApplicationStart", Result.Success);
 
-                        //var current = testLoader.LoadTests(TestsDirectoryName);
-                        //testRunner.RunTests(current.GlobalTestFile, current.TestFiles, args);
+                        var tests = testLoader.LoadTests(TestsDirectoryName).ToList();
+                        testRunner.RunTests(tests, args);
 
                         _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.Success.ToString()));
                         _logger.Event(Layer.Application, "ApplicationExit", Result.Success);
@@ -117,7 +122,19 @@ namespace Gunter
                             new AppSetting("Environment", "Environment"),
                             new AppSetting("Product", "Product"),
                             new Timestamp<UtcDateTime>(),
-                            new Snapshot()
+                            new Snapshot
+                            {
+                                Settings = new JsonSerializerSettings
+                                {
+                                    Formatting = Formatting.Indented,
+                                    Converters =
+                                    {
+                                        new SoftStringConverter(),
+                                        new LogLevelConverter(),
+                                        new StringEnumConverter()
+                                    }
+                                }
+                            }
                         }
                     }
                 };
@@ -196,5 +213,47 @@ namespace Gunter
     internal static class Event
     {
         public const string InitializeConfiguration = nameof(InitializeConfiguration);
+    }
+
+    [UsedImplicitly]
+    public class SoftStringConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(SoftString);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            var jToken = JToken.Load(reader);
+            var value = jToken.Value<string>();
+            return SoftString.Create(value);
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.ToString());
+        }
+    }
+
+    [UsedImplicitly]
+    public class LogLevelConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(LogLevel);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            var jToken = JToken.Load(reader);
+            var value = jToken.Value<string>();
+            return LogLevel.Parse(value);
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.ToString());
+        }
     }
 }

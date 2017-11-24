@@ -14,15 +14,13 @@ using Gunter.Services.Validators;
 using JetBrains.Annotations;
 using Reusable.Extensions;
 using Reusable.OmniLog;
+using Reusable.OmniLog.SemLog;
 
 namespace Gunter.Services
 {
-    internal interface ITestRunner
+    public interface ITestRunner
     {
-        void RunTests(
-            TestFile globalTestFile,
-            IEnumerable<TestFile> testFiles,
-            IEnumerable<string> runnableProfiles);
+        Task RunTestsAsync(TestFile testFile, IEnumerable<string> profiles);
     }
 
     [UsedImplicitly]
@@ -40,142 +38,53 @@ namespace Gunter.Services
             _logger = loggerFactory.CreateLogger(nameof(TestRunner));
             _runtimeFormatter = runtimeFormatter;
             _runtimeVariables = runtimeVariables;
-
-#if DEBUG
-            MaxDegreeOfParallelism = 1;
-#endif
         }
 
-        public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount;
-
-        public void RunTests(
-            TestFile globalTestFile,
-            IEnumerable<TestFile> testFiles,
-            IEnumerable<string> profiles)
+        public async Task RunTestsAsync(TestFile testFile, IEnumerable<string> profiles)
         {
-            //_logger.Log(e => e.Info().Message($"Profiles: [{string.Join(", ", runnableProfiles)}]"));
+            //VariableValidator.ValidateNamesNotReserved(localVariables, _runtimeVariables.Select(x => x.Name));
 
-            Parallel.ForEach
-            (
-                source: testFiles,
-                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism },
-                body: testFile => RunTests(globalTestFile, testFile, profiles)
-            );
-        }
+            var cache = new Dictionary<int, (DataTable Value, TimeSpan Elapsed)>();
 
-        private void RunTests(TestFile globalTestFile, TestFile testFile, IEnumerable<string> profiles)
-        {
-            var localVariables =
-                globalTestFile.Locals.Concat(testFile.Locals)
-                    .GroupBy(x => x.Key)
-                    .Select(g => g.Last())
-                    .ToDictionary(x => x.Key, x => x.Value);
-
-            VariableValidator.ValidateNamesNotReserved(localVariables, _runtimeVariables.Select(x => x.Name));
-
-            var cache = new ConcurrentDictionary<int, (DataTable Value, TimeSpan Elapsed)>();
-
+            var testIndex = 0;
             var tests =
                 from testCase in testFile.Tests
                 where testCase.CanExecute(profiles)
                 from dataSource in testCase.DataSources(testFile)
-                select (testCase, dataSource);
+                select (testCase, dataSource, testIndex: testIndex++);
 
+            var scope = _logger.BeginScope(s => s.Transaction(testFile.FileName).Elapsed());
             try
             {
                 foreach (var current in tests)
                 {
-                    var testFileVariables = _runtimeVariables.Resolve(testFile);
-                    var testCaseVariables = _runtimeVariables.Resolve(current.testCase);
-                    var dataSourceVariables = _runtimeVariables.Resolve(current.dataSource);
-
-                    var formatter =
-                        _runtimeFormatter
-                            .AddRange(localVariables)
-                            .AddRange(testFileVariables)
-                            .AddRange(testCaseVariables)
-                            .AddRange(dataSourceVariables);
-
-                    var data = cache.GetOrAdd(current.dataSource.Id, id =>
-                    {
-                        var getDataStopwatch = Stopwatch.StartNew();
-                        return (current.dataSource.GetData(formatter), getDataStopwatch.Elapsed);
-                    });
-
-                    if (data.Value is null)
-                    {
-                        // Faulted.
-                        continue;
-                    }
-
                     try
-                    {
-                        var computeStopwatch = Stopwatch.StartNew();
-                        if (data.Value.Compute(current.testCase.Expression, current.testCase.Filter) is bool result)
+                    {                        
+                        if (!await RunTestAsync(testFile, current, cache))
                         {
-                            computeStopwatch.Stop();
-
-
-                            var testResult = result == current.testCase.Assert ? TestResult.Passed : TestResult.Failed;
-
-                            //_logger.Log(e => e.Message($"Test {testUnit.TestNumber} in {testUnit.FileName} {testResult.ToString().ToUpper()}."));
-
-                            var mustAlert =
-                                (testResult == TestResult.Passed && current.testCase.OnPassed.HasFlag(TestResultActions.Alert)) ||
-                                (testResult == TestResult.Failed && current.testCase.OnFailed.HasFlag(TestResultActions.Alert));
-
-                            if (mustAlert)
-                            {
-                                foreach (var alert in current.testCase.Alerts(testFile))
-                                {
-                                    alert.Publish(new TestContext
-                                    {
-                                        TestFile = testFile,
-                                        TestCase = current.testCase,
-                                        DataSource = current.dataSource,
-                                        Data = data.Value,
-                                        GetDataElapsed = data.Elapsed,
-                                        RunTestElapsed = computeStopwatch.Elapsed,
-                                        Formatter = formatter
-                                    });
-
-                                    //_logger.Log(e => e.Message($"Published alert {alert.Id} for test {testUnit.TestNumber} in {testUnit.FileName}."));
-                                }
-                            }
-
-                            var mustHalt =
-                                (testResult == TestResult.Passed && current.testCase.OnPassed.HasFlag(TestResultActions.Halt)) ||
-                                (testResult == TestResult.Failed && current.testCase.OnFailed.HasFlag(TestResultActions.Halt));
-
-                            if (mustHalt)
-                            {
-                                //_logger.Log(e => e.Message($"Halt at test {testUnit.TestNumber} in {testUnit.FileName}."));
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            //throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}. Affected test {testUnit.TestNumber} in {testUnit.FileName}.");
+                            break;
                         }
                     }
                     catch (Exception ex)
                     {
                         //_logger.Log(e => e.Error().Exception(ex).Message($"Could not run test '{testUnit.FileName}'."));
+                        _logger.Event(Layer.Business, "RunTest", Result.Failure, exception: ex);
                     }
                     finally
                     {
                         //testUnitLogger.LogEntry.Message($"Test {testUnit.TestNumber} in {testUnit.FileName} completed.");
                         //testUnitLogger.EndLog();
                     }
-
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-
+                _logger.Event(Layer.Application, "RunTest", Result.Failure, exception: ex);
             }
             finally
             {
+                _logger.Event(Layer.Application, "RunTest", Result.Completed);
+                scope.Dispose();
                 foreach (var dataTable in cache.Values)
                 {
                     dataTable.Value?.Dispose();
@@ -183,7 +92,127 @@ namespace Gunter.Services
                 cache.Clear();
             }
         }
+
+        private async Task<bool> RunTestAsync(TestFile testFile, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan Elapsed)> cache)
+        {
+            _logger.State(Layer.Business, () => ("Test", new { testFile.FileName, current.testIndex }));
+
+            const bool canContinue = true;
+
+            var testFileVariables = _runtimeVariables.Resolve(testFile);
+            var testCaseVariables = _runtimeVariables.Resolve(current.testCase);
+            var dataSourceVariables = _runtimeVariables.Resolve(current.dataSource);
+
+            _logger.State(Layer.Application, () => (nameof(testFileVariables), testFileVariables));
+            _logger.State(Layer.Application, () => (nameof(testCaseVariables), testCaseVariables));
+            _logger.State(Layer.Application, () => (nameof(dataSourceVariables), dataSourceVariables));
+
+            var formatter =
+                _runtimeFormatter
+                    .AddRange(testFile.Locals)
+                    .AddRange(testFileVariables)
+                    .AddRange(testCaseVariables)
+                    .AddRange(dataSourceVariables);            
+
+            if (!cache.TryGetValue(current.dataSource.Id, out var data))
+            {
+                var getDataStopwatch = Stopwatch.StartNew();
+                var value = await current.dataSource.GetDataAsync(formatter);
+                cache[current.dataSource.Id] = data = (value, getDataStopwatch.Elapsed);
+            }
+
+            if (data.Value is null)
+            {
+                // Faulted.
+                return canContinue;
+            }
+
+            var computeStopwatch = Stopwatch.StartNew();
+            if (data.Value.Compute(current.testCase.Expression, current.testCase.Filter) is bool result)
+            {
+                computeStopwatch.Stop();
+                _logger.Event(Layer.Business, "EvaluateTest", Result.Success);
+
+                var testResult = result == current.testCase.Assert ? TestResult.Passed : TestResult.Failed;
+
+                _logger.State(Layer.Business, () => (nameof(testResult), testResult));
+
+                var mustAlert =
+                    (testResult.Passed() && current.testCase.OnPassed.Alert()) ||
+                    (testResult.Failed() && current.testCase.OnFailed.Alert());
+
+                _logger.State(Layer.Business, () => (nameof(mustAlert), mustAlert));
+
+                if (mustAlert)
+                {
+                    foreach (var alert in current.testCase.Alerts(testFile))
+                    {
+                        await alert.PublishAsync(new TestContext
+                        {
+                            TestFile = testFile,
+                            TestCase = current.testCase,
+                            DataSource = current.dataSource,
+                            Data = data.Value,
+                            GetDataElapsed = data.Elapsed,
+                            RunTestElapsed = computeStopwatch.Elapsed,
+                            Formatter = formatter
+                        });
+
+                        //_logger.Log(e => e.Message($"Published alert {alert.Id} for test {testUnit.TestNumber} in {testUnit.FileName}."));
+                    }
+                }
+
+                var mustHalt =
+                    (testResult.Passed() && current.testCase.OnPassed.Halt()) ||
+                    (testResult.Failed() && current.testCase.OnFailed.Halt());
+
+                if (mustHalt)
+                {
+                    //_logger.Log(e => e.Message($"Halt at test {testUnit.TestNumber} in {testUnit.FileName}."));
+                    return !canContinue;
+                }
+            }
+            else
+            {
+                //throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}. Affected test {testUnit.TestNumber} in {testUnit.FileName}.");
+            }
+
+            return canContinue;
+        }
     }
 
+    public static class TestRunnerExtensions
+    {
+        public static void RunTests(this ITestRunner testRunner, IEnumerable<TestFile> testFiles, IEnumerable<string> profiles)
+        {
+            //_logger.Log(e => e.Info().Message($"Profiles: [{string.Join(", ", runnableProfiles)}]"));
 
+#if DEBUG
+            var maxDegreeOfParallelism = 1;
+#else
+            var maxDegreeOfParallelism = Environment.ProcessorCount;
+#endif
+
+            Parallel.ForEach
+            (
+                source: testFiles,
+                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism },
+                body: testFile => testRunner.RunTestsAsync(testFile, profiles)
+            );
+        }
+    }
+
+    public static class TestResultExtensions
+    {
+        public static bool Passed(this TestResult testResult) => testResult == TestResult.Passed;
+
+        public static bool Failed(this TestResult testResult) => testResult == TestResult.Failed;
+    }
+
+    public static class TestActionExtensions
+    {
+        public static bool Halt(this TestActions testActions) => testActions.HasFlag(TestActions.Halt);
+
+        public static bool Alert(this TestActions testActions) => testActions.HasFlag(TestActions.Alert);
+    }
 }

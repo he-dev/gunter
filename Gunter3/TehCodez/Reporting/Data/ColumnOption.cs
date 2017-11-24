@@ -3,6 +3,8 @@ using System.Diagnostics;
 using Gunter.Reporting.Filters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable;
+using Reusable.Collections;
 
 namespace Gunter.Reporting.Data
 {
@@ -15,8 +17,9 @@ namespace Gunter.Reporting.Data
             Total = ColumnTotal.Count
         };
 
+        [AutoEqualityProperty]
         [JsonRequired]
-        public string Name { get; set; }
+        public SoftString Name { get; set; }
 
         public bool IsKey { get; set; }
 
@@ -27,26 +30,12 @@ namespace Gunter.Reporting.Data
 
         private string DebuggerDisplay => $"Name = {Name} IsKey = {IsKey} Filter = {Filter?.GetType().Name ?? "null"} Total = {Total}";
 
-        public bool Equals(ColumnOption other)
-        {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return StringComparer.OrdinalIgnoreCase.Equals(Name, other.Name);
-        }
+        public bool Equals(ColumnOption other) => AutoEquality<ColumnOption>.Comparer.Equals(this, other);
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((ColumnOption)obj);
-        }
+        public override bool Equals(object obj) => obj is ColumnOption columnOption && Equals(columnOption);
 
-        public override int GetHashCode()
-        {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(Name);
-        }
+        public override int GetHashCode() => AutoEquality<ColumnOption>.Comparer.GetHashCode(this);
 
-        public static implicit operator string(ColumnOption column) => column.Name;
+        public static implicit operator string(ColumnOption column) => column.Name.ToString();
     }
 }

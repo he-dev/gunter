@@ -12,7 +12,7 @@ namespace Gunter.Services
 {
     internal interface ITestLoader
     {
-        (TestFile GlobalTestFile, IList<TestFile> TestFiles) LoadTests(string path);
+        IEnumerable<TestFile> LoadTests(string path);
     }
 
     [UsedImplicitly]
@@ -24,9 +24,9 @@ namespace Gunter.Services
         private readonly AutofacContractResolver _autofacContractResolver;
 
         public TestLoader(
-            ILoggerFactory loggerFactory, 
-            IPathResolver pathResolver, 
-            IFileSystem fileSystem, 
+            ILoggerFactory loggerFactory,
+            IPathResolver pathResolver,
+            IFileSystem fileSystem,
             AutofacContractResolver autofacContractResolver)
         {
             _logger = loggerFactory.CreateLogger(nameof(TestLoader));
@@ -37,31 +37,36 @@ namespace Gunter.Services
 
         public string GlobalTestFileName { get; set; } = "_Global.json";
 
-        public (TestFile GlobalTestFile, IList<TestFile> TestFiles) LoadTests(string path)
+        public IEnumerable<TestFile> LoadTests(string path)
+        {
+            var testFiles = LoadTestFiles(path).ToLookup(IsTestFile);
+
+            var global = testFiles[false].SingleOrDefault() ?? new TestFile();
+
+            foreach (var testFile in testFiles[true])
+            {
+                MergeGlobals(testFile.Locals, global.Locals);
+                yield return testFile;
+            }
+
+            bool IsTestFile(TestFile testFile)
+            {
+                return !Path.GetFileName(testFile.FileName).Equals(GlobalTestFileName, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        private IEnumerable<TestFile> LoadTestFiles(string path)
         {
             var fullPath = _pathResolver.ResolveDirectoryPath(path);
             var jsonFiles = _fileSystem.GetFiles(fullPath, "*.json");
-
-            var globalTestFile = new TestFile();
-            var testFiles = new List<TestFile>();
 
             foreach (var jsonFile in jsonFiles)
             {
                 if (TryLoadTestFile(jsonFile, out var testFile))
                 {
-                    var isGlobalTestFile = Path.GetFileName(jsonFile).Equals(GlobalTestFileName, StringComparison.OrdinalIgnoreCase);
-                    if (isGlobalTestFile)
-                    {
-                        globalTestFile = testFile;
-                    }
-                    else
-                    {
-                        testFiles.Add(testFile);
-                    }
+                    yield return testFile;
                 }
             }
-
-            return (globalTestFile, testFiles);
         }
 
         private bool TryLoadTestFile(string fileName, out TestFile testFile)
@@ -74,10 +79,11 @@ namespace Gunter.Services
                     ContractResolver = _autofacContractResolver,
                     DefaultValueHandling = DefaultValueHandling.Populate,
                     TypeNameHandling = TypeNameHandling.Auto,
+                    ObjectCreationHandling = ObjectCreationHandling.Reuse
                 });
                 testFile.FullName = fileName;
 
-                VariableValidator.ValidateNamesNotReserved(testFile.Locals, testFile.Locals.Select(x => x.Key));
+                //VariableValidator.ValidateNamesNotReserved(testFile.Locals, testFile.Locals.Select(x => x.Key));
 
                 return true;
             }
@@ -86,6 +92,23 @@ namespace Gunter.Services
                 testFile = null;
                 return false;
             }
+        }
+
+        private static void MergeGlobals(IDictionary<string, object> locals, IDictionary<string, object> globals)
+        {
+            foreach (var global in globals)
+            {
+                if (!locals.ContainsKey(global.Key))
+                {
+                    locals[global.Key] = global.Value;
+                }
+            }
+
+            //var localVariables =
+            //    globalTestFile.Locals.Concat(testFile.Locals)
+            //        .GroupBy(x => x.Key)
+            //        .Select(g => g.Last())
+            //        .ToDictionary(x => x.Key, x => x.Value);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Gunter.Alerting.Emails.ModuleRenderers
                 yield return Html
                     .Element("h2", h2 => h2
                         .@class("module-heading")
-                        .Append(module.Heading));
+                        .Append(format(module.Heading)));
             }
 
             if (module.Text.IsNotNullOrEmpty())
@@ -41,7 +41,7 @@ namespace Gunter.Alerting.Emails.ModuleRenderers
                 yield return Html
                     .Element("p", p => p
                         .@class("text")
-                        .Append(module.Heading));
+                        .Append(format(module.Text)));
             }
 
             yield return RenderTable(tabular, context);

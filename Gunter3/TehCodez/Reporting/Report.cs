@@ -20,16 +20,13 @@ namespace Gunter.Reporting
         [JsonRequired]
         string Title { get; set; }
 
-        [NotNull]
-        [ItemNotNull]
+        [NotNull, ItemNotNull]
         [JsonRequired]
         List<IModule> Modules { get; set; }
     }
     
     public class Report : IReport, IEnumerable<IModule>
     {
-        private string _title;        
-
         public int Id { get; set; }
 
         public string Title { get; set; }

@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -33,7 +34,7 @@ namespace Gunter.Data.SqlClient
         [JsonRequired]
         public List<Command> Commands { get; set; }
 
-        public DataTable GetData(IRuntimeFormatter formatter)
+        public Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
         {
             if (!Commands.Any())
             {
@@ -76,7 +77,7 @@ namespace Gunter.Data.SqlClient
                             //Elapsed = stopwatch.Elapsed;
 
                             Loggger.Event(Layer.Database, Reflection.CallerMemberName(), Result.Success);
-                            return dataTable;
+                            return Task.FromResult(dataTable);
                         }
                     }
                 }
@@ -108,6 +109,7 @@ namespace Gunter.Data.SqlClient
     }
 
     //[JsonObject]
+    [PublicAPI]
     public class Command
     {
         [CanBeNull]
@@ -117,7 +119,8 @@ namespace Gunter.Data.SqlClient
         [JsonRequired]
         public string Text { get; set; }
 
-        [PublicAPI]
+        [NotNull]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
     }
 }

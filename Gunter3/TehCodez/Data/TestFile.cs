@@ -32,6 +32,7 @@ namespace Gunter.Data
         [JsonIgnore]
         public string FullName { get; set; }
 
+        [NotNull]
         [JsonIgnore]
         public string FileName => Path.GetFileName(FullName);
     }

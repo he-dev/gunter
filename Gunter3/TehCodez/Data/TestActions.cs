@@ -3,7 +3,7 @@ using System;
 namespace Gunter.Data
 {
     [Flags]
-    public enum TestResultActions
+    public enum TestActions
     {
         None = 0,
         Halt = 1,

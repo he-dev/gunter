@@ -27,6 +27,7 @@ namespace Gunter.Services
         public RuntimeFormatter(IEnumerable<IRuntimeVariable> runtimeVariables)
         {
             _runtimeVariables = runtimeVariables.ToList();
+            _variables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         }
 
         private RuntimeFormatter(IEnumerable<IRuntimeVariable> runtimeVariables, IEnumerable<KeyValuePair<string, object>> variables)

@@ -11,7 +11,9 @@ using Gunter.Extensions;
 using Gunter.Reporting.Data;
 using Gunter.Reporting.Filters;
 using JetBrains.Annotations;
+using Reusable.Collections;
 using Reusable.Data;
+using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
 {
@@ -30,6 +32,13 @@ namespace Gunter.Reporting.Modules
             [ColumnTotal.Sum] = values => values.Select(Convert.ToDouble).Sum(),
             [ColumnTotal.Average] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
         };
+
+        public static IEqualityComparer<IEnumerable<object>> KeyEqualityComparer = 
+            RelayEqualityComparer<IEnumerable<object>>
+                .Create(
+                    (left, right) => left.SequenceEqual(right), 
+                    (values) => values.CalcHashCode()
+                );
 
         public TableOrientation Orientation => TableOrientation.Horizontal;
 
@@ -63,19 +72,20 @@ namespace Gunter.Reporting.Modules
 
             // Group-by keyed columns.
             var dataRows = context.Data.Select(context.TestCase.Filter);
-
+           
             var keyColumns = columns.Where(x => x.IsKey).ToList();
             var rowGroups =
                 from dataRow in dataRows
-                let values = keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name]))
-                group dataRow by new CompositeKey<object>(values) into g
+                let values = keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]))
+                //group dataRow by new CompositeKey<object>(values) into g
+                group dataRow by KeyEqualityComparer into g
                 select g;
 
             // Create the data-table.
             var dataTable = new DataTable(nameof(DataSummary));
             foreach (var column in columns)
             {
-                dataTable.AddColumn(column.Name, c => c.DataType = typeof(string));
+                dataTable.AddColumn(column.Name.ToString(), c => c.DataType = typeof(string));
             }
 
             // Create aggregated rows and add them to the final data-table.
@@ -106,7 +116,7 @@ namespace Gunter.Reporting.Modules
                 var aggregate = Aggregates[column.Total];
                 var values = rowGroup.Select(column).NotDBNull();
                 var value = aggregate(values);
-                dataRow[column.Name] = column.Filter == null ? value : column.Filter.Apply(value);
+                dataRow[column.Name.ToString()] = column.Filter == null ? value : column.Filter.Apply(value);
             }
 
             if (IncludeGroupCount)
@@ -115,5 +125,5 @@ namespace Gunter.Reporting.Modules
             }
             return dataRow;
         }
-    }    
+    }
 }
