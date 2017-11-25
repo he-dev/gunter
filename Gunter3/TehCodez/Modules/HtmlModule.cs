@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using Autofac;
-using Gunter.Alerting.Emails;
-using Gunter.Alerting.Emails.ModuleRenderers;
+using Gunter.Messaging.Emails;
+using Gunter.Messaging.Emails.ModuleRenderers;
 using Reusable.MarkupBuilder.Html;
 using Reusable.SmartConfig;
 

@@ -1,7 +1,7 @@
 using System.Text;
 using Reusable.Net.Mail;
 
-namespace Gunter.Alerting.Emails
+namespace Gunter.Messaging.Emails
 {
     internal class HtmlEmailSubject : EmailSubject
     {

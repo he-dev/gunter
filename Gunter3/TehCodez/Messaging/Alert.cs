@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
@@ -9,9 +8,9 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.OmniLog;
 
-namespace Gunter.Alerting
+namespace Gunter.Messaging
 {
-    public interface IAlert
+    public interface IMessage
     {
         [JsonRequired]
         int Id { get; set; }
@@ -23,9 +22,9 @@ namespace Gunter.Alerting
         Task PublishAsync(TestContext context);
     }
 
-    public abstract class Alert : IAlert
+    public abstract class Message : IMessage
     {
-        protected Alert([NotNull] ILoggerFactory loggerFactory)
+        protected Message([NotNull] ILoggerFactory loggerFactory)
         {
             Logger = loggerFactory.CreateLogger(GetType().Name);
         }

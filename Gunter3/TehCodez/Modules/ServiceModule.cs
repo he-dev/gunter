@@ -9,15 +9,9 @@ namespace Gunter.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-
-
             builder
                 .RegisterType<RuntimeFormatter>()
                 .As<IRuntimeFormatter>();
-
-            //builder
-            //    .RegisterType<PathResolver>()
-            //    .As<IPathResolver>();
 
             builder
                 .Register(c =>

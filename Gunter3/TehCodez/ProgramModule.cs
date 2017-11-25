@@ -32,7 +32,7 @@ namespace Gunter
                 .RegisterInstance(_configuration)
                 .As<IConfiguration>();
 
-            var runtimeVariables = new IRuntimeVariable[]
+            var runtimeVariables = new []
             {
                 RuntimeVariable.FromExpression<TestFile>(x => x.FullName),
                 RuntimeVariable.FromExpression<TestFile>(x => x.FileName),

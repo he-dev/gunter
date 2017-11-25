@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Gunter.Data;
-using Gunter.Extensions;
 using Gunter.Reporting;
 using Gunter.Reporting.Modules;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 
-namespace Gunter.Alerting.Emails.ModuleRenderers
+namespace Gunter.Messaging.Emails.ModuleRenderers
 {
     [CanRender(typeof(Signature))]
     public class SignatureRenderer : ModuleRenderer

@@ -1,15 +1,12 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Gunter.Data;
-using Gunter.Extensions;
 using Gunter.Reporting;
 using Gunter.Reporting.Modules;
 using Reusable.Extensions;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 
-namespace Gunter.Alerting.Emails.ModuleRenderers
+namespace Gunter.Messaging.Emails.ModuleRenderers
 {
     [CanRender(typeof(Greeting))]
     public class GreetingRenderer : ModuleRenderer

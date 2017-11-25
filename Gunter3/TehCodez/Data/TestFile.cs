@@ -5,7 +5,7 @@ using System.Linq;
 using System;
 using System.Data;
 using System.IO;
-using Gunter.Alerting;
+using Gunter.Messaging;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Reusable;
@@ -25,7 +25,7 @@ namespace Gunter.Data
         public List<TestCase> Tests { get; set; } = new List<TestCase>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<IAlert> Alerts { get; set; } = new List<IAlert>();
+        public List<IMessage> Messages { get; set; } = new List<IMessage>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IReport> Reports { get; set; } = new List<IReport>();

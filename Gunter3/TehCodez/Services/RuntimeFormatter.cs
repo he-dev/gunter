@@ -10,13 +10,6 @@ namespace Gunter
 {
     public delegate string FormatFunc(string text);
 
-    public interface IRuntimeFormatter
-    {
-        string Format(string text);
-
-        IRuntimeFormatter AddRange(IEnumerable<KeyValuePair<SoftString, object>> variables);
-    }
-
     [UsedImplicitly]
     public class RuntimeFormatter : IRuntimeFormatter
     {

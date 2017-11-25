@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
-using Gunter.Alerting;
+using Gunter.Messaging;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Reusable;
@@ -42,8 +42,8 @@ namespace Gunter.Data
         [DefaultValue(TestActions.Alert | TestActions.Halt)]
         public TestActions OnFailed { get; set; }
 
-        [JsonProperty("Alerts", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<int> AlertIds { get; set; } = new List<int>();
+        [JsonProperty("Messages", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<int> MessageIds { get; set; } = new List<int>();
 
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<SoftString> Profiles { get; set; } = new List<SoftString>();
@@ -59,11 +59,11 @@ namespace Gunter.Data
                  select ds).Distinct();
         }
 
-        public static IEnumerable<IAlert> Alerts(this TestCase testCase, TestFile testFile)
+        public static IEnumerable<IMessage> Alerts(this TestCase testCase, TestFile testFile)
         {
             return
-                (from id in testCase.AlertIds
-                 join alert in testFile.Alerts on id equals alert.Id
+                (from id in testCase.MessageIds
+                 join alert in testFile.Messages on id equals alert.Id
                  select alert).Distinct();
         }
 

@@ -6,10 +6,9 @@ using System.Reflection;
 using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
-using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 
-namespace Gunter.Alerting.Emails
+namespace Gunter.Messaging.Emails
 {
     [PublicAPI]
     public interface IModuleRenderer
@@ -31,7 +30,7 @@ namespace Gunter.Alerting.Emails
 
         public abstract IEnumerable<IHtmlElement> Render(IModule module, TestContext context);
 
-        protected IHtmlElement Html => HtmlElement.Builder;
+        protected HtmlElement Html => HtmlElement.Builder;
     }
 
     [AttributeUsage(AttributeTargets.Class)]

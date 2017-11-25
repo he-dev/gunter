@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Reporting;
@@ -16,10 +15,10 @@ using Reusable.Net.Mail;
 using Reusable.OmniLog;
 using Reusable.SmartConfig;
 
-namespace Gunter.Alerting.Emails
+namespace Gunter.Messaging.Emails
 {
     [PublicAPI]
-    public class HtmlEmail : Alert
+    public class HtmlEmail : Message
     {
         private readonly IConfiguration _configuration;
         private readonly IFileSystem _fileSystem;
@@ -75,13 +74,15 @@ namespace Gunter.Alerting.Emails
             foreach (var module in report.Modules)
             {
                 var renderer = FindRenderer(module);
-                var elements = renderer.Render(module, context);
-                body.Add(elements);
+                foreach (var element in renderer.Render(module, context))
+                {
+                    body.Add(element);
+                }
             }
 
             //Logger.Log(e => e.Message($"Sending report {report.Id} to \"{To}\"."));
 
-            _cssInliner.Inline(_css.Value, body);
+            body = _cssInliner.Inline(_css.Value, body);
 
             var email = new Email<HtmlEmailSubject, HtmlEmailBody>
             {

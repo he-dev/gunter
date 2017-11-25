@@ -9,11 +9,6 @@ using Reusable.Extensions;
 
 namespace Gunter
 {
-    public interface IVariableValidator
-    {
-        void ValidateNamesNotReserved(IDictionary<SoftString, object> variables);
-    }
-
     [UsedImplicitly]
     internal class VariableValidator : IVariableValidator
     {
