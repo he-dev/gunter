@@ -5,80 +5,35 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
-using Reusable.Logging;
-using Gunter.Services;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable.Logging.Loggex;
+using Reusable.OmniLog;
+using Reusable.OmniLog.SemLog;
 
 namespace Gunter.Data.SqlClient
 {
+    [PublicAPI]
     public class TableOrView : IDataSource
     {
-        private readonly ILogger _logger;
-        private readonly Lazy<DataTable> _data;
-
-        private List<Command> _commands = new List<Command>();
-        private string _connectionString;
-        private IVariableResolver _variables = VariableResolver.Empty;
-
-        public TableOrView(ILogger logger)
+        public TableOrView(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
-            _data = new Lazy<DataTable>(GetData);
+            Loggger = loggerFactory.CreateLogger(nameof(TableOrView));
         }
 
-        [NotNull]
-        [JsonIgnore]
-        public IVariableResolver Variables
-        {
-            get => _variables;
-            set
-            {
-                _variables = value;
-                foreach (var command in _commands)
-                {
-                    command.UpdateVariables(value);
-                }
-            }
-        }
+        private ILogger Loggger { get; }
 
         public int Id { get; set; }
 
-        public DataTable Data => _data.Value;
-
-        public TimeSpan Elapsed { get; private set; }
-
-        public bool IsFaulted { get; private set; }
-
-        [PublicAPI]
         [NotNull]
         [JsonRequired]
-        public string ConnectionString
-        {
-            get => Variables.Resolve(_connectionString);
-            set => _connectionString = value;
-        }
+        public string ConnectionString { get; set; }
 
-        [PublicAPI]
         [NotNull, ItemNotNull]
         [JsonRequired]
-        public List<Command> Commands
-        {
-            get => _commands;
-            set
-            {
-                if (!value.Any())
-                {
-                    throw new ArgumentException(
-                        paramName: nameof(Commands),
-                        message: $"You need to specify at least the one command.");
-                }
-                _commands = value;
-            }
-        }
+        public List<Command> Commands { get; set; }
 
-        private DataTable GetData()
+        public Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
         {
             if (!Commands.Any())
             {
@@ -87,23 +42,27 @@ namespace Gunter.Data.SqlClient
 
             //LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
 
+            var format = (FormatFunc)formatter.Format;
+
             try
             {
                 var stopwatch = Stopwatch.StartNew();
-                using (var conn = new SqlConnection(ConnectionString))
+                using (var conn = new SqlConnection(formatter.Format(ConnectionString)))
                 {
                     conn.Open();
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = Commands.First().Text;
+                        cmd.CommandText = format(Commands.First().Text);
                         cmd.CommandType = CommandType.Text;
 
-                        //LogEntry.New().Debug().Message($"Command: {cmd.CommandText}").Log(_logger);
+                        Loggger.State(Layer.Database, () => (nameof(SqlCommand.CommandText), cmd.CommandText));
 
-                        foreach (var parameter in Commands.First())
+                        var parameters = Commands.First().Parameters.Select(p => (Key: p.Key, Value: format(p.Value)));
+
+                        foreach (var parameter in parameters)
                         {
-                            //LogEntry.New().Debug().Message($"Parameter: {parameter.Key} = '{parameter.Value}'").Log(_logger);
+                            Loggger.State(Layer.Database, () => ("CommandParameter", parameter));
                             cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
                         }
 
@@ -113,27 +72,27 @@ namespace Gunter.Data.SqlClient
                             dataTable.Load(dataReader);
                             //LogEntry.New().Debug().Message($"Row count: {dataTable.Rows.Count}").Log(_logger);
 
-                            stopwatch.Stop();
-                            Elapsed = stopwatch.Elapsed;
+                            //stopwatch.Stop();
+                            //Elapsed = stopwatch.Elapsed;
 
-                            return dataTable;
+                            Loggger.Event(Layer.Database, Reflection.CallerMemberName(), Result.Success);
+                            return Task.FromResult(dataTable);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                IsFaulted = true;
-                _logger.Log(e => e.Error().Exception(ex).Message("Could not get data."));
+                Loggger.Event(Layer.Database, Reflection.CallerMemberName(), Result.Failure, exception: ex);
                 return null;
             }
         }
 
-        public IEnumerable<(string Name, string Text)> GetCommands()
+        public IEnumerable<(string Name, string Text)> ToString(IRuntimeFormatter formatter)
         {
-            return
-                from command in Commands
-                select (command.Name, command.Text);
+            var format = (FormatFunc)formatter.Format;
+
+            return Commands.Select(cmd => (cmd.Name, Text: format(cmd.Text)));
         }
 
         //public string ToString(string format, IFormatProvider formatProvider)
@@ -146,53 +105,21 @@ namespace Gunter.Data.SqlClient
         //    }
         //}
 
-        public void Dispose()
-        {
-            if (_data.IsValueCreated)
-            {
-                _data.Value.Dispose();
-            }
-        }
     }
 
-    [JsonObject]
-    public class Command : IResolvable, IEnumerable<KeyValuePair<string, string>>
+    //[JsonObject]
+    [PublicAPI]
+    public class Command
     {
-        private string _text;
-
-        [NotNull]
-        [JsonIgnore]
-        public IVariableResolver Variables { get; set; } = VariableResolver.Empty;
-
         [CanBeNull]
         public string Name { get; set; }
 
         [NotNull]
         [JsonRequired]
-        public string Text
-        {
-            get => Variables.Resolve(_text);
-            set => _text = value;
-        }
+        public string Text { get; set; }
 
-        [PublicAPI]
+        [NotNull]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
-
-        #region IEnumerable
-
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-        {
-            return
-                Parameters
-                    ?.Select(parameter => new KeyValuePair<string, string>(parameter.Key, Variables.Resolve(parameter.Value)))
-                    .GetEnumerator() ?? Enumerable.Empty<KeyValuePair<string, string>>().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        #endregion
     }
 }

@@ -11,7 +11,9 @@ using Gunter.Extensions;
 using Gunter.Reporting.Data;
 using Gunter.Reporting.Filters;
 using JetBrains.Annotations;
+using Reusable.Collections;
 using Reusable.Data;
+using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
 {
@@ -31,6 +33,13 @@ namespace Gunter.Reporting.Modules
             [ColumnTotal.Average] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
         };
 
+        public static IEqualityComparer<IEnumerable<object>> KeyEqualityComparer = 
+            RelayEqualityComparer<IEnumerable<object>>
+                .Create(
+                    (left, right) => left.SequenceEqual(right), 
+                    (values) => values.CalcHashCode()
+                );
+
         public TableOrientation Orientation => TableOrientation.Horizontal;
 
         public bool HasFooter => true;
@@ -42,14 +51,14 @@ namespace Gunter.Reporting.Modules
         [ItemCanBeNull]
         public List<ColumnOption> Columns { get; set; } = new List<ColumnOption>();
 
-        public DataTable Create(TestUnit testUnit)
+        public DataTable Create(TestContext context)
         {
             var columns = Columns.ToList();
 
             if (!Columns.Any())
             {
                 // Use default columns if none-specified.
-                columns = testUnit.DataSource.Data.Columns.Cast<DataColumn>().Select(c => new ColumnOption
+                columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnOption
                 {
                     Name = c.ColumnName,
                     Total = ColumnTotal.Last
@@ -62,20 +71,21 @@ namespace Gunter.Reporting.Modules
             }
 
             // Group-by keyed columns.
-            var dataRows = testUnit.DataSource.Data.Select(testUnit.TestCase.Filter);
-
+            var dataRows = context.Data.Select(context.TestCase.Filter);
+           
             var keyColumns = columns.Where(x => x.IsKey).ToList();
             var rowGroups =
                 from dataRow in dataRows
-                let values = keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name]))
-                group dataRow by new CompositeKey<object>(values) into g
+                let values = keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]))
+                //group dataRow by new CompositeKey<object>(values) into g
+                group dataRow by KeyEqualityComparer into g
                 select g;
 
             // Create the data-table.
             var dataTable = new DataTable(nameof(DataSummary));
             foreach (var column in columns)
             {
-                dataTable.AddColumn(column.Name, c => c.DataType = typeof(string));
+                dataTable.AddColumn(column.Name.ToString(), c => c.DataType = typeof(string));
             }
 
             // Create aggregated rows and add them to the final data-table.
@@ -106,7 +116,7 @@ namespace Gunter.Reporting.Modules
                 var aggregate = Aggregates[column.Total];
                 var values = rowGroup.Select(column).NotDBNull();
                 var value = aggregate(values);
-                dataRow[column.Name] = column.Filter == null ? value : column.Filter.Apply(value);
+                dataRow[column.Name.ToString()] = column.Filter == null ? value : column.Filter.Apply(value);
             }
 
             if (IncludeGroupCount)
@@ -116,24 +126,4 @@ namespace Gunter.Reporting.Modules
             return dataRow;
         }
     }
-
-    // Represents an aggregated column and its options.
-
-    //public class CollectionComparer<TValue> : IEqualityComparer<IEnumerable<TValue>>
-    //{
-    //    public bool Equals(IEnumerable<TValue> x, IEnumerable<TValue> y)
-    //    {
-    //        if (ReferenceEquals(x, null)) return false;
-    //        if (ReferenceEquals(y, null)) return false;
-    //        return ReferenceEquals(x, y) || x.SequenceEqual(y);
-    //    }
-
-    //    public int GetHashCode(IEnumerable<TValue> obj)
-    //    {
-    //        unchecked
-    //        {
-    //            return obj.Aggregate(0, (current, next) => (current * 397) ^ next?.GetHashCode() ?? 0);
-    //        }
-    //    }
-    //}
 }

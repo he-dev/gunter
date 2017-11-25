@@ -1,75 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 using Gunter.Data;
-using Gunter.Messaging.Email;
 using Gunter.Reporting;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable;
-using Reusable.Logging;
-using Reusable.Logging.Loggex;
+using Reusable.OmniLog;
 
 namespace Gunter.Messaging
 {
-    public interface IAlert : IResolvable
+    public interface IMessage
     {
         [JsonRequired]
         int Id { get; set; }
 
         [JsonRequired]
-        List<int> Reports { get; set; }
+        [JsonProperty("Reports")]
+        List<int> ReportIds { get; set; }
 
-        void Publish(TestUnit context);
+        Task PublishAsync(TestContext context);
     }
 
-    public abstract class Alert : IAlert
+    public abstract class Message : IMessage
     {
-        protected Alert([NotNull] ILogger logger)
+        protected Message([NotNull] ILoggerFactory loggerFactory)
         {
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Logger = loggerFactory.CreateLogger(GetType().Name);
         }
-
-        [JsonIgnore]
-        public IVariableResolver Variables { get; set; } = VariableResolver.Empty;
 
         protected ILogger Logger { get; }
 
         public int Id { get; set; }
 
-        public List<int> Reports { get; set; } = new List<int>();
+        public List<int> ReportIds { get; set; } = new List<int>();
 
-        public void Publish(TestUnit context)
+        public async Task PublishAsync(TestContext context)
         {
-            Logger.Log(e => e.Debug().Message($"Publishing alert {Id}."));
+            //Logger.Log(e => e.Debug().Message($"Publishing alert {Id}."));
 
             var reports =
-                from id in Reports
-                join report in context.Reports on id equals report.Id
-                select report.UpdateVariables(Variables);
+                from id in ReportIds
+                join report in context.TestFile.Reports on id equals report.Id
+                select report;
 
             foreach (var report in reports)
             {
-                var logger = Logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
+                //var logger = Logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
 
                 try
                 {
-                    PublishCore(context, report);
-                    logger.LogEntry.Info().Message($"Published report {report.Id}.");
+                    await PublishReport(report, context);
+                    //logger.LogEntry.Info().Message($"Published report {report.Id}.");
                 }
                 catch (Exception ex)
                 {
-                    logger.LogEntry.Error().Exception(ex).Message($"Could not publish report {report.Id}.");
+                    //logger.LogEntry.Error().Exception(ex).Message($"Could not publish report {report.Id}.");
                 }
                 finally
                 {
-                    logger.EndLog();
+                    //logger.EndLog();
                 }
             }
         }
 
-        protected abstract void PublishCore(TestUnit testUnit, IReport report);
+        protected abstract Task PublishReport(IReport report, TestContext context);
     }
 }

@@ -1,35 +1,32 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.ComponentModel;
-using Gunter.Services;
+using System.Linq;
+using Gunter.Messaging;
+using Gunter.Reporting;
 using JetBrains.Annotations;
+using Reusable;
+using Reusable.Extensions;
+using Reusable.OmniLog;
 
 namespace Gunter.Data
 {
     [PublicAPI]
-    public class TestCase : IResolvable
+    public class TestCase
     {
-        private string _message;
-
-        [JsonIgnore]
-        public IVariableResolver Variables { get; set; } = VariableResolver.Empty;
-
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
-        [DefaultValue(TestSeverity.Warn)]
-        public TestSeverity Severity { get; set; }
+        public LogLevel Level { get; set; }
 
         [JsonRequired]
-        public string Message
-        {
-            get => Variables.Resolve(_message);
-            set => _message = value;
-        }
+        public string Message { get; set; }
 
         [JsonRequired]
-        public List<int> DataSources { get; set; } = new List<int>();
+        [JsonProperty("DataSources", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<int> DataSourceIds { get; set; } = new List<int>();
 
         public string Filter { get; set; }
 
@@ -39,18 +36,61 @@ namespace Gunter.Data
         [DefaultValue(true)]
         public bool Assert { get; set; }
 
-        [DefaultValue(TestResultActions.None)]
-        public TestResultActions OnPassed { get; set; }
+        [DefaultValue(TestActions.None)]
+        public TestActions OnPassed { get; set; }
 
-        [DefaultValue(TestResultActions.Alert | TestResultActions.Halt)]
-        public TestResultActions OnFailed { get; set; }
+        [DefaultValue(TestActions.Alert | TestActions.Halt)]
+        public TestActions OnFailed { get; set; }
 
-        public List<int> Alerts { get; set; } = new List<int>();
+        [JsonProperty("Messages", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<int> MessageIds { get; set; } = new List<int>();
 
-        public List<string> Profiles { get; set; } = new List<string>();
+        [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<SoftString> Profiles { get; set; } = new List<SoftString>();
+    }
 
-        [JsonIgnore]
-        public TimeSpan Elapsed { get; set; }
+    public static class TestCaseExtensions
+    {
+        public static IEnumerable<IDataSource> DataSources(this TestCase testCase, TestFile testFile)
+        {
+            return
+                (from id in testCase.DataSourceIds
+                 join ds in testFile.DataSources on id equals ds.Id
+                 select ds).Distinct();
+        }
+
+        public static IEnumerable<IMessage> Alerts(this TestCase testCase, TestFile testFile)
+        {
+            return
+                (from id in testCase.MessageIds
+                 join alert in testFile.Messages on id equals alert.Id
+                 select alert).Distinct();
+        }
+
+        public static IEnumerable<IReport> Reports(this TestCase testCase, TestFile testFile)
+        {
+            return
+                (from id in testCase.Alerts(testFile).SelectMany(alert => alert.ReportIds)
+                 join report in testFile.Reports on id equals report.Id
+                 select report).Distinct();
+        }
+
+        public static bool CanExecute(this TestCase testCase, IEnumerable<SoftString> profiles)
+        {
+            
+            // In order for a test to be runnable it has to be enabled and its profile needs to match the list or the list needs to be empty.
+
+            return
+                testCase.Enabled &&
+                ProfileMatches();
+
+            bool ProfileMatches()
+            {
+                return
+                    profiles.Empty() ||
+                    profiles.Any(runnableProfile => profiles.Contains(runnableProfile));
+            }
+        }
     }
 }
 

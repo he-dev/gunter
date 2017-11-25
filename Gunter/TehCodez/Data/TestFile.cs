@@ -3,35 +3,37 @@ using Gunter.Data;
 using Newtonsoft.Json;
 using System.Linq;
 using System;
-using Gunter.Services;
 using System.Data;
 using System.IO;
 using Gunter.Messaging;
 using Gunter.Reporting;
 using JetBrains.Annotations;
+using Reusable;
 
 namespace Gunter.Data
 {
     [PublicAPI]
     public class TestFile
     {
-        public Dictionary<string, object> Locals { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public Dictionary<SoftString, object> Locals { get; set; } = new Dictionary<SoftString, object>();
 
-        [JsonRequired]
+        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
 
-        [JsonRequired]
+        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<TestCase> Tests { get; set; } = new List<TestCase>();
 
-        [JsonRequired]
-        public List<IAlert> Alerts { get; set; } = new List<IAlert>();
+        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<IMessage> Messages { get; set; } = new List<IMessage>();
 
-        [JsonRequired]
+        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IReport> Reports { get; set; } = new List<IReport>();
 
         [JsonIgnore]
         public string FullName { get; set; }
 
+        [NotNull]
         [JsonIgnore]
         public string FileName => Path.GetFileName(FullName);
     }
