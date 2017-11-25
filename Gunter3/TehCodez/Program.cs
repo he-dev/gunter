@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Autofac;
+using Gunter.JsonConverters;
 using Gunter.Modules;
-using Gunter.Services;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 using Reusable;
 using Reusable.DateTimes;
 using Reusable.OmniLog;
@@ -17,6 +15,7 @@ using Reusable.OmniLog.SemLog;
 using Reusable.OmniLog.SemLog.Attachements;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Binding;
+using Reusable.SmartConfig.Data;
 
 namespace Gunter
 {
@@ -65,12 +64,11 @@ namespace Gunter
                         _logger.Event(Layer.Application, "ApplicationStart", Result.Success);
 
                         var tests = testLoader.LoadTests(TestsDirectoryName).ToList();
-                        testRunner.RunTests(tests, args);
+                        testRunner.RunTests(tests, args.Select(SoftString.Create));
 
                         _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.Success.ToString()));
                         _logger.Event(Layer.Application, "ApplicationExit", Result.Success);
                     }
-
 
                     return ExitCode.Success;
                 }
@@ -155,7 +153,27 @@ namespace Gunter
         {
             try
             {
-                var configuration = new Configuration(config => config.UseJsonConverter().UseAppSettings());
+                var configuration = new Configuration(config => config
+                    .UseJsonConverter()
+                    .UseAppSettings()
+                    .UseInMemory(new[]
+                    {
+                        new Setting
+                        {
+                            Name = "LookupPaths",
+                            Value = new[]
+                            {
+                                AppDomainPaths.ConfigurationFile(),
+                                AppDomainPaths.BaseDirectory(),
+                                AppDomainPaths.ApplicationBase(),
+                                AppDomainPaths.PrivateBin()
+                            }
+                            .SelectMany(path => path)
+                            .Distinct()
+                            .ToList()
+                        }
+                    })
+                );
                 _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Success);
                 return configuration;
             }
@@ -171,7 +189,7 @@ namespace Gunter
             try
             {
                 var builder = new ContainerBuilder();
-                builder.RegisterModule(new MainModule(loggerFactory, configuration));
+                builder.RegisterModule(new ProgramModule(loggerFactory, configuration));
 
                 var container = builder.Build();
 
@@ -213,47 +231,5 @@ namespace Gunter
     internal static class Event
     {
         public const string InitializeConfiguration = nameof(InitializeConfiguration);
-    }
-
-    [UsedImplicitly]
-    public class SoftStringConverter : JsonConverter
-    {
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(SoftString);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            var jToken = JToken.Load(reader);
-            var value = jToken.Value<string>();
-            return SoftString.Create(value);
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            writer.WriteValue(value.ToString());
-        }
-    }
-
-    [UsedImplicitly]
-    public class LogLevelConverter : JsonConverter
-    {
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(LogLevel);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            var jToken = JToken.Load(reader);
-            var value = jToken.Value<string>();
-            return LogLevel.Parse(value);
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            writer.WriteValue(value.ToString());
-        }
     }
 }

@@ -5,7 +5,6 @@ using Gunter.Data;
 using Gunter.Extensions;
 using Gunter.Reporting;
 using Gunter.Reporting.Modules;
-using Gunter.Services;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 

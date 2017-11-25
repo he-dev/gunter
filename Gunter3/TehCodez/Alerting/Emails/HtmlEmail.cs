@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Reporting;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable.IO;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 using Reusable.Net.Mail;
@@ -22,7 +22,6 @@ namespace Gunter.Alerting.Emails
     public class HtmlEmail : Alert
     {
         private readonly IConfiguration _configuration;
-        private readonly IPathResolver _pathResolver;
         private readonly IFileSystem _fileSystem;
         private readonly ICssParser _cssParser;
         private readonly IEnumerable<ModuleRenderer> _renderers;
@@ -35,7 +34,6 @@ namespace Gunter.Alerting.Emails
         public HtmlEmail(
             ILoggerFactory loggerFactory,
             IConfiguration configuration,
-            IPathResolver pathResolver,
             IFileSystem fileSystem,
             ICssParser cssParser,
             CssInliner cssInliner,
@@ -43,7 +41,6 @@ namespace Gunter.Alerting.Emails
             : base(loggerFactory)
         {
             _configuration = configuration;
-            _pathResolver = pathResolver;
             _fileSystem = fileSystem;
             _cssParser = cssParser;
             _renderers = renderers;
@@ -53,7 +50,7 @@ namespace Gunter.Alerting.Emails
             {
                 var themesPath = _configuration.Select(() => Program.ThemesDirectoryName);
                 themesPath = Path.Combine(themesPath, Theme);
-                themesPath = _pathResolver.ResolveFilePath(themesPath);
+                themesPath = _fileSystem.FindFile(themesPath, _configuration.Select<List<string>>("LookupPaths"));
                 var cssText = _fileSystem.ReadAllText(themesPath);
                 var css = _cssParser.Parse(cssText);
                 return css;

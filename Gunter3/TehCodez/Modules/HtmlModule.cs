@@ -3,7 +3,6 @@ using System.IO;
 using Autofac;
 using Gunter.Alerting.Emails;
 using Gunter.Alerting.Emails.ModuleRenderers;
-using Gunter.Services;
 using Reusable.MarkupBuilder.Html;
 using Reusable.SmartConfig;
 

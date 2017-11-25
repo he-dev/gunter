@@ -6,8 +6,8 @@ using System.ComponentModel;
 using System.Linq;
 using Gunter.Alerting;
 using Gunter.Reporting;
-using Gunter.Services;
 using JetBrains.Annotations;
+using Reusable;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 
@@ -25,7 +25,7 @@ namespace Gunter.Data
         public string Message { get; set; }
 
         [JsonRequired]
-        [JsonProperty("DataSources")]
+        [JsonProperty("DataSources", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<int> DataSourceIds { get; set; } = new List<int>();
 
         public string Filter { get; set; }
@@ -42,11 +42,11 @@ namespace Gunter.Data
         [DefaultValue(TestActions.Alert | TestActions.Halt)]
         public TestActions OnFailed { get; set; }
 
-        [JsonProperty("Alerts")]
+        [JsonProperty("Alerts", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<int> AlertIds { get; set; } = new List<int>();
 
-        [JsonProperty("Profiles")]
-        public List<string> Profiles { get; set; } = new List<string>();
+        [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<SoftString> Profiles { get; set; } = new List<SoftString>();
     }
 
     public static class TestCaseExtensions
@@ -75,7 +75,7 @@ namespace Gunter.Data
                  select report).Distinct();
         }
 
-        public static bool CanExecute(this TestCase testCase, IEnumerable<string> profiles)
+        public static bool CanExecute(this TestCase testCase, IEnumerable<SoftString> profiles)
         {
             
             // In order for a test to be runnable it has to be enabled and its profile needs to match the list or the list needs to be empty.
@@ -88,7 +88,7 @@ namespace Gunter.Data
             {
                 return
                     profiles.Empty() ||
-                    profiles.Any(runnableProfile => profiles.Contains(runnableProfile, StringComparer.OrdinalIgnoreCase));
+                    profiles.Any(runnableProfile => profiles.Contains(runnableProfile));
             }
         }
     }

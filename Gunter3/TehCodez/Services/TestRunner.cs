@@ -1,28 +1,17 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using Gunter.Data;
-using Gunter.Services;
-using Gunter.Extensions;
 using System.Threading.Tasks;
-using Gunter.Reporting;
-using Gunter.Services.Validators;
+using Gunter.Data;
 using JetBrains.Annotations;
-using Reusable.Extensions;
+using Reusable;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemLog;
 
-namespace Gunter.Services
+namespace Gunter
 {
-    public interface ITestRunner
-    {
-        Task RunTestsAsync(TestFile testFile, IEnumerable<string> profiles);
-    }
-
     [UsedImplicitly]
     internal class TestRunner : ITestRunner
     {
@@ -40,7 +29,7 @@ namespace Gunter.Services
             _runtimeVariables = runtimeVariables;
         }
 
-        public async Task RunTestsAsync(TestFile testFile, IEnumerable<string> profiles)
+        public async Task RunTestsAsync(TestFile testFile, IEnumerable<SoftString> profiles)
         {
             //VariableValidator.ValidateNamesNotReserved(localVariables, _runtimeVariables.Select(x => x.Name));
 
@@ -183,7 +172,7 @@ namespace Gunter.Services
 
     public static class TestRunnerExtensions
     {
-        public static void RunTests(this ITestRunner testRunner, IEnumerable<TestFile> testFiles, IEnumerable<string> profiles)
+        public static void RunTests(this ITestRunner testRunner, IEnumerable<TestFile> testFiles, IEnumerable<SoftString> profiles)
         {
             //_logger.Log(e => e.Info().Message($"Profiles: [{string.Join(", ", runnableProfiles)}]"));
 

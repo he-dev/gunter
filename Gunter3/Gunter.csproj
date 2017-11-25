@@ -6,6 +6,7 @@
     <AssemblyName>Gunter</AssemblyName>
     <RootNamespace>Gunter</RootNamespace>
     <Configurations>Debug;Release;Debug.clasifid</Configurations>
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -22,11 +23,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="TehCodez\Data\CompositeKey.cs" />
-    <Compile Remove="TehCodez\Data\GlobalFile.cs" />
-    <Compile Remove="TehCodez\Data\TestSeverity.cs" />
-    <Compile Remove="TehCodez\Data\TestUnit.cs" />
-    <Compile Remove="TehCodez\Extensions\StringExtensions.cs" />
+    <Compile Remove="TehCodez\Services\FileSystem.cs" />
+    <Compile Remove="TehCodez\Services\PathResolver.cs" />
     <Compile Remove="TehCodez\Services\TestComposer.cs" />
   </ItemGroup>
 
@@ -39,23 +37,24 @@
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NLog" Version="4.4.12" />
-    <PackageReference Include="Reusable.Converters" Version="3.81.0" />
-    <PackageReference Include="Reusable.Core" Version="3.81.0" />
-    <PackageReference Include="Reusable.Flawless" Version="3.81.0" />
-    <PackageReference Include="Reusable.MarkupBuilder" Version="3.81.0" />
-    <PackageReference Include="Reusable.Net.Mail" Version="3.81.0" />
-    <PackageReference Include="Reusable.Net.Mail.SmtpClient" Version="3.81.0" />
-    <PackageReference Include="Reusable.OmniLog" Version="3.81.0" />
-    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="3.81.0" />
+    <PackageReference Include="Reusable.Converters" Version="3.86.0" />
+    <PackageReference Include="Reusable.Core" Version="3.86.0" />
+    <PackageReference Include="Reusable.Flawless" Version="3.86.0" />
+    <PackageReference Include="Reusable.MarkupBuilder" Version="3.86.0" />
+    <PackageReference Include="Reusable.Net.Mail" Version="3.86.0" />
+    <PackageReference Include="Reusable.Net.Mail.SmtpClient" Version="3.86.0" />
+    <PackageReference Include="Reusable.OmniLog" Version="3.86.0" />
+    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="3.86.0" />
     <PackageReference Include="Reusable.OmniLog.SemLog" Version="3.78.1" />
-    <PackageReference Include="Reusable.SemanticVersion" Version="3.81.0" />
-    <PackageReference Include="Reusable.SmartConfig.AppConfig" Version="3.81.0" />
-    <PackageReference Include="Reusable.SmartConfig.Binding" Version="3.81.0" />
-    <PackageReference Include="Reusable.SmartConfig.Core" Version="3.81.0" />
-    <PackageReference Include="Reusable.SmartConfig.JsonSettingConverter" Version="3.81.0" />
-    <PackageReference Include="Reusable.SqlSchemaReader" Version="3.81.0" />
-    <PackageReference Include="Reusable.ThirdParty.JsonNetUtilities" Version="3.81.0" />
-    <PackageReference Include="Reusable.ThirdParty.NLogUtilities" Version="3.81.0" />
+    <PackageReference Include="Reusable.SemanticVersion" Version="3.86.0" />
+    <PackageReference Include="Reusable.SmartConfig.AppConfig" Version="3.86.0" />
+    <PackageReference Include="Reusable.SmartConfig.Binding" Version="3.86.0" />
+    <PackageReference Include="Reusable.SmartConfig.Core" Version="3.86.0" />
+    <PackageReference Include="Reusable.SmartConfig.InMemory" Version="3.86.0" />
+    <PackageReference Include="Reusable.SmartConfig.JsonSettingConverter" Version="3.86.0" />
+    <PackageReference Include="Reusable.SqlSchemaReader" Version="3.86.0" />
+    <PackageReference Include="Reusable.ThirdParty.JsonNetUtilities" Version="3.86.0" />
+    <PackageReference Include="Reusable.ThirdParty.NLogUtilities" Version="3.86.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
     <PackageReference Include="System.Reactive" Version="3.1.1" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />

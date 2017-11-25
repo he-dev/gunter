@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Reporting;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.OmniLog;

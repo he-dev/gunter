@@ -6,7 +6,6 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.OmniLog;

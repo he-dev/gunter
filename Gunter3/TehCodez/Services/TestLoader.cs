@@ -3,36 +3,36 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Gunter.Data;
-using Gunter.Services.Validators;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable;
+using Reusable.IO;
 using Reusable.OmniLog;
+using Reusable.SmartConfig;
 
-namespace Gunter.Services
+namespace Gunter
 {
-    internal interface ITestLoader
-    {
-        IEnumerable<TestFile> LoadTests(string path);
-    }
-
     [UsedImplicitly]
     internal class TestLoader : ITestLoader
     {
         private readonly ILogger _logger;
-        private readonly IPathResolver _pathResolver;
         private readonly IFileSystem _fileSystem;
+        private readonly IVariableValidator _variableValidator;
         private readonly AutofacContractResolver _autofacContractResolver;
+        private readonly IEnumerable<string> _lookupPaths;
 
         public TestLoader(
             ILoggerFactory loggerFactory,
-            IPathResolver pathResolver,
+            IConfiguration configuration,
             IFileSystem fileSystem,
+            IVariableValidator variableValidator,
             AutofacContractResolver autofacContractResolver)
         {
             _logger = loggerFactory.CreateLogger(nameof(TestLoader));
-            _pathResolver = pathResolver;
             _fileSystem = fileSystem;
+            _variableValidator = variableValidator;
             _autofacContractResolver = autofacContractResolver;
+            _lookupPaths = configuration.Select<List<string>>("LookupPaths");
         }
 
         public string GlobalTestFileName { get; set; } = "_Global.json";
@@ -45,7 +45,7 @@ namespace Gunter.Services
 
             foreach (var testFile in testFiles[true])
             {
-                MergeGlobals(testFile.Locals, global.Locals);
+                testFile.Locals = MergeVariables(global.Locals, testFile.Locals);
                 yield return testFile;
             }
 
@@ -57,8 +57,8 @@ namespace Gunter.Services
 
         private IEnumerable<TestFile> LoadTestFiles(string path)
         {
-            var fullPath = _pathResolver.ResolveDirectoryPath(path);
-            var jsonFiles = _fileSystem.GetFiles(fullPath, "*.json");
+            var testFilesDirectoryName = _fileSystem.FindDirectory(path, _lookupPaths);
+            var jsonFiles = _fileSystem.EnumerateFiles(testFilesDirectoryName).Where(FileFilterFactory.Default.Create(".json"));
 
             foreach (var jsonFile in jsonFiles)
             {
@@ -83,7 +83,7 @@ namespace Gunter.Services
                 });
                 testFile.FullName = fileName;
 
-                //VariableValidator.ValidateNamesNotReserved(testFile.Locals, testFile.Locals.Select(x => x.Key));
+                _variableValidator.ValidateNamesNotReserved(testFile.Locals);
 
                 return true;
             }
@@ -94,21 +94,13 @@ namespace Gunter.Services
             }
         }
 
-        private static void MergeGlobals(IDictionary<string, object> locals, IDictionary<string, object> globals)
+        private static Dictionary<SoftString, object> MergeVariables(IDictionary<SoftString, object> globals, IDictionary<SoftString, object> locals)
         {
-            foreach (var global in globals)
-            {
-                if (!locals.ContainsKey(global.Key))
-                {
-                    locals[global.Key] = global.Value;
-                }
-            }
-
-            //var localVariables =
-            //    globalTestFile.Locals.Concat(testFile.Locals)
-            //        .GroupBy(x => x.Key)
-            //        .Select(g => g.Last())
-            //        .ToDictionary(x => x.Key, x => x.Value);
+            return
+                globals.Concat(locals)
+                    .GroupBy(x => x.Key)
+                    .Select(g => g.Last())
+                    .ToDictionary(x => x.Key, x => x.Value);
         }
     }
 }

@@ -4,59 +4,18 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Reusable;
 using Reusable.Collections;
 
-namespace Gunter.Services
+namespace Gunter.Data
 {
-    //internal interface IVariableContainer
-    //{
-    //    IEnumerable<string> Names { get; }
-    //    IVariableContainer Add(RuntimeVariable runtimeVariable);
-    //    //IVariableContainer Add(Type type, string name, Func<object, object> getValueFunc);
-    //    IEnumerable<KeyValuePair<string, object>> Resolve<T>(T obj);
-    //}
-
-    //internal class VariableContainer : IVariableContainer
-    //{
-    //    private readonly IDictionary<Type, HashSet<RuntimeVariable>> _variables = new Dictionary<Type, HashSet<RuntimeVariable>>();
-
-    //    public static IVariableContainer Empty => new VariableContainer();
-
-    //    public IEnumerable<string> Names => _variables.Values.SelectMany(x => x).Select(x => x.Name);
-
-    //    public IVariableContainer Add([NotNull] RuntimeVariable runtimeVariable)
-    //    {
-    //        if (runtimeVariable == null) throw new ArgumentNullException(nameof(runtimeVariable));
-
-    //        if (_variables.TryGetValue(runtimeVariable.DeclaringType, out var testVariables) && !testVariables.Add(runtimeVariable))
-    //        {
-    //            //throw new ArgumentException($"Variable \"{variable.Name}\" has already been added.");
-    //        }
-
-    //        _variables.Add(runtimeVariable.DeclaringType, new HashSet<RuntimeVariable> { runtimeVariable });
-
-    //        return this;
-    //    }
-
-    //    public IEnumerable<KeyValuePair<string, object>> Resolve<T>(T obj)
-    //    {
-    //        if (_variables.TryGetValue(typeof(T), out var testVariables))
-    //        {
-    //            foreach (var variable in testVariables)
-    //            {
-    //                yield return new KeyValuePair<string, object>(variable.Name, variable.GetValue(obj));
-    //            }
-    //        }
-    //    }
-    //}
-
     public interface IRuntimeVariable : IEquatable<IRuntimeVariable>
     {
         [AutoEqualityProperty]
         Type DeclaringType { get; }
 
         [AutoEqualityProperty]
-        string Name { get; }
+        SoftString Name { get; }
 
         object GetValue<T>(T obj);
     }
@@ -74,7 +33,7 @@ namespace Gunter.Services
 
         public Type DeclaringType { get; }
 
-        public string Name { get; }
+        public SoftString Name { get; }
 
         public object GetValue<T>(T obj)
         {
@@ -82,7 +41,7 @@ namespace Gunter.Services
         }
 
         [NotNull]
-        public static RuntimeVariable FromExpression<T>(Expression<Func<T, object>> expression)
+        public static IRuntimeVariable FromExpression<T>(Expression<Func<T, object>> expression)
         {
             var parameter = Expression.Parameter(typeof(object), "obj");
             var converted = ParameterConverter<T>.Convert(expression.Body, parameter);
@@ -130,12 +89,12 @@ namespace Gunter.Services
 
     internal static class RuntimeVariableExtensions
     {
-        public static IEnumerable<KeyValuePair<string, object>> Resolve<T>(this IEnumerable<IRuntimeVariable> variables, T obj)
+        public static IEnumerable<KeyValuePair<SoftString, object>> Resolve<T>(this IEnumerable<IRuntimeVariable> variables, T obj)
         {
             return
                 variables
                     .Where(x => typeof(T).IsAssignableFrom(x.DeclaringType))
-                    .Select(x => new KeyValuePair<string, object>(x.Name, x.GetValue(obj)));
+                    .Select(x => new KeyValuePair<SoftString, object>(x.Name, x.GetValue(obj)));
         }
     }
 

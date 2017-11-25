@@ -7,7 +7,6 @@ using System.Text;
 using Gunter.Data;
 using Gunter.Extensions;
 using Gunter.Reporting;
-using Gunter.Services;
 using Reusable.Extensions;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
