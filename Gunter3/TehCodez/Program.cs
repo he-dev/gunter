@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Autofac;
+using Gunter.Data;
 using Gunter.JsonConverters;
 using Gunter.Modules;
 using Newtonsoft.Json;
@@ -23,7 +24,11 @@ namespace Gunter
     {
         private static ILogger _logger;
 
+        public static readonly string Product = "Gunter";
+
         public static readonly string Version = "3.0.0";
+
+        public static readonly string FullName = $"{Product}-v{Version}";
 
         [Required]
         public static string Environment { get; set; }
@@ -118,7 +123,8 @@ namespace Gunter
                         Attachements = new HashSet<ILogAttachement>
                         {
                             new AppSetting("Environment", "Environment"),
-                            new AppSetting("Product", "Product"),
+                            //new AppSetting("Product", "Product"),
+                            new Lambda("Product", log => FullName),
                             new Timestamp<UtcDateTime>(),
                             new Snapshot
                             {

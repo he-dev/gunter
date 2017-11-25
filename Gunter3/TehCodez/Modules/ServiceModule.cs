@@ -10,8 +10,8 @@ namespace Gunter.Modules
         protected override void Load(ContainerBuilder builder)
         {
             builder
-                .RegisterType<RuntimeFormatter>()
-                .As<IRuntimeFormatter>();
+                .RegisterType<RuntimeFormatterFactory>()
+                .As<IRuntimeFormatterFactory>();
 
             builder
                 .Register(c =>

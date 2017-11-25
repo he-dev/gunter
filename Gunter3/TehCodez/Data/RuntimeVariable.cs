@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Reflection;
 
 namespace Gunter.Data
 {
@@ -47,7 +48,20 @@ namespace Gunter.Data
             var converted = ParameterConverter<T>.Convert(expression.Body, parameter);
             var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
 
-            return new RuntimeVariable(typeof(T), CreateName(expression), getValueFunc);
+            return new RuntimeVariable(
+                typeof(T), 
+                CreateName(expression), getValueFunc
+            );
+        }
+
+        [NotNull]
+        public static IRuntimeVariable FromExpression(Expression<Func<object>> expression)
+        {
+            var memberExpression = (MemberExpression) expression.Body;
+            return new RuntimeVariable(
+                memberExpression.Member.DeclaringType, 
+                CreateName(expression), _ => expression.Compile()()
+            );
         }
 
         private static string CreateName(Expression expression)
@@ -85,17 +99,39 @@ namespace Gunter.Data
         public override bool Equals(object other) => other is IRuntimeVariable runtimeVariable && Equals(runtimeVariable);
 
         public override int GetHashCode() => AutoEquality<IRuntimeVariable>.Comparer.GetHashCode(this);
+
+        #region Definitions
+
+        public static class Program
+        {
+            public static readonly IRuntimeVariable FullName = FromExpression(() => Gunter.Program.FullName);
+            public static readonly IRuntimeVariable Environment = FromExpression(() => Gunter.Program.Environment);
+        }
+
+        public static class TestFile
+        {
+            public static readonly IRuntimeVariable FullName = FromExpression<Gunter.Data.TestFile>(x => x.FullName);
+            public static readonly IRuntimeVariable FileName = FromExpression<Gunter.Data.TestFile>(x => x.FileName);
+        }
+
+        public static class TestCase
+        {
+            public static readonly IRuntimeVariable Level = FromExpression<Gunter.Data.TestCase>(x => x.Level);
+            public static readonly IRuntimeVariable Message = FromExpression<Gunter.Data.TestCase>(x => x.Message);
+        }
+
+        #endregion
     }
 
     internal static class RuntimeVariableExtensions
     {
-        public static IEnumerable<KeyValuePair<SoftString, object>> Resolve<T>(this IEnumerable<IRuntimeVariable> variables, T obj)
+        public static IEnumerable<KeyValuePair<SoftString, object>> Resolve(this IEnumerable<IRuntimeVariable> variables, object obj)
         {
             return
                 variables
-                    .Where(x => typeof(T).IsAssignableFrom(x.DeclaringType))
+                    .Where(x => obj?.GetType().IsAssignableFrom(x.DeclaringType) ?? x.DeclaringType.IsStatic())
                     .Select(x => new KeyValuePair<SoftString, object>(x.Name, x.GetValue(obj)));
-        }
+        }     
     }
 
     internal class ParameterConverter<T> : ExpressionVisitor

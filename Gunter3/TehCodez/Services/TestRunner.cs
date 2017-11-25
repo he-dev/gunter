@@ -16,17 +16,14 @@ namespace Gunter
     internal class TestRunner : ITestRunner
     {
         private readonly ILogger _logger;
-        private readonly IRuntimeFormatter _runtimeFormatter;
-        private readonly IEnumerable<IRuntimeVariable> _runtimeVariables;
+        private readonly IRuntimeFormatterFactory _runtimeFormatterFactory;
 
         public TestRunner(
             ILoggerFactory loggerFactory,
-            IRuntimeFormatter runtimeFormatter,
-            IEnumerable<IRuntimeVariable> runtimeVariables)
+            IRuntimeFormatterFactory runtimeFormatterFactory)
         {
             _logger = loggerFactory.CreateLogger(nameof(TestRunner));
-            _runtimeFormatter = runtimeFormatter;
-            _runtimeVariables = runtimeVariables;
+            _runtimeFormatterFactory = runtimeFormatterFactory;
         }
 
         public async Task RunTestsAsync(TestFile testFile, IEnumerable<SoftString> profiles)
@@ -48,7 +45,7 @@ namespace Gunter
                 foreach (var current in tests)
                 {
                     try
-                    {                        
+                    {
                         if (!await RunTestAsync(testFile, current, cache))
                         {
                             break;
@@ -88,25 +85,18 @@ namespace Gunter
 
             const bool canContinue = true;
 
-            var testFileVariables = _runtimeVariables.Resolve(testFile);
-            var testCaseVariables = _runtimeVariables.Resolve(current.testCase);
-            var dataSourceVariables = _runtimeVariables.Resolve(current.dataSource);
-
-            _logger.State(Layer.Application, () => (nameof(testFileVariables), testFileVariables));
-            _logger.State(Layer.Application, () => (nameof(testCaseVariables), testCaseVariables));
-            _logger.State(Layer.Application, () => (nameof(dataSourceVariables), dataSourceVariables));
-
-            var formatter =
-                _runtimeFormatter
-                    .AddRange(testFile.Locals)
-                    .AddRange(testFileVariables)
-                    .AddRange(testCaseVariables)
-                    .AddRange(dataSourceVariables);            
+            var runtimeFormatter = 
+                _runtimeFormatterFactory
+                    .Create(
+                        testFile.Locals, 
+                        testFile, 
+                        current.testCase, 
+                        current.dataSource);          
 
             if (!cache.TryGetValue(current.dataSource.Id, out var data))
             {
                 var getDataStopwatch = Stopwatch.StartNew();
-                var value = await current.dataSource.GetDataAsync(formatter);
+                var value = await current.dataSource.GetDataAsync(runtimeFormatter);
                 cache[current.dataSource.Id] = data = (value, getDataStopwatch.Elapsed);
             }
 
@@ -144,7 +134,7 @@ namespace Gunter
                             Data = data.Value,
                             GetDataElapsed = data.Elapsed,
                             RunTestElapsed = computeStopwatch.Elapsed,
-                            Formatter = formatter
+                            Formatter = runtimeFormatter
                         });
 
                         //_logger.Log(e => e.Message($"Published alert {alert.Id} for test {testUnit.TestNumber} in {testUnit.FileName}."));

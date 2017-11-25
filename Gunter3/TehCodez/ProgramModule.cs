@@ -32,15 +32,18 @@ namespace Gunter
                 .RegisterInstance(_configuration)
                 .As<IConfiguration>();
 
+            // todo add other runtime variables
+
             var runtimeVariables = new []
             {
-                RuntimeVariable.FromExpression<TestFile>(x => x.FullName),
-                RuntimeVariable.FromExpression<TestFile>(x => x.FileName),
-                RuntimeVariable.FromExpression<TestCase>(x => x.Level),
-                RuntimeVariable.FromExpression<TestCase>(x => x.Message),
+                RuntimeVariable.TestFile.FullName,
+                RuntimeVariable.TestFile.FileName,
+                RuntimeVariable.TestCase.Level,
+                RuntimeVariable.TestCase.Message,
                 //RuntimeVariable.FromExpression<TestCase>(x => x.Elapsed),
                 //RuntimeVariable.FromExpression<Program>(x => x.Environment),
-                //RuntimeVariable.FromExpression<Program>(x => x.Name),
+                RuntimeVariable.Program.FullName,
+                RuntimeVariable.Program.Environment,
                 //RuntimeVariable.FromExpression<IDataSource>(x => x.Elapsed)
             };
 
@@ -62,10 +65,5 @@ namespace Gunter
 
             //Logger.Create<Program>().Log(e => e.Debug().Message("IoC initialized."));
         }
-    }
-
-    public class TestConfigurationException : Exception
-    {
-        public TestConfigurationException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

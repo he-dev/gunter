@@ -98,18 +98,5 @@ namespace Gunter.Messaging.Emails
 
             IModuleRenderer FindRenderer(IModule module) => _renderers.Single(r => r.CanRender(module));
         }
-    }
-
-    //public class ServiceProvider : IServiceProvider
-    //{
-    //    private readonly IDictionary<Type, object> _services = new Dictionary<Type, object>();
-
-    //    public ServiceProvider AddService<TServcie>(TServcie service)
-    //    {
-    //        _services.Add(typeof(TServcie), service);
-    //        return this;
-    //    }
-
-    //    public object GetService(Type serviceType) => _services.TryGetValue(serviceType, out var service) ? service : null;
-    //}
+    }    
 }
