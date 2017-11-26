@@ -1,9 +1,0 @@
-{
-  "Locals": {
-    "TEST_LOG": "data source=(local);initial catalog=TEST_LOG;integrated security=true"
-  },
-  "DataSources": [],
-  "Tests": [],
-  "Alerts": [],
-  "Reports": []
-}

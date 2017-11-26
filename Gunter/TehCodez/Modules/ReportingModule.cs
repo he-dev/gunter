@@ -14,8 +14,8 @@ namespace Gunter.Modules
                 .As<IReport>();
 
             //builder.RegisterType<Level>();
-            builder.RegisterType<TestCaseInfo>();
-            builder.RegisterType<DataSourceInfo>();
+            builder.RegisterType<TestCase>();
+            builder.RegisterType<DataSource>();
             builder.RegisterType<DataSummary>();
         }
     }

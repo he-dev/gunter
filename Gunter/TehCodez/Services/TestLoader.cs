@@ -46,6 +46,9 @@ namespace Gunter
             foreach (var testFile in testFiles[true])
             {
                 testFile.Locals = MergeVariables(global.Locals, testFile.Locals);
+                testFile.DataSources = testFile.DataSources.Concat(global.DataSources).ToList();
+                testFile.Messages = testFile.Messages.Concat(global.Messages).ToList();
+                testFile.Reports = testFile.Reports.Concat(global.Reports).ToList();
                 yield return testFile;
             }
 

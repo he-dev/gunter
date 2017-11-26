@@ -9,7 +9,7 @@ using Reusable.Data;
 
 namespace Gunter.Reporting.Modules
 {
-    public class DataSourceInfo : Module, ITabular
+    public class DataSource : Module, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
@@ -27,7 +27,7 @@ namespace Gunter.Reporting.Modules
         {
             // Initialize the data-table;
             var dataTable =
-                new DataTable(nameof(DataSourceInfo))
+                new DataTable(nameof(DataSource))
                     .AddColumn("Property", c => c.DataType = typeof(string))
                     .AddColumn("Value", c => c.DataType = typeof(string));
 

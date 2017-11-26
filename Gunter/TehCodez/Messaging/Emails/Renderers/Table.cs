@@ -66,8 +66,9 @@ namespace Gunter.Messaging.Emails.Renderers
                         // Normally we would use "th" here but Outlook sucks and renders only crap.
                         tr
                             .Element("th", th => th
+                                .Append(dataColumn.ColumnName)
                                 .@class("cell", "table-header")
-                                .Append(dataColumn.ColumnName));
+                            );
                     }
 
                     var thead = Html.Element("thead");
@@ -96,15 +97,17 @@ namespace Gunter.Messaging.Emails.Renderers
                             // Normally we would use "th" here but Outlook sucks and renders only crap.
                             tr
                                 .Element("th", th => th
+                                    .Append(dataRow.Field<string>(dataColumn.ColumnName))
                                     .@class("cell", "table-header")
-                                    .Append(dataRow.Field<string>(dataColumn.ColumnName)));
+                                );
                         }
                         else
                         {
                             tr
                                 .Element("td", td => td
+                                    .Append(dataRow.Field<string>(dataColumn.ColumnName))
                                     .@class("cell")
-                                    .Append(dataRow.Field<string>(dataColumn.ColumnName)));
+                                );
                         }
                     }
 

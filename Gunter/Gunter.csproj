@@ -29,6 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\Classified\Gunter\_Tests\clasifid.json" Link="_Tests\clasifid.json" />
+    <Content Include="..\..\Classified\Gunter\_Tests\_Global.json" Link="_Tests\_Global.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\Classified\Gunter\_AppConfigs\Debug.clasifid.App.config" Link="_AppConfigs\Debug.clasifid.App.config" />
   </ItemGroup>
 
