@@ -97,20 +97,8 @@ namespace Gunter.Data.SqlClient
 
             return Commands.Select(cmd => (cmd.Name, Text: format(cmd.Text)));
         }
-
-        //public string ToString(string format, IFormatProvider formatProvider)
-        //{
-        //    switch (format)
-        //    {
-        //        case string s when s.Equals(CommandName.Main, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Main].Text;
-        //        case string s when s.Equals(CommandName.Debug, StringComparison.OrdinalIgnoreCase): return Commands[CommandName.Debug].Text;
-        //        default: return base.ToString();
-        //    }
-        //}
-
     }
 
-    //[JsonObject]
     [PublicAPI]
     public class Command
     {

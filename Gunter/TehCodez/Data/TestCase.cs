@@ -59,7 +59,7 @@ namespace Gunter.Data
                  select ds).Distinct();
         }
 
-        public static IEnumerable<IMessage> Alerts(this TestCase testCase, TestFile testFile)
+        public static IEnumerable<IMessage> Messages(this TestCase testCase, TestFile testFile)
         {
             return
                 (from id in testCase.MessageIds
@@ -70,7 +70,7 @@ namespace Gunter.Data
         public static IEnumerable<IReport> Reports(this TestCase testCase, TestFile testFile)
         {
             return
-                (from id in testCase.Alerts(testFile).SelectMany(alert => alert.ReportIds)
+                (from id in testCase.Messages(testFile).SelectMany(alert => alert.ReportIds)
                  join report in testFile.Reports on id equals report.Id
                  select report).Distinct();
         }

@@ -119,9 +119,9 @@ namespace Gunter
 
                 if (mustAlert)
                 {
-                    foreach (var alert in current.testCase.Alerts(testFile))
+                    foreach (var message in current.testCase.Messages(testFile))
                     {
-                        await alert.PublishAsync(new TestContext
+                        await message.PublishAsync(new TestContext
                         {
                             TestFile = testFile,
                             TestCase = current.testCase,

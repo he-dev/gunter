@@ -7,6 +7,7 @@ using Gunter.Reporting;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.OmniLog;
+using Reusable.OmniLog.SemLog;
 
 namespace Gunter.Messaging
 {
@@ -37,8 +38,6 @@ namespace Gunter.Messaging
 
         public async Task PublishAsync(TestContext context)
         {
-            //Logger.Log(e => e.Debug().Message($"Publishing alert {Id}."));
-
             var reports =
                 from id in ReportIds
                 join report in context.TestFile.Reports on id equals report.Id
@@ -46,24 +45,23 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                //var logger = Logger.BeginLog(e => e.Stopwatch(sw => sw.Start()));
-
+                var scope = Logger.BeginScope(log => log.Transaction($"Report: {report.Id}").Elapsed());
                 try
                 {
-                    await PublishReport(report, context);
-                    //logger.LogEntry.Info().Message($"Published report {report.Id}.");
+                    await PublishReportAsync(report, context);
+                    Logger.Success(Layer.Network);
                 }
                 catch (Exception ex)
                 {
-                    //logger.LogEntry.Error().Exception(ex).Message($"Could not publish report {report.Id}.");
+                    Logger.Failure(Layer.Network, ex);
                 }
                 finally
                 {
-                    //logger.EndLog();
+                    scope.Dispose();
                 }
             }
         }
 
-        protected abstract Task PublishReport(IReport report, TestContext context);
+        protected abstract Task PublishReportAsync(IReport report, TestContext context);
     }
 }

@@ -13,6 +13,7 @@ using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 using Reusable.Net.Mail;
 using Reusable.OmniLog;
+using Reusable.OmniLog.SemLog;
 using Reusable.SmartConfig;
 
 namespace Gunter.Messaging.Emails
@@ -65,11 +66,13 @@ namespace Gunter.Messaging.Emails
         [JsonRequired]
         public IEmailClient EmailClient { get; set; }
 
-        protected override async Task PublishReport(IReport report, TestContext context)
+        protected override async Task PublishReportAsync(IReport report, TestContext context)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
             var body = HtmlElement.Builder.Element("body");
+
+            Logger.State(Layer.Business, () => ("Report", new { ModuleCount = report.Modules.Count, ModuleTypes = report.Modules.Select(m => m.GetType().Name) }));
 
             foreach (var module in report.Modules)
             {
@@ -80,7 +83,7 @@ namespace Gunter.Messaging.Emails
                 }
             }
 
-            //Logger.Log(e => e.Message($"Sending report {report.Id} to \"{To}\"."));
+            Logger.State(Layer.Business, Snapshot.Properties<HtmlEmail>(new { To }));
 
             body = _cssInliner.Inline(_css.Value, body);
 
@@ -98,5 +101,5 @@ namespace Gunter.Messaging.Emails
 
             IRenderer FindRenderer(IModule module) => _renderers.Single(r => r.CanRender(module));
         }
-    }    
+    }
 }
