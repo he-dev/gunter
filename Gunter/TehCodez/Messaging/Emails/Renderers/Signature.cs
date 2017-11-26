@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using Gunter.Data;
 using Gunter.Reporting;
-using Gunter.Reporting.Modules;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 
-namespace Gunter.Messaging.Emails.ModuleRenderers
+namespace Gunter.Messaging.Emails.Renderers
 {
-    [CanRender(typeof(Signature))]
-    public class SignatureRenderer : ModuleRenderer
+    [CanRender(typeof(Reporting.Modules.Signature))]
+    public class Signature : Renderer
     {
         public override IEnumerable<IHtmlElement> Render(IModule module, TestContext context)
         {

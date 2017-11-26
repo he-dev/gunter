@@ -1,91 +1,88 @@
-﻿.module-heading {
-	font-family: Sans-Serif;
-	color: #5D6D7E;
-	font-weight: normal;
+﻿.heading {
+    font-family: Sans-Serif;
+    color: #3F6699;
+    font-weight: normal;
 }
 
-.text {
-	font-family: Sans-Serif;
+.paragraph {
+    font-family: Sans-Serif;
 }
 
-.test-case-severity {
-	font-family: Consolas, monospace;
-	font-size: 1em;
-	color: white;	
-	margin: 0 0.5em 0 0;
+.message {
+    color: #971549;
 }
 
-.severity-debug {
-	background-color: #2874A6;
+.test-case-level {
+    font-family: Consolas, monospace;
+    font-size: 1em;
+    color: white;
+    margin: 0 0.5em 0 0;
+    text-align: center;
+    text-transform: uppercase;
 }
 
-.severity-info {
-	background-color: #229954;
+.trace {
+    background-color: #6643B5;
 }
 
-.severity-warn {
-	background-color: #D4AC0D;
+.debug {
+    background-color: #2874A6;
 }
 
-.severity-error {
-	background-color: #C0392B;
+.information {
+    background-color: #229954;
+}
+
+.warning {
+    background-color: #D4AC0D;
+}
+
+.error {
+    background-color: #C0392B;
 }
 
 .severity-fatal {
-	background-color: #E74C3C;
-}
-
-.article-heading {
-	font-family: Sans-Serif;
-	color: #7F8B7A;
-	font-weight: normal;
-}
-
-.command-main {
-	color: #2E86C1;
-}
-
-.command-debug {
-	color: #A6ACAF;
+    background-color: #E74C3C;
 }
 
 hr {
-	border: 0;
-	border-bottom: 1px solid #ccc;
-	background: #CCC
+    border: 0;
+    border-bottom: 1px solid #ccc;
+    background: #CCC
 }
 
 .table {
-	border: 1px solid #742846;
-	border-collapse: collapse;
-	font-family: Consolas, monospace, trebuchet ms, sans-serif;
-	font-size: 1em;
-	color: #50514F;
+    border: 1px solid #742846;
+    border-collapse: collapse;
+    font-family: Consolas, monospace, trebuchet ms, sans-serif;
+    font-size: 1em;
+    color: #50514F;
 }
 
 .cell {
-	border: 1px solid #999999;
-	padding: 5px;
+    border: 1px solid #9A9B94;
+    padding: 5px;
 }
 
 .table-header {
-	background-color: #C6DABF;
-	text-align: left;
+    background-color: #E9E9E5;
+    text-align: left;
+    font-weight: normal;
 }
 
 .table-footer {
-	font-style: italic;
-	background-color: #D5E4D0;
-	color: #50514F;
-	font-size: 0.75em
+    font-style: italic;
+    background-color: #ECECEC;
+    color: #50514F;
+    font-size: 0.75em
 }
 
 .auto-generated-by {
-	font-family: sans-serif;
-	font-size: 12px;
-	color: #A0A0A0;
+    font-family: sans-serif;
+    font-size: 12px;
+    color: #A0A0A0;
 }
 
-.app-name {
-	color: #247BA0;
+.product-name {
+    color: #247BA0;
 }

@@ -8,10 +8,10 @@ using Reusable.Extensions;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 
-namespace Gunter.Messaging.Emails.ModuleRenderers
+namespace Gunter.Messaging.Emails.Renderers
 {
     [CanRender(typeof(ITabular))]
-    public class TableRenderer : ModuleRenderer
+    public class Table : Renderer
     {
         private static readonly string DateTimeFormat = CultureInfo.InvariantCulture.DateTimeFormat.SortableDateTimePattern;
 
@@ -27,8 +27,8 @@ namespace Gunter.Messaging.Emails.ModuleRenderers
             if (module.Heading.IsNotNullOrEmpty())
             {
                 yield return Html
-                    .Element("h2", h2 => h2
-                        .@class("module-heading")
+                    .Element("h3", h3 => h3
+                        .@class("heading")
                         .Append(format(module.Heading)));
             }
 
@@ -36,7 +36,7 @@ namespace Gunter.Messaging.Emails.ModuleRenderers
             {
                 yield return Html
                     .Element("p", p => p
-                        .@class("text")
+                        .@class("paragraph")
                         .Append(format(module.Text)));
             }
 

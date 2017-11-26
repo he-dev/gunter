@@ -2,7 +2,7 @@
 using System.IO;
 using Autofac;
 using Gunter.Messaging.Emails;
-using Gunter.Messaging.Emails.ModuleRenderers;
+using Gunter.Messaging.Emails.Renderers;
 using Reusable.MarkupBuilder.Html;
 using Reusable.SmartConfig;
 
@@ -13,20 +13,24 @@ namespace Gunter.Modules
         protected override void Load(ContainerBuilder builder)
         {
             builder
-                .RegisterType<GreetingRenderer>()
-                .As<ModuleRenderer>();
+                .RegisterType<Level>()
+                .As<IRenderer>();
 
             builder
-                .RegisterType<TableRenderer>()
-                .As<ModuleRenderer>();
+                .RegisterType<Greeting>()
+                .As<IRenderer>();
 
             builder
-                .RegisterType<SignatureRenderer>()
-                .As<ModuleRenderer>();
+                .RegisterType<Table>()
+                .As<IRenderer>();
 
             builder
-                .RegisterType<CssInliner>();
-            //.As<ICssInliner>();
+                .RegisterType<Signature>()
+                .As<IRenderer>();
+
+            builder
+                .RegisterType<CssInliner>()
+                .As<ICssInliner>();
 
             builder
                 .RegisterType<CssParser>()

@@ -11,13 +11,13 @@ using Reusable.MarkupBuilder.Html;
 namespace Gunter.Messaging.Emails
 {
     [PublicAPI]
-    public interface IModuleRenderer
+    public interface IRenderer
     {
         bool CanRender(IModule module);
         IEnumerable<IHtmlElement> Render([NotNull] IModule module, [NotNull] TestContext context);
     }
 
-    public abstract class ModuleRenderer : IModuleRenderer
+    public abstract class Renderer : IRenderer
     {
         public bool CanRender(IModule module)
         {

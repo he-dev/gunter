@@ -23,8 +23,8 @@ namespace Gunter.Messaging.Emails
         private readonly IConfiguration _configuration;
         private readonly IFileSystem _fileSystem;
         private readonly ICssParser _cssParser;
-        private readonly IEnumerable<ModuleRenderer> _renderers;
-        private readonly CssInliner _cssInliner;
+        private readonly IEnumerable<IRenderer> _renderers;
+        private readonly ICssInliner _cssInliner;
 
         private readonly Lazy<Css> _css;
 
@@ -35,8 +35,8 @@ namespace Gunter.Messaging.Emails
             IConfiguration configuration,
             IFileSystem fileSystem,
             ICssParser cssParser,
-            CssInliner cssInliner,
-            IEnumerable<ModuleRenderer> renderers)
+            ICssInliner cssInliner,
+            IEnumerable<IRenderer> renderers)
             : base(loggerFactory)
         {
             _configuration = configuration;
@@ -96,7 +96,7 @@ namespace Gunter.Messaging.Emails
 
             await EmailClient.SendAsync(email);
 
-            IModuleRenderer FindRenderer(IModule module) => _renderers.Single(r => r.CanRender(module));
+            IRenderer FindRenderer(IModule module) => _renderers.Single(r => r.CanRender(module));
         }
     }    
 }

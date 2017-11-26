@@ -49,14 +49,16 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Autofac, Version=4.6.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\packages\Autofac.4.6.0\lib\net45\Autofac.dll</HintPath>
+    <Reference Include="Autofac, Version=4.6.2.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.4.6.2\lib\net45\Autofac.dll</HintPath>
     </Reference>
     <Reference Include="JetBrains.Annotations, Version=11.1.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
       <HintPath>..\packages\JetBrains.Annotations.11.1.0\lib\net20\JetBrains.Annotations.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -64,52 +66,52 @@
       <HintPath>..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Converters, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Converters.3.78.1\lib\net462\Reusable.Converters.dll</HintPath>
+      <HintPath>..\packages\Reusable.Converters.3.87.0\lib\net462\Reusable.Converters.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Core, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Core.3.78.1\lib\net462\Reusable.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.Core.3.87.0\lib\net462\Reusable.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Flawless, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Flawless.3.78.1\lib\net462\Reusable.Flawless.dll</HintPath>
+      <HintPath>..\packages\Reusable.Flawless.3.87.0\lib\net462\Reusable.Flawless.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.MarkupBuilder, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.MarkupBuilder.3.78.1\lib\net462\Reusable.MarkupBuilder.dll</HintPath>
+      <HintPath>..\packages\Reusable.MarkupBuilder.3.87.0\lib\net462\Reusable.MarkupBuilder.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Net.Mail, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Net.Mail.3.78.1\lib\net462\Reusable.Net.Mail.dll</HintPath>
+      <HintPath>..\packages\Reusable.Net.Mail.3.87.0\lib\net462\Reusable.Net.Mail.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.Net.Mail.SmtpClient, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.Net.Mail.SmtpClient.3.78.1\lib\net462\Reusable.Net.Mail.SmtpClient.dll</HintPath>
+      <HintPath>..\packages\Reusable.Net.Mail.SmtpClient.3.87.0\lib\net462\Reusable.Net.Mail.SmtpClient.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.OmniLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.OmniLog.3.78.1\lib\net462\Reusable.OmniLog.dll</HintPath>
+      <HintPath>..\packages\Reusable.OmniLog.3.87.0\lib\net462\Reusable.OmniLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.OmniLog.NLogRx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.OmniLog.NLogRx.3.78.1\lib\net462\Reusable.OmniLog.NLogRx.dll</HintPath>
+      <HintPath>..\packages\Reusable.OmniLog.NLogRx.3.87.0\lib\net462\Reusable.OmniLog.NLogRx.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.OmniLog.SemLog, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Reusable.OmniLog.SemLog.3.78.1\lib\net462\Reusable.OmniLog.SemLog.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.SemanticVersion, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.SemanticVersion.3.78.1\lib\net462\Reusable.SemanticVersion.dll</HintPath>
+      <HintPath>..\packages\Reusable.SemanticVersion.3.87.0\lib\net462\Reusable.SemanticVersion.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.SmartConfig.AppConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.SmartConfig.AppConfig.3.78.1\lib\net452\Reusable.SmartConfig.AppConfig.dll</HintPath>
+      <HintPath>..\packages\Reusable.SmartConfig.AppConfig.3.87.0\lib\net452\Reusable.SmartConfig.AppConfig.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.SmartConfig.Binding, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.SmartConfig.Binding.3.78.1\lib\net452\Reusable.SmartConfig.Binding.dll</HintPath>
+      <HintPath>..\packages\Reusable.SmartConfig.Binding.3.87.0\lib\net452\Reusable.SmartConfig.Binding.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.SmartConfig.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.SmartConfig.Core.3.78.1\lib\net452\Reusable.SmartConfig.Core.dll</HintPath>
+      <HintPath>..\packages\Reusable.SmartConfig.Core.3.87.0\lib\net452\Reusable.SmartConfig.Core.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.SmartConfig.JsonSettingConverter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.SmartConfig.JsonSettingConverter.3.78.1\lib\net452\Reusable.SmartConfig.JsonSettingConverter.dll</HintPath>
+      <HintPath>..\packages\Reusable.SmartConfig.JsonSettingConverter.3.87.0\lib\net452\Reusable.SmartConfig.JsonSettingConverter.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ThirdParty.JsonNetUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ThirdParty.JsonNetUtilities.3.78.1\lib\net462\Reusable.ThirdParty.JsonNetUtilities.dll</HintPath>
+      <HintPath>..\packages\Reusable.ThirdParty.JsonNetUtilities.3.87.0\lib\net462\Reusable.ThirdParty.JsonNetUtilities.dll</HintPath>
     </Reference>
     <Reference Include="Reusable.ThirdParty.NLogUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Reusable.ThirdParty.NLogUtilities.3.78.1\lib\net462\Reusable.ThirdParty.NLogUtilities.dll</HintPath>
+      <HintPath>..\packages\Reusable.ThirdParty.NLogUtilities.3.87.0\lib\net462\Reusable.ThirdParty.NLogUtilities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -117,6 +119,9 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Reactive.Core, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Reactive.Core.3.1.1\lib\net46\System.Reactive.Core.dll</HintPath>
     </Reference>
@@ -132,12 +137,14 @@
     <Reference Include="System.Reactive.Windows.Threading, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Reactive.Windows.Threading.3.1.1\lib\net45\System.Reactive.Windows.Threading.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ValueTuple">
       <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net47\System.ValueTuple.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Windows" />
     <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <Choose>
@@ -171,14 +178,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <EmbeddedResource Include="Resources\assets\themes\default.css" />
     <None Include="app.config" />
-    <None Include="NLog.xsd">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

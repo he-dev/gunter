@@ -13,14 +13,10 @@ namespace Gunter.Modules
                 .RegisterType<Report>()
                 .As<IReport>();
 
-            builder
-                .RegisterType<TestCaseInfo>();
-
-            builder
-                .RegisterType<DataSourceInfo>();
-
-            builder
-                .RegisterType<DataSummary>();
+            //builder.RegisterType<Level>();
+            builder.RegisterType<TestCaseInfo>();
+            builder.RegisterType<DataSourceInfo>();
+            builder.RegisterType<DataSummary>();
         }
     }
 }
