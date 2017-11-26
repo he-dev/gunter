@@ -18,10 +18,10 @@ namespace Gunter.Data.SqlClient
     {
         public TableOrView(ILoggerFactory loggerFactory)
         {
-            Loggger = loggerFactory.CreateLogger(nameof(TableOrView));
+            Logger = loggerFactory.CreateLogger(nameof(TableOrView));
         }
 
-        private ILogger Loggger { get; }
+        private ILogger Logger { get; }
 
         public int Id { get; set; }
 
@@ -40,13 +40,14 @@ namespace Gunter.Data.SqlClient
                 throw new InvalidOperationException($"You need to specify at least the one command.");
             }
 
-            //LogEntry.New().Debug().Message($"Connection string: {ConnectionString}").Log(_logger);
-
             var format = (FormatFunc)formatter.Format;
+
+            Logger.State(Layer.Database, Snapshot.Properties<TableOrView>(new { ConnectionString = format(ConnectionString) }));
+
+            var scope = Logger.BeginScope(log => log.Elapsed());
 
             try
             {
-                var stopwatch = Stopwatch.StartNew();
                 using (var conn = new SqlConnection(formatter.Format(ConnectionString)))
                 {
                     conn.Open();
@@ -56,13 +57,13 @@ namespace Gunter.Data.SqlClient
                         cmd.CommandText = format(Commands.First().Text);
                         cmd.CommandType = CommandType.Text;
 
-                        Loggger.State(Layer.Database, () => (nameof(SqlCommand.CommandText), cmd.CommandText));
+                        Logger.State(Layer.Database, () => (nameof(SqlCommand.CommandText), cmd.CommandText));
 
                         var parameters = Commands.First().Parameters.Select(p => (Key: p.Key, Value: format(p.Value)));
 
                         foreach (var parameter in parameters)
                         {
-                            Loggger.State(Layer.Database, () => ("CommandParameter", parameter));
+                            Logger.State(Layer.Database, () => ("CommandParameter", parameter));
                             cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
                         }
 
@@ -70,12 +71,10 @@ namespace Gunter.Data.SqlClient
                         {
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
-                            //LogEntry.New().Debug().Message($"Row count: {dataTable.Rows.Count}").Log(_logger);
 
-                            //stopwatch.Stop();
-                            //Elapsed = stopwatch.Elapsed;
+                            Logger.State(Layer.Database, () => ("RowCount", dataTable.Rows.Count));
+                            Logger.Success(Layer.Database);
 
-                            Loggger.Event(Layer.Database, Reflection.CallerMemberName(), Result.Success);
                             return Task.FromResult(dataTable);
                         }
                     }
@@ -83,8 +82,12 @@ namespace Gunter.Data.SqlClient
             }
             catch (Exception ex)
             {
-                Loggger.Event(Layer.Database, Reflection.CallerMemberName(), Result.Failure, exception: ex);
+                Logger.Failure(Layer.Database, ex);
                 return null;
+            }
+            finally
+            {
+                scope.Dispose();
             }
         }
 

@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 
 namespace Gunter.Data
 {
-    [PublicAPI]
+    [UsedImplicitly, PublicAPI]
     public interface IDataSource
     {
         [JsonRequired]

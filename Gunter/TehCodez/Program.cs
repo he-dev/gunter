@@ -13,16 +13,17 @@ using Reusable.DateTimes;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemLog;
-using Reusable.OmniLog.SemLog.Attachements;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Binding;
 using Reusable.SmartConfig.Data;
 
 namespace Gunter
 {
-    internal static class Program
+    internal abstract class Program
     {
         private static ILogger _logger;
+
+        public static readonly string ElapsedFormat = @"mm\:ss\.fff";
 
         public static readonly string Product = "Gunter";
 
@@ -58,7 +59,7 @@ namespace Gunter
                     configuration.Bind(() => TestsDirectoryName);
                     configuration.Bind(() => ThemesDirectoryName);
 
-                    _logger.State(Layer.Application, () => ("ProgramConfiguration", new { Environment, TestsDirectoryName, ThemesDirectoryName }));
+                    _logger.State(Layer.Application, Snapshot.Properties<Program>(new { Environment, TestsDirectoryName, ThemesDirectoryName }));
 
                     container = InitializeContainer(loggerFactory, configuration);
                     scope = container.BeginLifetimeScope();
@@ -88,7 +89,7 @@ namespace Gunter
                 catch (Exception ex)
                 {
                     _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.RuntimeFault.ToString()));
-                    _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Failure, exception: ex);
+                    _logger.Failure(Layer.Application, ex);
                     return ExitCode.RuntimeFault;
                 }
                 finally
@@ -126,7 +127,7 @@ namespace Gunter
                             //new AppSetting("Product", "Product"),
                             new Lambda("Product", log => FullName),
                             new Timestamp<UtcDateTime>(),
-                            new Snapshot
+                            new Reusable.OmniLog.SemLog.Attachements.Snapshot
                             {
                                 Settings = new JsonSerializerSettings
                                 {
@@ -185,7 +186,7 @@ namespace Gunter
             }
             catch (Exception innerException)
             {
-                _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Failure, exception: innerException);
+                _logger.Failure(Layer.Application, innerException);
                 throw new InitializationException(innerException, ExitCode.ConfigurationInitializationFault);
             }
         }
@@ -205,7 +206,7 @@ namespace Gunter
             }
             catch (Exception innerException)
             {
-                _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Failure, exception: innerException);
+                _logger.Failure(Layer.Application, innerException);
                 throw new InitializationException(innerException, ExitCode.ContainerInitializationFault);
             }
         }

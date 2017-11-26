@@ -46,30 +46,25 @@ namespace Gunter
                 {
                     try
                     {
-                        if (!await RunTestAsync(testFile, current, cache))
+                        var canContinue = await RunTestAsync(testFile, current, cache);
+                        if (!canContinue)
                         {
                             break;
                         }
                     }
                     catch (Exception ex)
                     {
-                        //_logger.Log(e => e.Error().Exception(ex).Message($"Could not run test '{testUnit.FileName}'."));
-                        _logger.Event(Layer.Business, "RunTest", Result.Failure, exception: ex);
-                    }
-                    finally
-                    {
-                        //testUnitLogger.LogEntry.Message($"Test {testUnit.TestNumber} in {testUnit.FileName} completed.");
-                        //testUnitLogger.EndLog();
+                        _logger.Failure(Layer.Business, ex);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.Event(Layer.Application, "RunTest", Result.Failure, exception: ex);
+                _logger.Failure(Layer.Business, ex);
             }
             finally
             {
-                _logger.Event(Layer.Application, "RunTest", Result.Completed);
+                _logger.Completed(Layer.Business);
                 scope.Dispose();
                 foreach (var dataTable in cache.Values)
                 {
@@ -81,23 +76,24 @@ namespace Gunter
 
         private async Task<bool> RunTestAsync(TestFile testFile, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan Elapsed)> cache)
         {
-            _logger.State(Layer.Business, () => ("Test", new { testFile.FileName, current.testIndex }));
+            _logger.State(Layer.Business, Snapshot.Arguments(new { testFile.FileName, current.testIndex }));
 
             const bool canContinue = true;
 
-            var runtimeFormatter = 
+            var runtimeFormatter =
                 _runtimeFormatterFactory
                     .Create(
-                        testFile.Locals, 
-                        testFile, 
-                        current.testCase, 
-                        current.dataSource);          
+                        testFile.Locals,
+                        testFile,
+                        current.testCase,
+                        current.dataSource);
 
             if (!cache.TryGetValue(current.dataSource.Id, out var data))
             {
                 var getDataStopwatch = Stopwatch.StartNew();
                 var value = await current.dataSource.GetDataAsync(runtimeFormatter);
                 cache[current.dataSource.Id] = data = (value, getDataStopwatch.Elapsed);
+                _logger.State(Layer.Database, () => ("GetDataAsyncElapsed", getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat)));
             }
 
             if (data.Value is null)
@@ -110,17 +106,16 @@ namespace Gunter
             if (data.Value.Compute(current.testCase.Expression, current.testCase.Filter) is bool result)
             {
                 computeStopwatch.Stop();
-                _logger.Event(Layer.Business, "EvaluateTest", Result.Success);
-
                 var testResult = result == current.testCase.Assert ? TestResult.Passed : TestResult.Failed;
 
-                _logger.State(Layer.Business, () => (nameof(testResult), testResult));
+                _logger.State(Layer.Business, Snapshot.Variables(new { testResult, computeStopwatch = computeStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
+                _logger.Event(Layer.Business, "DataTable.Compute", Result.Success);
 
                 var mustAlert =
                     (testResult.Passed() && current.testCase.OnPassed.Alert()) ||
                     (testResult.Failed() && current.testCase.OnFailed.Alert());
 
-                _logger.State(Layer.Business, () => (nameof(mustAlert), mustAlert));
+                _logger.State(Layer.Business, Snapshot.Variables(new { mustAlert }));
 
                 if (mustAlert)
                 {
@@ -145,15 +140,16 @@ namespace Gunter
                     (testResult.Passed() && current.testCase.OnPassed.Halt()) ||
                     (testResult.Failed() && current.testCase.OnFailed.Halt());
 
+                _logger.State(Layer.Business, Snapshot.Variables(new { mustHalt }));
+
                 if (mustHalt)
                 {
-                    //_logger.Log(e => e.Message($"Halt at test {testUnit.TestNumber} in {testUnit.FileName}."));
                     return !canContinue;
                 }
             }
             else
             {
-                //throw new InvalidOperationException($"Test expression must evaluate to {nameof(Boolean)}. Affected test {testUnit.TestNumber} in {testUnit.FileName}.");
+                throw new InvalidOperationException($"Expression must evaluate to {nameof(Boolean)}.");
             }
 
             return canContinue;

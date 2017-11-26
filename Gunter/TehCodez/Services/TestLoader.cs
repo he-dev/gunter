@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Reusable;
 using Reusable.IO;
 using Reusable.OmniLog;
+using Reusable.OmniLog.SemLog;
 using Reusable.SmartConfig;
 
 namespace Gunter
@@ -39,6 +40,8 @@ namespace Gunter
 
         public IEnumerable<TestFile> LoadTests(string path)
         {
+            _logger.State(Layer.IO, Snapshot.Arguments(new { path }));
+
             var testFiles = LoadTestFiles(path).ToLookup(IsTestFile);
 
             var global = testFiles[false].SingleOrDefault() ?? new TestFile();
@@ -74,6 +77,7 @@ namespace Gunter
 
         private bool TryLoadTestFile(string fileName, out TestFile testFile)
         {
+            _logger.State(Layer.IO, Snapshot.Arguments(new { fileName }));
             try
             {
                 var json = _fileSystem.ReadAllText(fileName);
@@ -88,10 +92,13 @@ namespace Gunter
 
                 _variableValidator.ValidateNamesNotReserved(testFile.Locals);
 
+                _logger.Success(Layer.IO);
+
                 return true;
             }
             catch (Exception ex)
             {
+                _logger.Failure(Layer.IO, ex);
                 testFile = null;
                 return false;
             }
