@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Autofac;
 using Gunter.Data;
-using Gunter.Modules;
 using Reusable.OmniLog;
 using Reusable.SmartConfig;
 using AutofacModule = Autofac.Module;
 
-namespace Gunter
+namespace Gunter.Modules
 {
-    internal class ProgramModule : AutofacModule
+    internal class Main : AutofacModule
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly IConfiguration _configuration;
         private readonly AutofacModule _overrideModule;
 
-        public ProgramModule(ILoggerFactory loggerFactory, IConfiguration configuration, AutofacModule overrideModule = null)
+        private Main(ILoggerFactory loggerFactory, IConfiguration configuration, AutofacModule overrideModule = null)
         {
             _loggerFactory = loggerFactory;
             _configuration = configuration;
@@ -34,7 +32,7 @@ namespace Gunter
 
             // todo add other runtime variables
 
-            var runtimeVariables = new []
+            var runtimeVariables = new[]
             {
                 RuntimeVariable.TestFile.FullName,
                 RuntimeVariable.TestFile.FileName,
@@ -51,19 +49,25 @@ namespace Gunter
                 .RegisterInstance(runtimeVariables)
                 .As<IEnumerable<IRuntimeVariable>>();
 
-            builder.RegisterModule<ServiceModule>();
-            builder.RegisterModule<DataModule>();
-            builder.RegisterModule<ReportingModule>();
-            builder.RegisterModule<HtmlModule>();
-
-           
+            builder.RegisterModule<Modules.Service>();
+            builder.RegisterModule<Modules.Data>();
+            builder.RegisterModule<Modules.Reporting>();
+            builder.RegisterModule<Modules.HtmlEmail>();
 
             if (!(_overrideModule is null))
             {
                 builder.RegisterModule(_overrideModule);
             }
+        }
 
-            //Logger.Create<Program>().Log(e => e.Debug().Message("IoC initialized."));
+        public static IContainer Create(ILoggerFactory loggerFactory, IConfiguration configuration, AutofacModule overrideModule = null)
+        {
+            var builder = new ContainerBuilder();
+
+            builder
+                    .RegisterModule(new Main(loggerFactory, configuration, overrideModule));
+
+            return builder.Build();
         }
     }
 }

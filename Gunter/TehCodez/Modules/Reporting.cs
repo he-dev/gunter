@@ -5,7 +5,7 @@ using Module = Autofac.Module;
 
 namespace Gunter.Modules
 {
-    internal class ReportingModule : Module
+    internal class Reporting : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

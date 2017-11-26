@@ -2,12 +2,12 @@ using Autofac;
 
 namespace Gunter.Modules
 {
-    internal class DataModule : Module
+    internal class Data : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
             builder
-                .RegisterType<Data.SqlClient.TableOrView>();
+                .RegisterType<Gunter.Data.SqlClient.TableOrView>();
 
         }
     }

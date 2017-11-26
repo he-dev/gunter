@@ -8,7 +8,7 @@ using Reusable.SmartConfig;
 
 namespace Gunter.Modules
 {
-    internal class HtmlModule : Module
+    internal class HtmlEmail : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
@@ -37,7 +37,7 @@ namespace Gunter.Modules
                 .As<ICssParser>();            
 
             builder
-                .RegisterType<HtmlEmail>();
+                .RegisterType<Messaging.Emails.HtmlEmail>();
         }
     }
 }

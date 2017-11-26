@@ -5,7 +5,7 @@ using Reusable.IO;
 
 namespace Gunter.Modules
 {
-    internal class ServiceModule : Module
+    internal class Service : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

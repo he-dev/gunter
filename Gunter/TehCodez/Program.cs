@@ -47,8 +47,6 @@ namespace Gunter
                 var (loggerFactory, logger) = InitializeLogging();
                 _logger = logger;
 
-                _logger.Event(Layer.Application, "ApplicationBegin", Result.Success);
-
                 var container = default(IContainer);
                 var scope = default(ILifetimeScope);
                 try
@@ -63,25 +61,24 @@ namespace Gunter
 
                     container = InitializeContainer(loggerFactory, configuration);
                     scope = container.BeginLifetimeScope();
-                    {
-                        var testLoader = scope.Resolve<ITestLoader>();
-                        var testRunner = scope.Resolve<ITestRunner>();
 
-                        _logger.Event(Layer.Application, "ApplicationStart", Result.Success);
+                    var testLoader = scope.Resolve<ITestLoader>();
+                    var testRunner = scope.Resolve<ITestRunner>();
 
-                        var tests = testLoader.LoadTests(TestsDirectoryName).ToList();
-                        testRunner.RunTests(tests, args.Select(SoftString.Create));
+                    _logger.Event(Layer.Application, "Initialization", Result.Success);
 
-                        _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.Success.ToString()));
-                        _logger.Event(Layer.Application, "ApplicationExit", Result.Success);
-                    }
+                    var tests = testLoader.LoadTests(TestsDirectoryName).ToList();
+                    testRunner.RunTests(tests, args.Select(SoftString.Create));
+
+                    _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.Success.ToString()));
+                    _logger.Success(Layer.Application);
 
                     return ExitCode.Success;
                 }
                 catch (InitializationException ex)
                 {
                     _logger.State(Layer.Application, () => (nameof(ExitCode), ex.ExitCode.ToString()));
-                    _logger.Event(Layer.Application, "ApplicationStart", Result.Failure);
+                    _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Failure);
 
                     /* just prevent double logs */
                     return ex.ExitCode;
@@ -146,12 +143,13 @@ namespace Gunter
 
                 var logger = loggerFactory.CreateLogger(nameof(Program));
 
-                logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Success);
+                logger.Success(Layer.Application);
 
                 return (loggerFactory, logger);
             }
             catch (Exception innerException)
             {
+                //_logger.Failure(Layer.Application, innerException); // logger failed to initialize so it cannot be used
                 throw new InitializationException(innerException, ExitCode.LoggingIniializationFault);
             }
         }
@@ -181,7 +179,7 @@ namespace Gunter
                         }
                     })
                 );
-                _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Success);
+                _logger.Success(Layer.Application);
                 return configuration;
             }
             catch (Exception innerException)
@@ -195,12 +193,9 @@ namespace Gunter
         {
             try
             {
-                var builder = new ContainerBuilder();
-                builder.RegisterModule(new ProgramModule(loggerFactory, configuration));
+                var container = Modules.Main.Create(loggerFactory, configuration);
 
-                var container = builder.Build();
-
-                _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Success);
+                _logger.Success(Layer.Application);
 
                 return container;
             }
@@ -233,10 +228,5 @@ namespace Gunter
         public const int ConfigurationInitializationFault = 2;
         public const int ContainerInitializationFault = 3;
         public const int RuntimeFault = 100;
-    }
-
-    internal static class Event
-    {
-        public const string InitializeConfiguration = nameof(InitializeConfiguration);
     }
 }
