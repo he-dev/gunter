@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 
 namespace Gunter.Data
 {
@@ -9,9 +8,6 @@ namespace Gunter.Data
         public TestCase TestCase { get; set; }
         public IDataSource DataSource { get; set; }
         public DataTable Data { get; set; }
-        public TimeSpan GetDataElapsed { get; set; }
-        public TimeSpan RunTestElapsed { get; set; }
         public IRuntimeFormatter Formatter { get; set; }
-        //public Func<string> Format { get; set; }
     }
 }
