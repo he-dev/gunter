@@ -10,7 +10,15 @@ namespace Gunter.Reporting.Filters
     {
         public object Apply(object data)
         {
-            if (!(data is string value)) { throw new ArgumentException($"Invalid data type. Expected {typeof(string).Name} but found {data.GetType().Name}."); }
+            if (data is null)
+            {
+                return null;                
+            }
+
+            if (!(data is string value))
+            {
+                throw new ArgumentException($"Invalid data type. Expected {typeof(string).Name} but found {data.GetType().Name}.");
+            }
 
             return
                 string.IsNullOrEmpty(value)
