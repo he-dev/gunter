@@ -49,46 +49,51 @@ namespace Gunter.Data
             var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
 
             return new RuntimeVariable(
-                typeof(T), 
-                CreateName(expression), getValueFunc
+                typeof(T),
+                CreateName(expression),
+                getValueFunc
             );
         }
 
         [NotNull]
         public static IRuntimeVariable FromExpression(Expression<Func<object>> expression)
         {
-            var memberExpression = (MemberExpression) expression.Body;
+            var memberExpression = (MemberExpression)expression.Body;
+
             return new RuntimeVariable(
-                memberExpression.Member.DeclaringType, 
-                CreateName(expression), _ => expression.Compile()()
+                memberExpression.Member.DeclaringType,
+                CreateName(expression),
+                _ => expression.Compile()()
             );
         }
 
         private static string CreateName(Expression expression)
         {
+            expression = expression is LambdaExpression lambda ? lambda.Body : expression;
+
             while (true)
             {
-                expression = expression is LambdaExpression lambda ? lambda.Body : expression;
 
-                if (expression is MemberExpression memberExpression)
+                switch (expression)
                 {
-                    // ReSharper disable once PossibleNullReferenceException
-                    // For member expression the DeclaringType cannot be null.
-                    var typeName = memberExpression.Member.DeclaringType.Name;
-                    if (memberExpression.Member.DeclaringType.IsInterface)
-                    {
-                        // Remove the leading "I" from an interface name.
-                        typeName = Regex.Replace(typeName, "^I", string.Empty);
-                    }
-                    return $"{typeName}.{memberExpression.Member.Name}";
+                    case MemberExpression memberExpression:
+                        // ReSharper disable once PossibleNullReferenceException
+                        // For member expression the DeclaringType cannot be null.
+                        var typeName = memberExpression.Member.DeclaringType.Name;
+                        if (memberExpression.Member.DeclaringType.IsInterface)
+                        {
+                            // Remove the leading "I" from an interface name.
+                            typeName = Regex.Replace(typeName, "^I", string.Empty);
+                        }
+                        return $"{typeName}.{memberExpression.Member.Name}";
+
+                    // Value types are wrapped by Convert(x) which is an unary-expression.
+                    case UnaryExpression unaryExpression:
+                        expression = unaryExpression.Operand;
+                        continue;
                 }
 
                 // There is an unary-expression when using interfaces.
-                if (expression is UnaryExpression unaryExpression)
-                {
-                    expression = unaryExpression.Operand;
-                    continue;
-                }
 
                 throw new ArgumentException("Member expression not found.");
             }
@@ -120,6 +125,12 @@ namespace Gunter.Data
             public static readonly IRuntimeVariable Message = FromExpression<Gunter.Data.TestCase>(x => x.Message);
         }
 
+        public static class TestStatistic
+        {
+            public static readonly IRuntimeVariable GetDataElapsed = FromExpression<Gunter.Data.TestStatistic>(x => x.GetDataElapsed);
+            public static readonly IRuntimeVariable AssertElapsed = FromExpression<Gunter.Data.TestStatistic>(x => x.AssertElapsed);
+        }
+
         #endregion
     }
 
@@ -127,11 +138,12 @@ namespace Gunter.Data
     {
         public static IEnumerable<KeyValuePair<SoftString, object>> Resolve(this IEnumerable<IRuntimeVariable> variables, object obj)
         {
+            // Static variables are resolved by the declaring type.
             return
                 variables
-                    .Where(x => obj?.GetType().IsAssignableFrom(x.DeclaringType) ?? x.DeclaringType.IsStatic())
+                    .Where(x => obj is Type type ? x.DeclaringType == type : obj.GetType().IsAssignableFrom(x.DeclaringType))
                     .Select(x => new KeyValuePair<SoftString, object>(x.Name, x.GetValue(obj)));
-        }     
+        }
     }
 
     internal class ParameterConverter<T> : ExpressionVisitor

@@ -25,6 +25,8 @@ namespace Gunter.Reporting.Modules
 
         public DataTable Create(TestContext context)
         {
+            var format = (FormatFunc)context.Formatter.Format;
+
             // Initialize the data-table;
             var dataTable =
                 new DataTable(nameof(DataSource))
@@ -41,11 +43,11 @@ namespace Gunter.Reporting.Modules
                         ? commandNumber++.ToString()
                         : command.Name;
 
-                dataTable.AddRow($"Command: {commandNameOrCounter}", command.Text);
+                dataTable.AddRow($"Query: {commandNameOrCounter}", command.Text);
             }
 
-            dataTable.AddRow("Results", context.Data.Rows.Count);
-            dataTable.AddRow("Elapsed", context.GetDataElapsed.ToString(TimespanFormat));
+            dataTable.AddRow("RowCount", context.Data.Rows.Count);
+            dataTable.AddRow("Elapsed", format($"{{{RuntimeVariable.TestStatistic.GetDataElapsed.Name.ToString()}:{TimespanFormat}}}"));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
@@ -55,8 +57,8 @@ namespace Gunter.Reporting.Modules
                 var timestampMin = context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
                 var timestampMax = context.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn));
 
-                dataTable.AddRow("Timestamp Min", timestampMin);
-                dataTable.AddRow("Timestamp Max", timestampMax);
+                dataTable.AddRow("Timestamp: min", timestampMin.ToString(CultureInfo.InvariantCulture));
+                dataTable.AddRow("Timestamp: max", timestampMax.ToString(CultureInfo.InvariantCulture));
 
                 var timespan = timestampMax - timestampMin;
                 dataTable.AddRow("Timespan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture));

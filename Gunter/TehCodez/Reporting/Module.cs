@@ -47,4 +47,10 @@ namespace Gunter.Reporting
     {
         object Apply(object data);
     }
+
+    [UsedImplicitly, PublicAPI]
+    public interface IFormatter
+    {
+        string Apply(object value);
+    }
 }

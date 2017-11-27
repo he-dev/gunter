@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Gunter.Reporting.Filters;
+using Gunter.Reporting.Formatters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
@@ -13,7 +14,7 @@ namespace Gunter.Reporting.Data
     {
         public static readonly ColumnOption GroupCount = new ColumnOption
         {
-            Name = "GroupCount",
+            Name = "RowCount",
             Total = ColumnTotal.Count
         };
 
@@ -27,6 +28,8 @@ namespace Gunter.Reporting.Data
         public IDataFilter Filter { get; set; } = new Unchanged();
 
         public ColumnTotal Total { get; set; }
+
+        public IFormatter Formatter { get; set; }
 
         private string DebuggerDisplay => $"Name = {Name} IsKey = {IsKey} Filter = {Filter?.GetType().Name ?? "null"} Total = {Total}";
 

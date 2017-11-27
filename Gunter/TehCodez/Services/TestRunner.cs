@@ -74,24 +74,22 @@ namespace Gunter
             }
         }
 
-        private async Task<bool> RunTestAsync(TestFile testFile, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan Elapsed)> cache)
+        private async Task<bool> RunTestAsync(TestFile testFile, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan GetDataElapsed)> cache)
         {
             _logger.State(Layer.Business, Snapshot.Arguments(new { testFile.FileName, current.testIndex }));
 
             const bool canContinue = true;
 
-            var runtimeFormatter =
+            var localFormatter =
                 _runtimeFormatterFactory
                     .Create(
-                        testFile.Locals,
-                        testFile,
-                        current.testCase,
-                        current.dataSource);
+                        testFile.Locals
+                    );
 
             if (!cache.TryGetValue(current.dataSource.Id, out var data))
             {
                 var getDataStopwatch = Stopwatch.StartNew();
-                var value = await current.dataSource.GetDataAsync(runtimeFormatter);
+                var value = await current.dataSource.GetDataAsync(localFormatter);
                 cache[current.dataSource.Id] = data = (value, getDataStopwatch.Elapsed);
                 _logger.State(Layer.Database, () => ("GetDataAsyncElapsed", getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat)));
             }
@@ -102,13 +100,13 @@ namespace Gunter
                 return canContinue;
             }
 
-            var computeStopwatch = Stopwatch.StartNew();
+            var assertStopwatch = Stopwatch.StartNew();
             if (data.Value.Compute(current.testCase.Expression, current.testCase.Filter) is bool result)
             {
-                computeStopwatch.Stop();
+                assertStopwatch.Stop();
                 var testResult = result == current.testCase.Assert ? TestResult.Passed : TestResult.Failed;
 
-                _logger.State(Layer.Business, Snapshot.Variables(new { testResult, computeStopwatch = computeStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
+                _logger.State(Layer.Business, Snapshot.Variables(new { testResult, computeStopwatch = assertStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
                 _logger.Event(Layer.Business, "DataTable.Compute", Result.Success);
 
                 var mustAlert =
@@ -119,6 +117,21 @@ namespace Gunter
 
                 if (mustAlert)
                 {
+                    var runtimeFormatter =
+                        _runtimeFormatterFactory
+                            .Create(
+                                testFile.Locals,
+                                testFile,
+                                current.testCase,
+                                current.dataSource,
+                                new TestStatistic
+                                {
+                                    GetDataElapsed = data.GetDataElapsed,
+                                    AssertElapsed = assertStopwatch.Elapsed
+                                },
+                                typeof(Program)
+                            );
+
                     foreach (var message in current.testCase.Messages(testFile))
                     {
                         await message.PublishAsync(new TestContext
@@ -127,8 +140,6 @@ namespace Gunter
                             TestCase = current.testCase,
                             DataSource = current.dataSource,
                             Data = data.Value,
-                            GetDataElapsed = data.Elapsed,
-                            RunTestElapsed = computeStopwatch.Elapsed,
                             Formatter = runtimeFormatter
                         });
 

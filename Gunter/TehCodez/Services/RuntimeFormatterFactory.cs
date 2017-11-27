@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Gunter.Data;
 using JetBrains.Annotations;
@@ -21,18 +22,11 @@ namespace Gunter
 
         public IRuntimeFormatter Create(IDictionary<SoftString, object> locals, params object[] args)
         {
-            var runtimeVariables =
-                args
-                    // Resolve instance variables.
-                    .Select(_runtimeVariables.Resolve)
-                    // Flatten instance results.
-                    .SelectMany(x => x)
-                    // Resolve static variables.
-                    .Concat(_runtimeVariables.Resolve(default));
+            var runtimeVariables = args.Select(_runtimeVariables.Resolve).SelectMany(x => x);                
 
             // todo add state log
 
             return new RuntimeFormatter(locals.Concat(runtimeVariables));
-        }
+        }       
     }
 }

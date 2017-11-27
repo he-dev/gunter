@@ -33,19 +33,19 @@ namespace Gunter.Reporting.Modules
             [ColumnTotal.Average] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
         };
 
-        public static IEqualityComparer<IEnumerable<object>> KeyEqualityComparer = 
-            RelayEqualityComparer<IEnumerable<object>>
-                .Create(
-                    (left, right) => left.SequenceEqual(right), 
-                    (values) => values.CalcHashCode()
-                );
+        //public static IEqualityComparer<IEnumerable<object>> KeyEqualityComparer =
+        //    RelayEqualityComparer<IEnumerable<object>>
+        //        .Create(
+        //            (left, right) => left.SequenceEqual(right),
+        //            (values) => values.CalcHashCode()
+        //        );
 
         public TableOrientation Orientation => TableOrientation.Horizontal;
 
         public bool HasFooter => true;
 
         [DefaultValue(true)]
-        public bool IncludeGroupCount { get; set; } = true;
+        public bool HasGroupCount { get; set; } = true;
 
         [NotNull]
         [ItemCanBeNull]
@@ -53,6 +53,7 @@ namespace Gunter.Reporting.Modules
 
         public DataTable Create(TestContext context)
         {
+            // Materialize it because we'll be modifying it.
             var columns = Columns.ToList();
 
             if (!Columns.Any())
@@ -62,24 +63,32 @@ namespace Gunter.Reporting.Modules
                 {
                     Name = c.ColumnName,
                     Total = ColumnTotal.Last
-                }).ToList();
+                })
+                .ToList();
             }
 
-            if (IncludeGroupCount)
+            if (HasGroupCount)
             {
                 columns.Add(ColumnOption.GroupCount);
             }
 
-            // Group-by keyed columns.
+            // Filter rows before processing them.
             var dataRows = context.Data.Select(context.TestCase.Filter);
-           
+
+            // We'll use it a lot so materialize it.
             var keyColumns = columns.Where(x => x.IsKey).ToList();
-            var rowGroups =
-                from dataRow in dataRows
-                let values = keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]))
-                //group dataRow by new CompositeKey<object>(values) into g
-                group dataRow by KeyEqualityComparer into g
-                select g;
+
+            var keyEqualityComparer = RelayEqualityComparer<DataRow>.Create(
+                (left, right) => left.Keys(keyColumns).SequenceEqual(right.Keys(keyColumns)),
+                (dataRow) => dataRow.Keys(keyColumns).CalcHashCode()
+            );            
+
+            //var rowGroups =
+            //    from dataRow in dataRows
+            //    group dataRow by keyEqualityComparer into g
+            //    select g;
+
+            var rowGroups = dataRows.GroupBy(row => row, keyEqualityComparer);
 
             // Create the data-table.
             var dataTable = new DataTable(nameof(DataSummary));
@@ -89,7 +98,7 @@ namespace Gunter.Reporting.Modules
             }
 
             // Create aggregated rows and add them to the final data-table.
-            var rows = rowGroups.Select(rowGroup => AggregateRows(dataTable, columns, rowGroup.ToList()));
+            var rows = rowGroups.Select(rowGroup => AggregateRows(dataTable.NewRow(), columns, rowGroup));
             foreach (var row in rows)
             {
                 dataTable.Rows.Add(row);
@@ -102,28 +111,38 @@ namespace Gunter.Reporting.Modules
                 if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
                 yield return column.Total.ToString();
             }
+
             dataTable.AddRow(columns.Select(column => (object)string.Join(", ", StringifyColumnOption(column))).ToArray());
 
             return dataTable;
         }
 
-        private DataRow AggregateRows(DataTable dataTable, IEnumerable<ColumnOption> columns, ICollection<DataRow> rowGroup)
+        private DataRow AggregateRows(DataRow dataRow, IEnumerable<ColumnOption> columns, IGrouping<DataRow, DataRow> rowGroup)
         {
-            var dataRow = dataTable.NewRow();
-
             foreach (var column in columns.Where(c => !c.Equals(ColumnOption.GroupCount)))
             {
                 var aggregate = Aggregates[column.Total];
                 var values = rowGroup.Select(column).NotDBNull();
                 var value = aggregate(values);
-                dataRow[column.Name.ToString()] = column.Filter == null ? value : column.Filter.Apply(value);
+                value = column.Filter is null ? value : column.Filter.Apply(value);
+                value = column.Formatter is null ? value : column.Formatter.Apply(value);
+                dataRow[column.Name.ToString()] = value;
             }
 
-            if (IncludeGroupCount)
+            if (HasGroupCount)
             {
                 dataRow[ColumnOption.GroupCount] = rowGroup.Count();
             }
             return dataRow;
+        }
+    }
+
+    internal static class DataRowExtensions
+    {
+        public static IEnumerable<object> Keys(this DataRow dataRow, IEnumerable<ColumnOption> keyColumns)
+        {
+            // Get key values and apply their filters.
+            return keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]));
         }
     }
 }

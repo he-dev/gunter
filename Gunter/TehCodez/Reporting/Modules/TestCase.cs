@@ -20,6 +20,8 @@ namespace Gunter.Reporting.Modules
 
         public DataTable Create(TestContext context)
         {
+            var format = (FormatFunc) context.Formatter.Format;
+
             var table =
                 new DataTable(nameof(TestCase))
                     .AddColumn("Property", c => c.DataType = typeof(string))
@@ -30,7 +32,7 @@ namespace Gunter.Reporting.Modules
                     .AddRow(nameof(Gunter.Data.TestCase.Assert), context.TestCase.Assert)
                     .AddRow(nameof(Gunter.Data.TestCase.OnPassed), context.TestCase.OnPassed)
                     .AddRow(nameof(Gunter.Data.TestCase.OnFailed), context.TestCase.OnFailed)
-                    .AddRow(nameof(TestContext.GetDataElapsed), context.GetDataElapsed.ToString(TimespanFormat, CultureInfo.InvariantCulture)) // @"hh\:mm\:ss\.f")) /
+                    .AddRow(nameof(Gunter.Data.TestStatistic.AssertElapsed), format($"{{{RuntimeVariable.TestStatistic.AssertElapsed.Name.ToString()}:{TimespanFormat}}}")) // @"hh\:mm\:ss\.f")) /
                     .AddRow(nameof(Gunter.Data.TestCase.Profiles), $"[{string.Join(", ", context.TestCase.Profiles.Select(p => $"'{p}'"))}]");
 
             return table;

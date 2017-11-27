@@ -23,6 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TehCodez\Reporting\Filters\Elapsed.cs" />
     <Compile Remove="TehCodez\Services\FileSystem.cs" />
     <Compile Remove="TehCodez\Services\PathResolver.cs" />
     <Compile Remove="TehCodez\Services\TestComposer.cs" />

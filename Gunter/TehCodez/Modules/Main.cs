@@ -30,19 +30,16 @@ namespace Gunter.Modules
                 .RegisterInstance(_configuration)
                 .As<IConfiguration>();
 
-            // todo add other runtime variables
-
             var runtimeVariables = new[]
             {
+                RuntimeVariable.Program.FullName,
+                RuntimeVariable.Program.Environment,
                 RuntimeVariable.TestFile.FullName,
                 RuntimeVariable.TestFile.FileName,
                 RuntimeVariable.TestCase.Level,
                 RuntimeVariable.TestCase.Message,
-                //RuntimeVariable.FromExpression<TestCase>(x => x.Elapsed),
-                //RuntimeVariable.FromExpression<Program>(x => x.Environment),
-                RuntimeVariable.Program.FullName,
-                RuntimeVariable.Program.Environment,
-                //RuntimeVariable.FromExpression<IDataSource>(x => x.Elapsed)
+                RuntimeVariable.TestStatistic.GetDataElapsed,
+                RuntimeVariable.TestStatistic.AssertElapsed,
             };
 
             builder

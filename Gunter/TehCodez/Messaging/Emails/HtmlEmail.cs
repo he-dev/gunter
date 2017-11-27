@@ -29,8 +29,6 @@ namespace Gunter.Messaging.Emails
 
         private readonly Lazy<Css> _css;
 
-        private string _to;
-
         public HtmlEmail(
             ILoggerFactory loggerFactory,
             IConfiguration configuration,
