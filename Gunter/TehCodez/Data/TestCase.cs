@@ -18,8 +18,9 @@ namespace Gunter.Data
     {
         [DefaultValue(true)]
         public bool Enabled { get; set; }
-
-        public LogLevel Level { get; set; }
+       
+        [JsonRequired]
+        public LogLevel Level { get; set; } = LogLevel.Warning;
 
         [JsonRequired]
         public string Message { get; set; }
