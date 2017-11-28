@@ -26,18 +26,20 @@ namespace Gunter.Messaging.Emails.Renderers
 
             if (module.Heading.IsNotNullOrEmpty())
             {
-                yield return Html
-                    .Element("h3", h3 => h3
-                        .@class("heading")
-                        .Append(format(module.Heading)));
+                yield return 
+                    Html
+                        .Element("h4", h4 => h4
+                            .@class("heading")
+                            .Append(format(module.Heading)));
             }
 
             if (module.Text.IsNotNullOrEmpty())
             {
-                yield return Html
-                    .Element("p", p => p
-                        .@class("paragraph")
-                        .Append(format(module.Text)));
+                yield return 
+                    Html
+                        .Element("p", p => p
+                            .@class("paragraph")
+                            .Append(format(module.Text)));
             }
 
             yield return RenderTable(tabular, context);
@@ -53,9 +55,10 @@ namespace Gunter.Messaging.Emails.Renderers
 
             using (var dataTable = tabular.Create(context))
             {
-                var table = Html
-                    .Element("table")
-                    .@class("table");
+                var table = 
+                    Html
+                        .Element("table")
+                        .@class("table");
 
                 if (tabular.Orientation == TableOrientation.Horizontal)
                 {
