@@ -69,10 +69,7 @@ Used notation:
 
 ### `Locals`
 
-```json
-```
-
-```json
+```js
   "Locals": {
     "TestingDb": "data source=(local);initial catalog=TestingDb;integrated security=true",
     "Table": "[dbo].[SemLog]"
@@ -83,7 +80,7 @@ This is a simple `key/value` dictionary.
 
 ### `DataSources`
 
-```json
+```js
 	"DataSources": [
 		{
 			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
@@ -104,7 +101,7 @@ This `DataSource` uses the `TableOrView` source. The connection string is define
 
 ### `Tests`
 
-```json
+```js
 	"Tests": [
 		{
 			"Enabled": true, // [bool|true]
@@ -130,7 +127,7 @@ The `Level` is used just for informational purposes and can be used in messages.
 
 ### `Messages`
 
-```json
+```js
   "Messages": [
     {
       "$type": "Gunter.Messaging.Emails.HtmlEmail, Gunter",
@@ -147,7 +144,7 @@ Messages specify which report is used as their contents, which theme they should
 
 ### `Reports`
 
-```json
+```js
   "Reports": [
     {
       "Id": 450,
