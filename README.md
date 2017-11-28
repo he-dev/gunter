@@ -227,4 +227,4 @@ Text fields support a few variables that can be used for example in messages. Al
 
 ## Logging
 
-Currently `Gunter` uses the `NLog` for writing logs but internally it works with the [`OmniLog`](https://github.com/he-dev/Reusable/tree/master/Reusable.OmniLog) that together with [`SemLog`](https://github.com/he-dev/Reusable/tree/master/Reusable.OmniLog.SemLog) produce a very informative logs.
+Currently `Gunter` uses the `NLog` for writing logs but internally it works with the [`OmniLog`](https://github.com/he-dev/Reusable/tree/master/Reusable.OmniLog) and another extension [`SemLog`](https://github.com/he-dev/Reusable/tree/master/Reusable.OmniLog.SemLog).
