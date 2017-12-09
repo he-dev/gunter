@@ -7,7 +7,7 @@ using Gunter.Reporting;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.OmniLog;
-using Reusable.OmniLog.SemLog;
+using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Messaging
 {
@@ -49,11 +49,11 @@ namespace Gunter.Messaging
                 try
                 {
                     await PublishReportAsync(report, context);
-                    Logger.Success(Layer.Network);
+                    Logger.Log(Category.Action.Finished(nameof(PublishAsync)), Layer.Network);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Failure(Layer.Network, ex);
+                    Logger.Log(Category.Action.Failed(nameof(PublishAsync), ex), Layer.Network);
                 }
                 finally
                 {

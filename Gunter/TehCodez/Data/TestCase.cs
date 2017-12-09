@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
+using System.Linq.Custom;
 using Gunter.Messaging;
 using Gunter.Reporting;
 using JetBrains.Annotations;
@@ -88,8 +89,8 @@ namespace Gunter.Data
             bool ProfileMatches()
             {
                 return
-                    profiles.Empty() ||
-                    profiles.Any(runnableProfile => profiles.Contains(runnableProfile));
+                    profiles.None() ||
+                    profiles.Any(runnableProfile => testCase.Profiles.Contains(runnableProfile));
             }
         }
     }

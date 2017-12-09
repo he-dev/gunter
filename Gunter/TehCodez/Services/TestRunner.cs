@@ -8,7 +8,7 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.OmniLog;
-using Reusable.OmniLog.SemLog;
+using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter
 {
@@ -54,17 +54,17 @@ namespace Gunter
                     }
                     catch (Exception ex)
                     {
-                        _logger.Failure(Layer.Business, ex);
+                        _logger.Log(Category.Action.Failed(nameof(RunTestAsync), ex), Layer.Business);
                     }
                 }
+                _logger.Log(Category.Action.Finished(nameof(RunTestsAsync)), Layer.Business);
             }
             catch (Exception ex)
             {
-                _logger.Failure(Layer.Business, ex);
+                _logger.Log(Category.Action.Failed(nameof(RunTestsAsync), ex), Layer.Business);
             }
             finally
             {
-                _logger.Completed(Layer.Business);
                 scope.Dispose();
                 foreach (var dataTable in cache.Values)
                 {
@@ -76,7 +76,7 @@ namespace Gunter
 
         private async Task<bool> RunTestAsync(TestFile testFile, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan GetDataElapsed)> cache)
         {
-            _logger.State(Layer.Business, Snapshot.Arguments(new { testFile.FileName, current.testIndex }));
+            _logger.Log(Category.Snapshot.Arguments(new { testFile.FileName, current.testIndex }), Layer.Business);
 
             const bool canContinue = true;
 
@@ -91,7 +91,7 @@ namespace Gunter
                 var getDataStopwatch = Stopwatch.StartNew();
                 var value = await current.dataSource.GetDataAsync(localFormatter);
                 cache[current.dataSource.Id] = data = (value, getDataStopwatch.Elapsed);
-                _logger.State(Layer.Database, () => ("GetDataAsyncElapsed", getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat)));
+                _logger.Log(Category.Snapshot.Objects(new { Elapsed = getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat) }, nameof(getDataStopwatch)), Layer.Database);
             }
 
             if (data.Value is null)
@@ -106,14 +106,15 @@ namespace Gunter
                 assertStopwatch.Stop();
                 var testResult = result == current.testCase.Assert ? TestResult.Passed : TestResult.Failed;
 
-                _logger.State(Layer.Business, Snapshot.Variables(new { testResult, computeStopwatch = assertStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
-                _logger.Event(Layer.Business, "DataTable.Compute", Result.Success);
+                _logger.Log(Category.Snapshot.Variables(new { testResult }), Layer.Business);
+                _logger.Log(Category.Snapshot.Objects(new { Elapsed = assertStopwatch.Elapsed.ToString(Program.ElapsedFormat) }, nameof(assertStopwatch)), Layer.Business);
+                _logger.Log(Category.Action.Finished("DataTable.Compute"), Layer.Business);
 
                 var mustAlert =
                     (testResult.Passed() && current.testCase.OnPassed.Alert()) ||
                     (testResult.Failed() && current.testCase.OnFailed.Alert());
 
-                _logger.State(Layer.Business, Snapshot.Variables(new { mustAlert }));
+                _logger.Log(Category.Snapshot.Variables(new { mustAlert }), Layer.Business);
 
                 if (mustAlert)
                 {
@@ -151,7 +152,7 @@ namespace Gunter
                     (testResult.Passed() && current.testCase.OnPassed.Halt()) ||
                     (testResult.Failed() && current.testCase.OnFailed.Halt());
 
-                _logger.State(Layer.Business, Snapshot.Variables(new { mustHalt }));
+                _logger.Log(Category.Snapshot.Variables(new { mustHalt }), Layer.Business);
 
                 if (mustHalt)
                 {

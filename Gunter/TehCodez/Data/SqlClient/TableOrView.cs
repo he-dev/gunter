@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.OmniLog;
-using Reusable.OmniLog.SemLog;
+using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Data.SqlClient
 {
@@ -42,7 +42,7 @@ namespace Gunter.Data.SqlClient
 
             var format = (FormatFunc)formatter.Format;
 
-            Logger.State(Layer.Database, Snapshot.Properties<TableOrView>(new { ConnectionString = format(ConnectionString) }));
+            Logger.Log(Category.Snapshot.Properties(new { ConnectionString = format(ConnectionString) }), Layer.Database);
 
             var scope = Logger.BeginScope(log => log.Elapsed());
 
@@ -57,13 +57,13 @@ namespace Gunter.Data.SqlClient
                         cmd.CommandText = format(Commands.First().Text);
                         cmd.CommandType = CommandType.Text;
 
-                        Logger.State(Layer.Database, () => (nameof(SqlCommand.CommandText), cmd.CommandText));
-
                         var parameters = Commands.First().Parameters.Select(p => (Key: p.Key, Value: format(p.Value)));
+
+                        Logger.Log(Category.Snapshot.Objects(new { cmd.CommandText }, nameof(cmd)), Layer.Database);
+                        Logger.Log(Category.Snapshot.Objects(parameters, nameof(parameters)), Layer.Database);
 
                         foreach (var parameter in parameters)
                         {
-                            Logger.State(Layer.Database, () => ("CommandParameter", parameter));
                             cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
                         }
 
@@ -72,8 +72,8 @@ namespace Gunter.Data.SqlClient
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
 
-                            Logger.State(Layer.Database, () => ("RowCount", dataTable.Rows.Count));
-                            Logger.Success(Layer.Database);
+                            Logger.Log(Category.Snapshot.Objects(new { RowCount = dataTable.Rows.Count }, nameof(dataTable)), Layer.Database);
+                            Logger.Log(Category.Action.Finished(nameof(GetDataAsync)), Layer.Database);
 
                             return Task.FromResult(dataTable);
                         }
@@ -82,7 +82,7 @@ namespace Gunter.Data.SqlClient
             }
             catch (Exception ex)
             {
-                Logger.Failure(Layer.Database, ex);
+                Logger.Log(Category.Action.Failed(nameof(GetDataAsync), ex), Layer.Database);
                 return null;
             }
             finally

@@ -5,6 +5,7 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Exceptionize;
+using System.Linq.Custom;
 using Reusable.Extensions;
 
 namespace Gunter

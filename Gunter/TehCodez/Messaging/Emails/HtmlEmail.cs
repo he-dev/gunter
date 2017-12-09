@@ -8,12 +8,14 @@ using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable;
+using Reusable.Extensions;
 using Reusable.IO;
 using Reusable.MarkupBuilder;
 using Reusable.MarkupBuilder.Html;
 using Reusable.Net.Mail;
 using Reusable.OmniLog;
-using Reusable.OmniLog.SemLog;
+using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
 
 namespace Gunter.Messaging.Emails
@@ -70,7 +72,12 @@ namespace Gunter.Messaging.Emails
 
             var body = HtmlElement.Builder.Element("body");
 
-            Logger.State(Layer.Business, () => ("Report", new { ModuleCount = report.Modules.Count, ModuleTypes = report.Modules.Select(m => m.GetType().Name) }));
+            Logger.Log(Category.Snapshot.Arguments(new
+            {
+                Type = report.GetType().ToPrettyString().ToShortName(),
+                ModuleCount = report.Modules.Count,
+                ModuleTypes = report.Modules.Select(m => m.GetType().Name)
+            }), Layer.Business);
 
             foreach (var module in report.Modules)
             {
@@ -81,7 +88,7 @@ namespace Gunter.Messaging.Emails
                 }
             }
 
-            Logger.State(Layer.Business, Snapshot.Properties<HtmlEmail>(new { To }));
+            Logger.Log(Category.Snapshot.Properties(new {To}), Layer.Business);
 
             body = _cssInliner.Inline(_css.Value, body);
 

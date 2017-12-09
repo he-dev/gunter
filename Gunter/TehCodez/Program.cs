@@ -12,7 +12,8 @@ using Reusable;
 using Reusable.DateTimes;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
-using Reusable.OmniLog.SemLog;
+using Reusable.OmniLog.SemanticExtensions;
+using Reusable.OmniLog.SemanticExtensions.Attachements;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Binding;
 using Reusable.SmartConfig.Data;
@@ -57,7 +58,7 @@ namespace Gunter
                     configuration.Bind(() => TestsDirectoryName);
                     configuration.Bind(() => ThemesDirectoryName);
 
-                    _logger.State(Layer.Application, Snapshot.Properties<Program>(new { Environment, TestsDirectoryName, ThemesDirectoryName }));
+                    _logger.Log(Category.Snapshot.Properties(new { Environment, TestsDirectoryName, ThemesDirectoryName }), Layer.Application);
 
                     container = InitializeContainer(loggerFactory, configuration);
                     scope = container.BeginLifetimeScope();
@@ -65,29 +66,29 @@ namespace Gunter
                     var testLoader = scope.Resolve<ITestLoader>();
                     var testRunner = scope.Resolve<ITestRunner>();
 
-                    _logger.Event(Layer.Application, "Initialization", Result.Success);
+                    _logger.Log(Category.Action.Finished("Initialization"), Layer.Application);
 
                     var tests = testLoader.LoadTests(TestsDirectoryName).ToList();
                     testRunner.RunTests(tests, args.Select(SoftString.Create));
 
-                    _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.Success.ToString()));
-                    _logger.Success(Layer.Application);
+                    _logger.Log(Category.Snapshot.Results(new { ExitCode = ExitCode.Success }), Layer.Application);
+                    _logger.Log(Category.Action.Finished("Main"), Layer.Application);
 
-                    return ExitCode.Success;
+                    return (int)ExitCode.Success;
                 }
                 catch (InitializationException ex)
                 {
-                    _logger.State(Layer.Application, () => (nameof(ExitCode), ex.ExitCode.ToString()));
-                    _logger.Event(Layer.Application, Reflection.CallerMemberName(), Result.Failure);
+                    _logger.Log(Category.Snapshot.Results(new { ex.ExitCode }), Layer.Application);
+                    _logger.Log(Category.Action.Failed(nameof(Main), ex), Layer.Application);
 
                     /* just prevent double logs */
-                    return ex.ExitCode;
+                    return (int)ex.ExitCode;
                 }
                 catch (Exception ex)
                 {
-                    _logger.State(Layer.Application, () => (nameof(ExitCode), ExitCode.RuntimeFault.ToString()));
-                    _logger.Failure(Layer.Application, ex);
-                    return ExitCode.RuntimeFault;
+                    _logger.Log(Category.Snapshot.Results(new { ExitCode = ExitCode.RuntimeFault }), Layer.Application);
+                    _logger.Log(Category.Action.Failed(nameof(Main), ex), Layer.Application);
+                    return (int)ExitCode.RuntimeFault;
                 }
                 finally
                 {
@@ -99,7 +100,7 @@ namespace Gunter
             {
                 Console.WriteLine($"Could not initialize logging: {System.Environment.NewLine} {ex}");
             }
-            return ExitCode.UnexpectedFault;
+            return (int)ExitCode.UnexpectedFault;
         }
 
         #region Initialization
@@ -109,22 +110,23 @@ namespace Gunter
             try
             {
                 //Reusable.ThirdParty.NLogUtilities.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
-                Reusable.ThirdParty.NLogUtilities.LayoutRenderers.IgnoreCaseEventPropertiesLayoutRenderer.Register();
+                Reusable.ThirdParty.NLogUtilities.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
-                var loggerFactory = new LoggerFactory(new[]
+                var loggerFactory = new LoggerFactory
                 {
-                    NLogRx.Create(Enumerable.Empty<ILogScopeMerge>())
-                })
-                {
+                    Observers =
+                    {
+                        NLogRx.Create(Enumerable.Empty<ILogScopeMerge>())
+                    },
                     Configuration = new LoggerConfiguration
                     {
-                        Attachements = new HashSet<ILogAttachement>
+                        Attachements =
                         {
                             new AppSetting("Environment", "Environment"),
                             //new AppSetting("Product", "Product"),
                             new Lambda("Product", log => FullName),
                             new Timestamp<UtcDateTime>(),
-                            new Reusable.OmniLog.SemLog.Attachements.Snapshot
+                            new Snapshot(new JsonSnapshotSerializer
                             {
                                 Settings = new JsonSerializerSettings
                                 {
@@ -136,14 +138,14 @@ namespace Gunter
                                         new StringEnumConverter()
                                     }
                                 }
-                            }
+                            })
                         }
                     }
                 };
 
                 var logger = loggerFactory.CreateLogger(nameof(Program));
 
-                logger.Success(Layer.Application);
+                logger.Log(Category.Action.Finished(nameof(InitializeLogging)), Layer.Application);
 
                 return (loggerFactory, logger);
             }
@@ -179,12 +181,12 @@ namespace Gunter
                         }
                     })
                 );
-                _logger.Success(Layer.Application);
+                _logger.Log(Category.Action.Finished(nameof(InitializeConfiguration)), Layer.Application);
                 return configuration;
             }
             catch (Exception innerException)
             {
-                _logger.Failure(Layer.Application, innerException);
+                _logger.Log(Category.Action.Failed(nameof(InitializeConfiguration), innerException), Layer.Application);
                 throw new InitializationException(innerException, ExitCode.ConfigurationInitializationFault);
             }
         }
@@ -195,13 +197,13 @@ namespace Gunter
             {
                 var container = Modules.Main.Create(loggerFactory, configuration);
 
-                _logger.Success(Layer.Application);
+                _logger.Log(Category.Action.Finished(nameof(InitializeContainer)), Layer.Application);
 
                 return container;
             }
             catch (Exception innerException)
             {
-                _logger.Failure(Layer.Application, innerException);
+                _logger.Log(Category.Action.Failed(nameof(InitializeContainer), innerException), Layer.Application);
                 throw new InitializationException(innerException, ExitCode.ContainerInitializationFault);
             }
         }
@@ -211,22 +213,22 @@ namespace Gunter
 
     internal class InitializationException : Exception
     {
-        public InitializationException(Exception innerException, int exitCode)
+        public InitializationException(Exception innerException, ExitCode exitCode)
             : base(null, innerException)
         {
             ExitCode = exitCode;
         }
 
-        public int ExitCode { get; }
+        public ExitCode ExitCode { get; }
     }
 
-    internal static class ExitCode
+    internal enum ExitCode
     {
-        public const int UnexpectedFault = -1;
-        public const int Success = 0;
-        public const int LoggingIniializationFault = 1;
-        public const int ConfigurationInitializationFault = 2;
-        public const int ContainerInitializationFault = 3;
-        public const int RuntimeFault = 100;
+        UnexpectedFault = -1,
+        Success = 0,
+        LoggingIniializationFault = 1,
+        ConfigurationInitializationFault = 2,
+        ContainerInitializationFault = 3,
+        RuntimeFault = 100,
     }
 }
