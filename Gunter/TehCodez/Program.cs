@@ -30,7 +30,7 @@ namespace Gunter
 
         public static readonly string Product = "Gunter";
 
-        public static readonly string Version = "3.0.0";
+        public static readonly string Version = "4.0.0";
 
         public static readonly string FullName = $"{Product}-v{Version}";
 
