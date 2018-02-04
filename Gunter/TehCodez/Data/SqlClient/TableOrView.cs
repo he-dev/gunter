@@ -42,9 +42,9 @@ namespace Gunter.Data.SqlClient
 
             var format = (FormatFunc)formatter.Format;
 
-            Logger.Log(Category.Snapshot.Properties(new { ConnectionString = format(ConnectionString) }), Layer.Database);
+            Logger.Log(Abstraction.Layer.Database().Data().Property(new { ConnectionString = format(ConnectionString) }));
 
-            var scope = Logger.BeginScope(log => log.Elapsed());
+            var scope = Logger.BeginScope(nameof(GetDataAsync)).AttachElapsed();
 
             try
             {
@@ -57,10 +57,13 @@ namespace Gunter.Data.SqlClient
                         cmd.CommandText = format(Commands.First().Text);
                         cmd.CommandType = CommandType.Text;
 
-                        var parameters = Commands.First().Parameters.Select(p => (Key: p.Key, Value: format(p.Value)));
+                        var parameters =
+                            Commands
+                                .First()
+                                .Parameters.Select(p => (Key: p.Key, Value: format(p.Value)))
+                                .ToList();
 
-                        Logger.Log(Category.Snapshot.Objects(new { cmd.CommandText }, nameof(cmd)), Layer.Database);
-                        Logger.Log(Category.Snapshot.Objects(parameters, nameof(parameters)), Layer.Database);
+                        Logger.Log(Abstraction.Layer.Database().Data().Object(new { cmd = cmd.CommandText, parameters }));
 
                         foreach (var parameter in parameters)
                         {
@@ -72,8 +75,8 @@ namespace Gunter.Data.SqlClient
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
 
-                            Logger.Log(Category.Snapshot.Objects(new { RowCount = dataTable.Rows.Count }, nameof(dataTable)), Layer.Database);
-                            Logger.Log(Category.Action.Finished(nameof(GetDataAsync)), Layer.Database);
+                            Logger.Log(Abstraction.Layer.Database().Data().Object(new { RowCount = dataTable.Rows.Count }));
+                            Logger.Log(Abstraction.Layer.Database().Action().Finished(nameof(GetDataAsync)));
 
                             return Task.FromResult(dataTable);
                         }
@@ -82,7 +85,7 @@ namespace Gunter.Data.SqlClient
             }
             catch (Exception ex)
             {
-                Logger.Log(Category.Action.Failed(nameof(GetDataAsync), ex), Layer.Database);
+                Logger.Log(Abstraction.Layer.Database().Action().Failed(nameof(GetDataAsync)), log => log.Exception(ex));
                 return null;
             }
             finally

@@ -15,8 +15,10 @@ using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.OmniLog.SemanticExtensions.Attachements;
 using Reusable.SmartConfig;
-using Reusable.SmartConfig.Binding;
 using Reusable.SmartConfig.Data;
+using Reusable.SmartConfig.DataStores;
+using Reusable.SmartConfig.SettingConverters;
+using Reusable.SmartConfig.Utilities;
 
 namespace Gunter
 {
@@ -45,8 +47,8 @@ namespace Gunter
         {
             try
             {
-                var (loggerFactory, logger) = InitializeLogging();
-                _logger = logger;
+                var loggerFactory = InitializeLogging();
+                _logger = loggerFactory.CreateLogger<Program>();
 
                 var container = default(IContainer);
                 var scope = default(ILifetimeScope);
@@ -54,11 +56,11 @@ namespace Gunter
                 {
                     var configuration = InitializeConfiguration();
 
-                    configuration.Bind(() => Environment);
-                    configuration.Bind(() => TestsDirectoryName);
-                    configuration.Bind(() => ThemesDirectoryName);
+                    configuration.AssignValue(() => Environment);
+                    configuration.AssignValue(() => TestsDirectoryName);
+                    configuration.AssignValue(() => ThemesDirectoryName);
 
-                    _logger.Log(Category.Snapshot.Properties(new { Environment, TestsDirectoryName, ThemesDirectoryName }), Layer.Application);
+                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Property(new { Environment, TestsDirectoryName, ThemesDirectoryName }));
 
                     container = InitializeContainer(loggerFactory, configuration);
                     scope = container.BeginLifetimeScope();
@@ -66,28 +68,30 @@ namespace Gunter
                     var testLoader = scope.Resolve<ITestLoader>();
                     var testRunner = scope.Resolve<ITestRunner>();
 
-                    _logger.Log(Category.Action.Finished("Initialization"), Layer.Application);
+                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished("Initialization"));
+                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Property(new { Version }));
 
                     var tests = testLoader.LoadTests(TestsDirectoryName).ToList();
                     testRunner.RunTests(tests, args.Select(SoftString.Create));
 
-                    _logger.Log(Category.Snapshot.Results(new { ExitCode = ExitCode.Success }), Layer.Application);
-                    _logger.Log(Category.Action.Finished("Main"), Layer.Application);
+                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ExitCode = ExitCode.Success }));
+                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(Main)));
 
                     return (int)ExitCode.Success;
                 }
                 catch (InitializationException ex)
                 {
-                    _logger.Log(Category.Snapshot.Results(new { ex.ExitCode }), Layer.Application);
-                    _logger.Log(Category.Action.Failed(nameof(Main), ex), Layer.Application);
+                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ex.ExitCode }));
+                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(Main)), log => log.Exception(ex));
 
                     /* just prevent double logs */
                     return (int)ex.ExitCode;
                 }
                 catch (Exception ex)
                 {
-                    _logger.Log(Category.Snapshot.Results(new { ExitCode = ExitCode.RuntimeFault }), Layer.Application);
-                    _logger.Log(Category.Action.Failed(nameof(Main), ex), Layer.Application);
+                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ExitCode = ExitCode.RuntimeFault }));
+                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(Main)), log => log.Exception(ex));
+
                     return (int)ExitCode.RuntimeFault;
                 }
                 finally
@@ -105,18 +109,17 @@ namespace Gunter
 
         #region Initialization
 
-        private static (ILoggerFactory, ILogger) InitializeLogging()
+        private static ILoggerFactory InitializeLogging()
         {
             try
             {
-                //Reusable.ThirdParty.NLogUtilities.LayoutRenderers.InvariantPropertiesLayoutRenderer.Register();
-                Reusable.ThirdParty.NLogUtilities.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
+                Reusable.Utilities.ThirdParty.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
                 var loggerFactory = new LoggerFactory
                 {
                     Observers =
                     {
-                        NLogRx.Create(Enumerable.Empty<ILogScopeMerge>())
+                        NLogRx.Create()
                     },
                     Configuration = new LoggerConfiguration
                     {
@@ -124,9 +127,9 @@ namespace Gunter
                         {
                             new AppSetting("Environment", "Environment"),
                             //new AppSetting("Product", "Product"),
-                            new Lambda("Product", log => FullName),
+                            new Lambda("Product", _ => Product), // FullName),
                             new Timestamp<UtcDateTime>(),
-                            new Snapshot(new JsonSnapshotSerializer
+                            new Snapshot(new JsonStateSerializer
                             {
                                 Settings = new JsonSerializerSettings
                                 {
@@ -138,16 +141,26 @@ namespace Gunter
                                         new StringEnumConverter()
                                     }
                                 }
-                            })
+                            }),
+                            new Reusable.OmniLog.Attachements.Scope(new JsonStateSerializer
+                            {
+                                Settings = new JsonSerializerSettings
+                                {
+                                    NullValueHandling = NullValueHandling.Include,
+                                    Formatting = Formatting.Indented,
+                                    Converters =
+                                    {
+                                        new StringEnumConverter(),
+                                        new SoftStringConverter(),
+                                    }
+                                }
+                            }),
+                            new Reusable.OmniLog.Attachements.ElapsedMilliseconds("Elapsed"),
                         }
                     }
                 };
 
-                var logger = loggerFactory.CreateLogger(nameof(Program));
-
-                logger.Log(Category.Action.Finished(nameof(InitializeLogging)), Layer.Application);
-
-                return (loggerFactory, logger);
+                return loggerFactory;
             }
             catch (Exception innerException)
             {
@@ -160,14 +173,15 @@ namespace Gunter
         {
             try
             {
-                var configuration = new Configuration(config => config
-                    .UseJsonConverter()
-                    .UseAppSettings()
-                    .UseInMemory(new[]
+                var settingConverter = new JsonSettingConverter(typeof(string));
+
+                var configuration = new Configuration(new ISettingDataStore[]
+                {
+                    new AppSettings(settingConverter),
+                    new InMemory(settingConverter)
                     {
-                        new Setting
+                        new Setting("LookupPaths")
                         {
-                            Name = "LookupPaths",
                             Value = new[]
                             {
                                 AppDomainPaths.ConfigurationFile(),
@@ -179,14 +193,15 @@ namespace Gunter
                             .Distinct()
                             .ToList()
                         }
-                    })
-                );
-                _logger.Log(Category.Action.Finished(nameof(InitializeConfiguration)), Layer.Application);
+                    },
+                });
+
+                _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(InitializeConfiguration)));
                 return configuration;
             }
             catch (Exception innerException)
             {
-                _logger.Log(Category.Action.Failed(nameof(InitializeConfiguration), innerException), Layer.Application);
+                _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(InitializeConfiguration)), log => log.Exception(innerException));
                 throw new InitializationException(innerException, ExitCode.ConfigurationInitializationFault);
             }
         }
@@ -197,13 +212,13 @@ namespace Gunter
             {
                 var container = Modules.Main.Create(loggerFactory, configuration);
 
-                _logger.Log(Category.Action.Finished(nameof(InitializeContainer)), Layer.Application);
+                _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(InitializeContainer)));
 
                 return container;
             }
             catch (Exception innerException)
             {
-                _logger.Log(Category.Action.Failed(nameof(InitializeContainer), innerException), Layer.Application);
+                _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(InitializeContainer)), log => log.Exception(innerException));
                 throw new InitializationException(innerException, ExitCode.ContainerInitializationFault);
             }
         }

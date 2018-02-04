@@ -39,7 +39,7 @@ namespace Gunter
                 from dataSource in testCase.DataSources(testFile)
                 select (testCase, dataSource, testIndex: testIndex++);
 
-            var scope = _logger.BeginScope(s => s.Transaction(testFile.FileName).Elapsed());
+            var scope = _logger.BeginScope(nameof(RunTestAsync), new { testFile.FileName }).AttachElapsed();
             try
             {
                 foreach (var current in tests)
@@ -54,14 +54,14 @@ namespace Gunter
                     }
                     catch (Exception ex)
                     {
-                        _logger.Log(Category.Action.Failed(nameof(RunTestAsync), ex), Layer.Business);
+                        _logger.Log(Abstraction.Layer.Business().Action().Failed(nameof(RunTestAsync)), log => log.Exception(ex));
                     }
                 }
-                _logger.Log(Category.Action.Finished(nameof(RunTestsAsync)), Layer.Business);
+                _logger.Log(Abstraction.Layer.Business().Action().Finished(nameof(RunTestsAsync)));
             }
             catch (Exception ex)
             {
-                _logger.Log(Category.Action.Failed(nameof(RunTestsAsync), ex), Layer.Business);
+                _logger.Log(Abstraction.Layer.Business().Action().Failed(nameof(RunTestsAsync)), log => log.Exception(ex));
             }
             finally
             {
@@ -76,7 +76,7 @@ namespace Gunter
 
         private async Task<bool> RunTestAsync(TestFile testFile, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan GetDataElapsed)> cache)
         {
-            _logger.Log(Category.Snapshot.Arguments(new { testFile.FileName, current.testIndex }), Layer.Business);
+            _logger.Log(Abstraction.Layer.Business().Data().Argument(new { testFile = testFile.FileName, current.testIndex }));
 
             const bool canContinue = true;
 
@@ -91,7 +91,7 @@ namespace Gunter
                 var getDataStopwatch = Stopwatch.StartNew();
                 var value = await current.dataSource.GetDataAsync(localFormatter);
                 cache[current.dataSource.Id] = data = (value, getDataStopwatch.Elapsed);
-                _logger.Log(Category.Snapshot.Objects(new { Elapsed = getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat) }, nameof(getDataStopwatch)), Layer.Database);
+                _logger.Log(Abstraction.Layer.Database().Data().Object(new { getDataStopwatch = getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
             }
 
             if (data.Value is null)
@@ -106,15 +106,15 @@ namespace Gunter
                 assertStopwatch.Stop();
                 var testResult = result == current.testCase.Assert ? TestResult.Passed : TestResult.Failed;
 
-                _logger.Log(Category.Snapshot.Variables(new { testResult }), Layer.Business);
-                _logger.Log(Category.Snapshot.Objects(new { Elapsed = assertStopwatch.Elapsed.ToString(Program.ElapsedFormat) }, nameof(assertStopwatch)), Layer.Business);
-                _logger.Log(Category.Action.Finished("DataTable.Compute"), Layer.Business);
+                _logger.Log(Abstraction.Layer.Business().Data().Variable(new { testResult }));
+                _logger.Log(Abstraction.Layer.Business().Data().Object(new { assertStopwatch = assertStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
+                _logger.Log(Abstraction.Layer.Business().Action().Finished("DataTable.Compute"));
 
                 var mustAlert =
                     (testResult.Passed() && current.testCase.OnPassed.Alert()) ||
                     (testResult.Failed() && current.testCase.OnFailed.Alert());
 
-                _logger.Log(Category.Snapshot.Variables(new { mustAlert }), Layer.Business);
+                _logger.Log(Abstraction.Layer.Business().Data().Variable(new { mustAlert }));
 
                 if (mustAlert)
                 {
@@ -152,7 +152,7 @@ namespace Gunter
                     (testResult.Passed() && current.testCase.OnPassed.Halt()) ||
                     (testResult.Failed() && current.testCase.OnFailed.Halt());
 
-                _logger.Log(Category.Snapshot.Variables(new { mustHalt }), Layer.Business);
+                _logger.Log(Abstraction.Layer.Business().Data().Variable(new { mustHalt }));
 
                 if (mustHalt)
                 {

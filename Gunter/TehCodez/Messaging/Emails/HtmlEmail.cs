@@ -17,6 +17,7 @@ using Reusable.Net.Mail;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
+using Reusable.SmartConfig.Utilities;
 
 namespace Gunter.Messaging.Emails
 {
@@ -48,9 +49,9 @@ namespace Gunter.Messaging.Emails
 
             _css = new Lazy<Css>(() =>
             {
-                var themesPath = _configuration.Select(() => Program.ThemesDirectoryName);
+                var themesPath = _configuration.GetValue(() => Program.ThemesDirectoryName);
                 themesPath = Path.Combine(themesPath, Theme);
-                themesPath = _fileSystem.FindFile(themesPath, _configuration.Select<List<string>>("LookupPaths"));
+                themesPath = _fileSystem.FindFile(themesPath, _configuration.GetValue<List<string>>("LookupPaths"));
                 var cssText = _fileSystem.ReadAllText(themesPath);
                 var css = _cssParser.Parse(cssText);
                 return css;
@@ -72,12 +73,12 @@ namespace Gunter.Messaging.Emails
 
             var body = HtmlElement.Builder.Element("body");
 
-            Logger.Log(Category.Snapshot.Arguments(new
+            Logger.Log(Abstraction.Layer.Business().Data().Argument(new
             {
-                Type = report.GetType().ToPrettyString().ToShortName(),
+                Type = report.GetType().ToPrettyString(),
                 ModuleCount = report.Modules.Count,
                 ModuleTypes = report.Modules.Select(m => m.GetType().Name)
-            }), Layer.Business);
+            }));
 
             foreach (var module in report.Modules)
             {
@@ -88,7 +89,7 @@ namespace Gunter.Messaging.Emails
                 }
             }
 
-            Logger.Log(Category.Snapshot.Properties(new {To}), Layer.Business);
+            Logger.Log(Abstraction.Layer.Business().Data().Property(new { To }));
 
             body = _cssInliner.Inline(_css.Value, body);
 

@@ -10,6 +10,7 @@ using Reusable.IO;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
+using Reusable.SmartConfig.Utilities;
 
 namespace Gunter
 {
@@ -33,14 +34,14 @@ namespace Gunter
             _fileSystem = fileSystem;
             _variableValidator = variableValidator;
             _autofacContractResolver = autofacContractResolver;
-            _lookupPaths = configuration.Select<List<string>>("LookupPaths");
+            _lookupPaths = configuration.GetValue<List<string>>("LookupPaths");
         }
 
         public string GlobalTestFileName { get; set; } = "_Global.json";
 
         public IEnumerable<TestFile> LoadTests(string path)
         {
-            _logger.Log(Category.Snapshot.Arguments(new { path }), Layer.IO);
+            _logger.Log(Abstraction.Layer.IO().Data().Argument(new { path }));
 
             var testFiles = LoadTestFiles(path).ToLookup(IsTestFile);
 
@@ -77,7 +78,7 @@ namespace Gunter
 
         private bool TryLoadTestFile(string fileName, out TestFile testFile)
         {
-            _logger.Log(Category.Snapshot.Arguments(new { fileName }), Layer.IO);
+            _logger.Log(Abstraction.Layer.IO().Data().Argument(new { fileName }));
 
             try
             {
@@ -93,13 +94,13 @@ namespace Gunter
 
                 _variableValidator.ValidateNamesNotReserved(testFile.Locals);
 
-                _logger.Log(Category.Action.Finished(nameof(TryLoadTestFile)), Layer.IO);
+                _logger.Log(Abstraction.Layer.IO().Action().Finished(nameof(TryLoadTestFile)));
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.Log(Category.Action.Failed(nameof(TryLoadTestFile), ex), Layer.IO);
+                _logger.Log(Abstraction.Layer.IO().Action().Failed(nameof(TryLoadTestFile)), log => log.Exception(ex));
                 testFile = null;
                 return false;
             }

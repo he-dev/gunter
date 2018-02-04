@@ -45,15 +45,15 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                var scope = Logger.BeginScope(log => log.Transaction($"Report: {report.Id}").Elapsed());
+                var scope = Logger.BeginScope(nameof(PublishAsync), new { reportId = report.Id }).AttachElapsed();
                 try
                 {
                     await PublishReportAsync(report, context);
-                    Logger.Log(Category.Action.Finished(nameof(PublishAsync)), Layer.Network);
+                    Logger.Log(Abstraction.Layer.Network().Action().Finished(nameof(PublishAsync)));
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(Category.Action.Failed(nameof(PublishAsync), ex), Layer.Network);
+                    Logger.Log(Abstraction.Layer.Network().Action().Failed(nameof(PublishAsync)), log => log.Exception(ex));
                 }
                 finally
                 {
