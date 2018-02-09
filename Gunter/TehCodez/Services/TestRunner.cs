@@ -66,9 +66,9 @@ namespace Gunter
             finally
             {
                 scope.Dispose();
-                foreach (var dataTable in cache.Values)
+                foreach (var (value, _) in cache.Values)
                 {
-                    dataTable.Value?.Dispose();
+                    value?.Dispose();
                 }
                 cache.Clear();
             }

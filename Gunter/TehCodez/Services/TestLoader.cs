@@ -88,7 +88,7 @@ namespace Gunter
                     ContractResolver = _autofacContractResolver,
                     DefaultValueHandling = DefaultValueHandling.Populate,
                     TypeNameHandling = TypeNameHandling.Auto,
-                    ObjectCreationHandling = ObjectCreationHandling.Reuse
+                    ObjectCreationHandling = ObjectCreationHandling.Reuse,
                 });
                 testFile.FullName = fileName;
 

@@ -75,9 +75,12 @@ namespace Gunter.Messaging.Emails
 
             Logger.Log(Abstraction.Layer.Business().Data().Argument(new
             {
-                Type = report.GetType().ToPrettyString(),
-                ModuleCount = report.Modules.Count,
-                ModuleTypes = report.Modules.Select(m => m.GetType().Name)
+                report = new
+                {
+                    Type = report.GetType().ToPrettyString(),
+                    ModuleCount = report.Modules.Count,
+                    ModuleTypes = report.Modules.Select(m => m.GetType().Name)
+                }
             }));
 
             foreach (var module in report.Modules)
@@ -89,7 +92,7 @@ namespace Gunter.Messaging.Emails
                 }
             }
 
-            Logger.Log(Abstraction.Layer.Business().Data().Property(new { To }));
+            Logger.Log(Abstraction.Layer.Business().Data().Property(new { To = format(To) }));
 
             body = _cssInliner.Inline(_css.Value, body);
 
@@ -100,7 +103,7 @@ namespace Gunter.Messaging.Emails
                 {
                     Html = body.ToHtml(HtmlFormatting.Empty)
                 },
-                To = To
+                To = format(To)
             };
 
             await EmailClient.SendAsync(email);
