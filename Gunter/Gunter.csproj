@@ -44,23 +44,23 @@
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NLog" Version="4.4.12" />
-    <PackageReference Include="Reusable.Converters" Version="4.0.2" />
-    <PackageReference Include="Reusable.Core" Version="4.0.2" />
-    <PackageReference Include="Reusable.Flawless" Version="4.0.2" />
-    <PackageReference Include="Reusable.MarkupBuilder" Version="4.0.2" />
-    <PackageReference Include="Reusable.Net.Mail" Version="4.0.2" />
-    <PackageReference Include="Reusable.Net.Mail.SmtpClient" Version="4.0.2" />
-    <PackageReference Include="Reusable.OmniLog" Version="4.0.2" />
-    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="4.0.2" />
-    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="4.0.2" />
-    <PackageReference Include="Reusable.SemanticVersion" Version="4.0.2" />
-    <PackageReference Include="Reusable.SmartConfig.Core" Version="4.0.2" />
-    <PackageReference Include="Reusable.SmartConfig.Core.Utilities" Version="4.0.2" />
-    <PackageReference Include="Reusable.SmartConfig.DataStores.AppConfig" Version="4.0.2" />
-    <PackageReference Include="Reusable.SmartConfig.DataStores.InMemory" Version="4.0.2" />
-    <PackageReference Include="Reusable.SmartConfig.SettingConverters.Json" Version="4.0.2" />
-    <PackageReference Include="Reusable.Utilities.SqlClient" Version="4.0.2" />
-    <PackageReference Include="Reusable.Utilities.ThirdParty.NLog" Version="4.0.2" />
+    <PackageReference Include="Reusable.Converters" Version="4.3.1" />
+    <PackageReference Include="Reusable.Core" Version="4.3.1" />
+    <PackageReference Include="Reusable.Flawless" Version="4.3.1" />
+    <PackageReference Include="Reusable.MarkupBuilder" Version="4.3.1" />
+    <PackageReference Include="Reusable.Net.Mail" Version="4.3.1" />
+    <PackageReference Include="Reusable.Net.Mail.SmtpClient" Version="4.3.1" />
+    <PackageReference Include="Reusable.OmniLog" Version="4.3.1" />
+    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="4.3.1" />
+    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="4.3.1" />
+    <PackageReference Include="Reusable.SemanticVersion" Version="4.3.1" />
+    <PackageReference Include="Reusable.SmartConfig.Core" Version="4.3.1" />
+    <PackageReference Include="Reusable.SmartConfig.Core.Utilities" Version="4.3.1" />
+    <PackageReference Include="Reusable.SmartConfig.DataStores.AppConfig" Version="4.3.1" />
+    <PackageReference Include="Reusable.SmartConfig.DataStores.InMemory" Version="4.3.1" />
+    <PackageReference Include="Reusable.SmartConfig.SettingConverters.Json" Version="4.3.1" />
+    <PackageReference Include="Reusable.Utilities.SqlClient" Version="4.3.1" />
+    <PackageReference Include="Reusable.Utilities.ThirdParty.NLog" Version="4.3.1" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
     <PackageReference Include="System.Reactive" Version="3.1.1" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />

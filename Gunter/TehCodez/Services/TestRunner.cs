@@ -91,7 +91,8 @@ namespace Gunter
                 var getDataStopwatch = Stopwatch.StartNew();
                 var value = await current.dataSource.GetDataAsync(localFormatter);
                 cache[current.dataSource.Id] = data = (value, getDataStopwatch.Elapsed);
-                _logger.Log(Abstraction.Layer.Database().Data().Object(new { getDataStopwatch = getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
+                //_logger.Log(Abstraction.Layer.Database().Data().Object(new { getDataStopwatch = getDataStopwatch.Elapsed.ToString(Program.ElapsedFormat) }));
+                _logger.Log(Abstraction.Layer.Database().Data().Metric(new { GetDataAsync = new { RowCount = value?.Rows.Count, Elapsed = getDataStopwatch.Elapsed.TotalMilliseconds } }));
             }
 
             if (data.Value is null)
@@ -175,17 +176,21 @@ namespace Gunter
             //_logger.Log(e => e.Info().Message($"Profiles: [{string.Join(", ", runnableProfiles)}]"));
 
 #if DEBUG
-            var maxDegreeOfParallelism = 1;
+            //var maxDegreeOfParallelism = 1;
 #else
-            var maxDegreeOfParallelism = Environment.ProcessorCount;
+            //var maxDegreeOfParallelism = Environment.ProcessorCount;
 #endif
 
-            Parallel.ForEach
-            (
-                source: testFiles,
-                parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism },
-                body: testFile => testRunner.RunTestsAsync(testFile, profiles)
-            );
+            var tasks = testFiles.Select(testFile => testRunner.RunTestsAsync(testFile, profiles)).ToArray();
+
+            Task.WaitAll(tasks);
+
+            //Parallel.ForEach
+            //(
+            //    source: testFiles,
+            //    parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism },
+            //    body: testFile => testRunner.RunTestsAsync(testFile, profiles)
+            //);
         }
     }
 

@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reusable.OmniLog;
 
-namespace Gunter.JsonConverters
+namespace Gunter.Json.Converters
 {
     [UsedImplicitly]
     public class LogLevelConverter : JsonConverter

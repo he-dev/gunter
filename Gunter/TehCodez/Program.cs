@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Autofac;
 using Gunter.Data;
-using Gunter.JsonConverters;
+using Gunter.Json.Converters;
 using Gunter.Modules;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -30,7 +30,7 @@ namespace Gunter
 
         public static readonly string Product = "Gunter";
 
-        public static readonly string Version = "4.0.1";
+        public static readonly string Version = "4.1.0";
 
         public static readonly string FullName = $"{Product}-v{Version}";
 

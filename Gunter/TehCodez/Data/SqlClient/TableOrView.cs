@@ -6,16 +6,32 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Gunter.Expanders;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable;
+using Reusable.Exceptionize;
+using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Data.SqlClient
 {
+    public delegate IDictionary<string, object> ExpandFunc(object data);
+
     [PublicAPI]
     public class TableOrView : IDataSource
     {
+        private static readonly IDictionary<SoftString, ExpandFunc> Expanders;
+
+        static TableOrView()
+        {
+            Expanders = new Dictionary<SoftString, ExpandFunc>
+            {
+                ["json"] = data => (data is string json ? JsonExpander.Expand(json) : throw new ArgumentException($"{nameof(JsonExpander)} requires data to be a string."))
+            };
+        }
+
         public TableOrView(ILoggerFactory loggerFactory)
         {
             Logger = loggerFactory.CreateLogger(nameof(TableOrView));
@@ -32,6 +48,8 @@ namespace Gunter.Data.SqlClient
         [NotNull, ItemNotNull]
         [JsonRequired]
         public List<Command> Commands { get; set; }
+
+        public List<Expandable> Expandables { get; set; }
 
         public Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
         {
@@ -60,20 +78,22 @@ namespace Gunter.Data.SqlClient
                         var parameters =
                             Commands
                                 .First()
-                                .Parameters.Select(p => (Key: p.Key, Value: format(p.Value)))
+                                .Parameters.Select(p => (p.Key, Value: format(p.Value)))
                                 .ToList();
 
                         Logger.Log(Abstraction.Layer.Database().Data().Object(new { cmd = cmd.CommandText, parameters }));
 
-                        foreach (var parameter in parameters)
+                        foreach (var (key, value) in parameters)
                         {
-                            cmd.Parameters.AddWithValue(parameter.Key, parameter.Value);
+                            cmd.Parameters.AddWithValue(key, value);
                         }
 
                         using (var dataReader = cmd.ExecuteReader())
                         {
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
+                            
+                            Expand(dataTable);
 
                             Logger.Log(Abstraction.Layer.Database().Data().Object(new { RowCount = dataTable.Rows.Count }));
                             Logger.Log(Abstraction.Layer.Database().Action().Finished(nameof(GetDataAsync)));
@@ -85,12 +105,43 @@ namespace Gunter.Data.SqlClient
             }
             catch (Exception ex)
             {
-                Logger.Log(Abstraction.Layer.Database().Action().Failed(nameof(GetDataAsync)), log => log.Exception(ex));
+                Logger.Log(Abstraction.Layer.Database().Action().Failed(nameof(GetDataAsync)), ex);
                 return null;
             }
             finally
             {
                 scope.Dispose();
+            }
+        }
+
+        private void Expand(DataTable dataTable)
+        {
+            foreach (var expandable in (Expandables ?? Enumerable.Empty<Expandable>()).Where(e => dataTable.Columns.Contains(e.Column)))
+            {
+                if (!Expanders.TryGetValue(expandable.Expander, out var expand))
+                {
+                    throw DynamicException.Factory.CreateDynamicException($"ExpanderNotFoundException", $"Expander {expandable.Expander.QuoteWith("'")} does not exist.", null);
+                }
+
+                foreach (var dataRow in dataTable.AsEnumerable())
+                {
+                    var data = dataRow.Field<string>(expandable.Column);
+                    if (data is null)
+                    {
+                        continue;
+                    }
+
+                    var properties = expand(data).ToDictionary(x => $"{expandable.Prefix}.{x.Key}", x => x.Value);
+
+                    foreach (var property in properties.Where(x => !(x.Value is null)))
+                    {
+                        if (!dataTable.Columns.Contains(property.Key))
+                        {
+                            dataTable.Columns.Add(new DataColumn(property.Key, property.Value.GetType()));
+                        }
+                        dataRow[property.Key] = property.Value;
+                    }
+                }
             }
         }
 
@@ -115,5 +166,49 @@ namespace Gunter.Data.SqlClient
         [NotNull]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
+    }
+
+    public class Expandable
+    {
+        [JsonRequired]
+        public string Column { get; set; }
+
+        [JsonRequired]
+        public string Prefix { get; set; }
+
+        [JsonRequired]
+        public string Expander { get; set; }
+    }
+
+    public static class DataTableExpander
+    {
+        public static DataTable Expand(this DataTable destination, IEnumerable<IDictionary<string, object>> source)
+        {
+            destination = destination ?? new DataTable();
+
+            foreach (var mapping in source)
+            {
+                destination.Expand(mapping);
+            }
+
+            return destination;
+        }
+
+        public static void Expand(this DataTable destination, IDictionary<string, object> source)
+        {
+            destination = destination ?? new DataTable();
+
+            var newRow = destination.NewRow();
+
+            foreach (var property in source.Where(x => !(x.Value is null)))
+            {
+                if (!destination.Columns.Contains(property.Key))
+                {
+                    destination.Columns.Add(new DataColumn(property.Key, property.Value.GetType()));
+                }
+                newRow[property.Key] = property.Value;
+            }
+            destination.Rows.Add(newRow);
+        }
     }
 }

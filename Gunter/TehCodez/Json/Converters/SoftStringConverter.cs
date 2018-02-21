@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reusable;
 
-namespace Gunter.JsonConverters
+namespace Gunter.Json.Converters
 {
     [UsedImplicitly]
     public class SoftStringConverter : JsonConverter
