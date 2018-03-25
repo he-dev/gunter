@@ -24,43 +24,42 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="TehCodez\Reporting\Filters\Elapsed.cs" />
-    <Compile Remove="TehCodez\Services\FileSystem.cs" />
-    <Compile Remove="TehCodez\Services\PathResolver.cs" />
-    <Compile Remove="TehCodez\Services\TestComposer.cs" />
+    <Compile Remove="src\Reporting\Filters\Elapsed.cs" />
+    <Compile Remove="src\Services\FileSystem.cs" />
+    <Compile Remove="src\Services\PathResolver.cs" />
+    <Compile Remove="src\Services\TestComposer.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\Classified\Gunter\_Tests\clasifid.json" Link="_Tests\clasifid.json" />
-    <Content Include="..\..\Classified\Gunter\_Tests\_Global.json" Link="_Tests\_Global.json" />
+    <Content Include="..\..\Classified\Gunter\cfg\tests\clasifid.json" Link="cfg\tests\clasifid.json" />
+    <Content Include="..\..\Classified\Gunter\cfg\tests\_Global.json" Link="cfg\tests\_Global.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\Classified\Gunter\_AppConfigs\Debug.clasifid.App.config" Link="_AppConfigs\Debug.clasifid.App.config" />
+    <None Include="..\..\Classified\Gunter\_AppConfigs\Debug.clasifid.App.config" Link="cfg\Debug.clasifid.App.config" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.6.2" />
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
+    <PackageReference Include="MailrNET" Version="1.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NLog" Version="4.4.12" />
-    <PackageReference Include="Reusable.Converters" Version="4.3.1" />
-    <PackageReference Include="Reusable.Core" Version="4.3.1" />
-    <PackageReference Include="Reusable.Flawless" Version="4.3.1" />
-    <PackageReference Include="Reusable.MarkupBuilder" Version="4.3.1" />
-    <PackageReference Include="Reusable.Net.Mail" Version="4.3.1" />
-    <PackageReference Include="Reusable.Net.Mail.SmtpClient" Version="4.3.1" />
-    <PackageReference Include="Reusable.OmniLog" Version="4.3.1" />
-    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="4.3.1" />
-    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="4.3.1" />
-    <PackageReference Include="Reusable.SemanticVersion" Version="4.3.1" />
-    <PackageReference Include="Reusable.SmartConfig.Core" Version="4.3.1" />
-    <PackageReference Include="Reusable.SmartConfig.Core.Utilities" Version="4.3.1" />
-    <PackageReference Include="Reusable.SmartConfig.DataStores.AppConfig" Version="4.3.1" />
-    <PackageReference Include="Reusable.SmartConfig.DataStores.InMemory" Version="4.3.1" />
-    <PackageReference Include="Reusable.SmartConfig.SettingConverters.Json" Version="4.3.1" />
-    <PackageReference Include="Reusable.Utilities.SqlClient" Version="4.3.1" />
-    <PackageReference Include="Reusable.Utilities.ThirdParty.NLog" Version="4.3.1" />
+    <PackageReference Include="Reusable.Converters" Version="4.6.0" />
+    <PackageReference Include="Reusable.Core" Version="4.6.0" />
+    <PackageReference Include="Reusable.Flawless" Version="4.6.0" />
+    <PackageReference Include="Reusable.MarkupBuilder" Version="4.6.0" />
+    <PackageReference Include="Reusable.OmniLog" Version="4.6.0" />
+    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="4.6.0" />
+    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="4.6.0" />
+    <PackageReference Include="Reusable.SemanticVersion" Version="4.6.0" />
+    <PackageReference Include="Reusable.SmartConfig.Core" Version="4.6.0" />
+    <PackageReference Include="Reusable.SmartConfig.Core.Utilities" Version="4.6.0" />
+    <PackageReference Include="Reusable.SmartConfig.DataStores.AppConfig" Version="4.6.0" />
+    <PackageReference Include="Reusable.SmartConfig.DataStores.InMemory" Version="4.6.0" />
+    <PackageReference Include="Reusable.SmartConfig.SettingConverters.Json" Version="4.6.0" />
+    <PackageReference Include="Reusable.Utilities.SqlClient" Version="4.6.0" />
+    <PackageReference Include="Reusable.Utilities.ThirdParty.NLog" Version="4.6.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
     <PackageReference Include="System.Reactive" Version="3.1.1" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
@@ -89,7 +88,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Condition="'$(Configuration)|$(Platform)'=='Debug.clasifid|AnyCPU'" Command="xcopy &quot;C:\Home\Projects\Classified\Gunter\_AppConfigs\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
+    <Exec Condition="'$(Configuration)|$(Platform)'=='Debug.clasifid|AnyCPU'" Command="xcopy &quot;C:\Home\Projects\Classified\Gunter\_cfg\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
     <Exec Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" Command="xcopy &quot;$(ProjectDir)_AppConfigs\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
     <Exec Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" Command="xcopy &quot;$(ProjectDir)_AppConfigs\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
   </Target>
