@@ -48,7 +48,6 @@
     <PackageReference Include="Reusable.Converters" Version="4.6.0" />
     <PackageReference Include="Reusable.Core" Version="4.6.0" />
     <PackageReference Include="Reusable.Flawless" Version="4.6.0" />
-    <PackageReference Include="Reusable.MarkupBuilder" Version="4.6.0" />
     <PackageReference Include="Reusable.OmniLog" Version="4.6.0" />
     <PackageReference Include="Reusable.OmniLog.NLogRx" Version="4.6.0" />
     <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="4.6.0" />

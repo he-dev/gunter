@@ -13,20 +13,20 @@ namespace Gunter.Modules
         protected override void Load(ContainerBuilder builder)
         {
             builder
-                .RegisterType<Level>()
-                .As<IRenderer>();
+                .RegisterType<LevelFactory>()
+                .As<IModuleFactory>();
 
             builder
                 .RegisterType<Greeting>()
-                .As<IRenderer>();
+                .As<IModuleFactory>();
 
             builder
                 .RegisterType<Table>()
-                .As<IRenderer>();
+                .As<IModuleFactory>();
 
             builder
                 .RegisterType<Signature>()
-                .As<IRenderer>();
+                .As<IModuleFactory>();
 
             builder
                 .RegisterType<CssInliner>()

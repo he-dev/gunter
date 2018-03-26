@@ -8,8 +8,8 @@ using Reusable.MarkupBuilder.Html;
 
 namespace Gunter.Messaging.Emails.Renderers
 {
-    [CanRender(typeof(Reporting.Modules.Signature))]
-    public class Signature : Renderer
+    [ModuleFactoryFor(typeof(Reporting.Modules.Signature))]
+    public class Signature : ModuleFactory
     {
         public override IEnumerable<IHtmlElement> Render(IModule module, TestContext context)
         {

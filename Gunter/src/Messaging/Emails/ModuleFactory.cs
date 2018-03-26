@@ -6,39 +6,37 @@ using System.Reflection;
 using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
-using Reusable.MarkupBuilder.Html;
 
 namespace Gunter.Messaging.Emails
 {
     [PublicAPI]
-    public interface IRenderer
+    public interface IModuleFactory
     {
-        bool CanRender(IModule module);
-        IEnumerable<IHtmlElement> Render([NotNull] IModule module, [NotNull] TestContext context);
+        bool CanCreate([NotNull] IModule module);
+
+        object Create([NotNull] IModule module, [NotNull] TestContext context);
     }
 
-    public abstract class Renderer : IRenderer
+    public abstract class ModuleFactory : IModuleFactory
     {
-        public bool CanRender(IModule module)
+        public bool CanCreate(IModule module)
         {
             var moduleType = module.GetType();
             return
                 GetType()
-                    .GetCustomAttribute<CanRenderAttribute>()
+                    .GetCustomAttribute<ModuleFactoryForAttribute>()
                     .Any(type => type.IsAssignableFrom(moduleType));
         }
 
-        public abstract IEnumerable<IHtmlElement> Render(IModule module, TestContext context);
-
-        protected HtmlElement Html => HtmlElement.Builder;
+        public abstract object Create(IModule module, TestContext context);
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class CanRenderAttribute : Attribute, IEnumerable<Type>
+    public class ModuleFactoryForAttribute : Attribute, IEnumerable<Type>
     {
         private readonly IEnumerable<Type> _renderables;
 
-        public CanRenderAttribute(params Type[] renderables) => _renderables = renderables;
+        public ModuleFactoryForAttribute(params Type[] renderables) => _renderables = renderables;
 
         public bool Contains(Type type) => _renderables.Contains(type);
 

@@ -7,8 +7,8 @@ using Reusable.MarkupBuilder.Html;
 
 namespace Gunter.Messaging.Emails.Renderers
 {
-    [CanRender(typeof(Reporting.Modules.Greeting))]
-    public class Greeting : Renderer
+    [ModuleFactoryFor(typeof(Reporting.Modules.Greeting))]
+    public class Greeting : ModuleFactory
     {
         public override IEnumerable<IHtmlElement> Render(IModule module, TestContext context)
         {

@@ -10,8 +10,8 @@ using Reusable.MarkupBuilder.Html;
 
 namespace Gunter.Messaging.Emails.Renderers
 {
-    [CanRender(typeof(ITabular))]
-    public class Table : Renderer
+    [ModuleFactoryFor(typeof(ITabular))]
+    public class Table : ModuleFactory
     {
         private static readonly string DateTimeFormat = CultureInfo.InvariantCulture.DateTimeFormat.SortableDateTimePattern;
 
