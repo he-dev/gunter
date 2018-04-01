@@ -3,7 +3,7 @@ using Gunter.Reporting;
 using Gunter.Reporting.Modules;
 using Module = Autofac.Module;
 
-namespace Gunter.Modules
+namespace Gunter.DependencyInjection
 {
     internal class Reporting : Module
     {

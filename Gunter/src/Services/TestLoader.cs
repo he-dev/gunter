@@ -1,118 +1,133 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable;
-using Reusable.IO;
+using Newtonsoft.Json.Serialization;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.SmartConfig;
-using Reusable.SmartConfig.Utilities;
+using Reusable.Reflection;
 
 namespace Gunter
 {
+    internal interface ITestLoader
+    {
+        IEnumerable<TestBundle> LoadTests(string path);
+    }
+
     [UsedImplicitly]
     internal class TestLoader : ITestLoader
     {
         private readonly ILogger _logger;
-        private readonly IFileSystem _fileSystem;
-        private readonly IVariableValidator _variableValidator;
-        private readonly AutofacContractResolver _autofacContractResolver;
-        private readonly IEnumerable<string> _lookupPaths;
+        private readonly ITestFileProvider _testFileProvider;
+        private readonly TestFileSerializer _testFileSerializer;
 
         public TestLoader(
-            ILoggerFactory loggerFactory,
-            IConfiguration configuration,
-            IFileSystem fileSystem,
-            IVariableValidator variableValidator,
-            AutofacContractResolver autofacContractResolver)
+            ILogger<TestLoader> logger,
+            ITestFileProvider testFileProvider,
+            TestFileSerializer testFileSerializer)
         {
-            _logger = loggerFactory.CreateLogger(nameof(TestLoader));
-            _fileSystem = fileSystem;
-            _variableValidator = variableValidator;
-            _autofacContractResolver = autofacContractResolver;
-            _lookupPaths = configuration.GetValue<List<string>>("LookupPaths");
+            _logger = logger;
+            _testFileProvider = testFileProvider;
+            _testFileSerializer = testFileSerializer;
         }
 
-        public string GlobalTestFileName { get; set; } = "_Global.json";
-
-        public IEnumerable<TestFile> LoadTests(string path)
+        public IEnumerable<TestBundle> LoadTests(string path)
         {
             _logger.Log(Abstraction.Layer.IO().Data().Argument(new { path }));
 
-            var testFiles = LoadTestFiles(path).ToLookup(IsTestFile);
-
-            var global = testFiles[false].SingleOrDefault() ?? new TestFile();
-
-            foreach (var testFile in testFiles[true])
+            foreach (var testFileInfo in _testFileProvider.EnumerateTestFiles(path))
             {
-                testFile.Locals = MergeVariables(global.Locals, testFile.Locals);
-                testFile.DataSources = testFile.DataSources.Concat(global.DataSources).ToList();
-                testFile.Messages = testFile.Messages.Concat(global.Messages).ToList();
-                testFile.Reports = testFile.Reports.Concat(global.Reports).ToList();
-                yield return testFile;
-            }
-
-            bool IsTestFile(TestFile testFile)
-            {
-                return !Path.GetFileName(testFile.FileName).Equals(GlobalTestFileName, StringComparison.OrdinalIgnoreCase);
-            }
-        }
-
-        private IEnumerable<TestFile> LoadTestFiles(string path)
-        {
-            var testFilesDirectoryName = _fileSystem.FindDirectory(path, _lookupPaths);
-            var jsonFiles = _fileSystem.EnumerateFiles(testFilesDirectoryName).Where(FileFilterFactory.Default.Create(".json"));
-
-            foreach (var jsonFile in jsonFiles)
-            {
-                if (TryLoadTestFile(jsonFile, out var testFile))
+                if (TryLoadTestFile(testFileInfo, out var testFile))
                 {
                     yield return testFile;
                 }
             }
         }
 
-        private bool TryLoadTestFile(string fileName, out TestFile testFile)
+        private bool TryLoadTestFile(TestFileInfo testFileInfo, out TestBundle testBundle)
         {
-            _logger.Log(Abstraction.Layer.IO().Data().Argument(new { fileName }));
+            _logger.Log(Abstraction.Layer.IO().Data().Argument(new { testFileInfo = new { testFileInfo.Name } }));
 
+            testBundle = default;
             try
             {
-                var json = _fileSystem.ReadAllText(fileName);
-                testFile = JsonConvert.DeserializeObject<TestFile>(json, new JsonSerializerSettings
+                using (var testFileStream = testFileInfo.CreateReadStream())
                 {
-                    ContractResolver = _autofacContractResolver,
-                    DefaultValueHandling = DefaultValueHandling.Populate,
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    ObjectCreationHandling = ObjectCreationHandling.Reuse,
-                });
-                testFile.FullName = fileName;
-
-                _variableValidator.ValidateNamesNotReserved(testFile.Locals);
-
-                _logger.Log(Abstraction.Layer.IO().Action().Finished(nameof(TryLoadTestFile)));
-
-                return true;
+                    testBundle = _testFileSerializer.Deserialize(testFileStream);
+                    testBundle.FullName = testFileInfo.Name;
+                    _logger.Log(Abstraction.Layer.IO().Action().Finished(nameof(TryLoadTestFile)));
+                    return true;
+                }
             }
             catch (Exception ex)
             {
-                _logger.Log(Abstraction.Layer.IO().Action().Failed(nameof(TryLoadTestFile)), log => log.Exception(ex));
-                testFile = null;
+                _logger.Log(Abstraction.Layer.IO().Action().Failed(nameof(TryLoadTestFile)), ex);
                 return false;
             }
         }
+    }
 
-        private static Dictionary<SoftString, object> MergeVariables(IDictionary<SoftString, object> globals, IDictionary<SoftString, object> locals)
+    internal class TestFileSerializer
+    {
+        private readonly Newtonsoft.Json.JsonSerializer _jsonSerializer;
+
+        public TestFileSerializer(IContractResolver contractResolver)
         {
-            return
-                globals.Concat(locals)
-                    .GroupBy(x => x.Key)
-                    .Select(g => g.Last())
-                    .ToDictionary(x => x.Key, x => x.Value);
+            _jsonSerializer = new Newtonsoft.Json.JsonSerializer
+            {
+                ContractResolver = contractResolver,
+                DefaultValueHandling = DefaultValueHandling.Populate,
+                TypeNameHandling = TypeNameHandling.Auto,
+                ObjectCreationHandling = ObjectCreationHandling.Reuse,
+            };
+        }
+
+        public TestBundle Deserialize(Stream testFileStream)
+        {
+            using (var streamReader = new StreamReader(testFileStream))
+            using (var jsonReader = new JsonTextReader(streamReader))
+            {
+                return _jsonSerializer.Deserialize<TestBundle>(jsonReader);
+            }
         }
     }
+
+    internal interface ITestFileProvider
+    {
+        IEnumerable<TestFileInfo> EnumerateTestFiles(string path);
+    }
+
+    internal class TestFileProvider : ITestFileProvider
+    {
+        public IEnumerable<TestFileInfo> EnumerateTestFiles(string path)
+        {
+            return
+                Directory
+                    .EnumerateFiles(path, "*.json")
+                    .Select(testFileName => new TestFileInfo
+                    {
+                        Name = testFileName,
+                        CreateReadStream = () => File.OpenRead(testFileName)
+                    });
+        }
+    }
+
+    internal class TestFileInfo
+    {
+        public string Name { get; set; }
+
+        public Func<Stream> CreateReadStream { get; set; }
+    }
+
+    public enum MergeMode
+    {
+        Base,
+        Join
+    }
+
+    internal class MergableAttribute : Attribute { }
 }

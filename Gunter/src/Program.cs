@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using Autofac;
 using Gunter.Data;
 using Gunter.Json.Converters;
-using Gunter.Modules;
+using JetBrains.Annotations;
+using MailrNET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Reusable;
 using Reusable.DateTimes;
+using Reusable.Exceptionize;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
@@ -22,93 +25,97 @@ using Reusable.SmartConfig.Utilities;
 
 namespace Gunter
 {
-    internal abstract class Program
+    public class Program
     {
-        private static ILogger _logger;
+        private readonly ILogger _logger;
+        private readonly IConfiguration _configuration;
 
         public static readonly string ElapsedFormat = @"mm\:ss\.fff";
 
-        public static readonly string Product = "Gunter";
-
-        public static readonly string Version = "4.1.0";
-
-        public static readonly string FullName = $"{Product}-v{Version}";
 
         [Required]
-        public static string Environment { get; set; }
+        public string Environment => _configuration.GetValue(() => Environment);
 
         [Required]
-        public static string TestsDirectoryName { get; set; }
+        public string TestsDirectoryName => _configuration.GetValue(() => TestsDirectoryName);
 
         [Required]
-        public static string ThemesDirectoryName { get; set; }
+        public string MailrBaseUri => _configuration.GetValue(() => MailrBaseUri);
 
+        public string Product => _configuration.GetValue(() => Product);
+
+        public string Version => _configuration.GetValue(() => Version);
+
+        public string FullName => $"{Product}-v{Version}";
+
+        public string CurrentDirectory => _configuration.GetValue(() => CurrentDirectory);
+
+        public Program(ILoggerFactory loggerFactory, IConfiguration configuration)
+        {
+            _configuration = configuration;
+            _logger = loggerFactory.CreateLogger<Program>();
+        }
+     
         internal static int Main(string[] args)
         {
             try
             {
                 var loggerFactory = InitializeLogging();
-                _logger = loggerFactory.CreateLogger<Program>();
+                var configuration = InitializeConfiguration();
 
-                var container = default(IContainer);
-                var scope = default(ILifetimeScope);
-                try
-                {
-                    var configuration = InitializeConfiguration();
+                Start(args, loggerFactory, configuration);
 
-                    configuration.AssignValue(() => Environment);
-                    configuration.AssignValue(() => TestsDirectoryName);
-                    configuration.AssignValue(() => ThemesDirectoryName);
-
-                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Property(new { Environment, TestsDirectoryName, ThemesDirectoryName }));
-
-                    container = InitializeContainer(loggerFactory, configuration);
-                    scope = container.BeginLifetimeScope();
-
-                    var testLoader = scope.Resolve<ITestLoader>();
-                    var testRunner = scope.Resolve<ITestRunner>();
-
-                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished("Initialization"));
-                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Property(new { Version }));
-
-                    var tests = testLoader.LoadTests(TestsDirectoryName).ToList();
-                    testRunner.RunTests(tests, args.Select(SoftString.Create));
-
-                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ExitCode = ExitCode.Success }));
-                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(Main)));
-
-                    return (int)ExitCode.Success;
-                }
-                catch (InitializationException ex)
-                {
-                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ex.ExitCode }));
-                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(Main)), log => log.Exception(ex));
-
-                    /* just prevent double logs */
-                    return (int)ex.ExitCode;
-                }
-                catch (Exception ex)
-                {
-                    _logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ExitCode = ExitCode.RuntimeFault }));
-                    _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(Main)), log => log.Exception(ex));
-
-                    return (int)ExitCode.RuntimeFault;
-                }
-                finally
-                {
-                    scope?.Dispose();
-                    container?.Dispose();
-                }
+                return (int)ExitCode.Success;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Could not initialize logging: {System.Environment.NewLine} {ex}");
+                Console.Error.WriteLine(ex.ToString());
+                if (ex is InitializationException ie)
+                {
+                    return (int)ie.ExitCode;
+                }
+                return (int)ExitCode.UnexpectedFault;
             }
-            return (int)ExitCode.UnexpectedFault;
+        }
+
+        public static void Start(string[] args, ILoggerFactory loggerFactory, IConfiguration configuration)
+        {
+            var logger = loggerFactory.CreateLogger("Init");
+            try
+            {
+                using (var container = DependencyInjection.Main.Create(loggerFactory, configuration))
+                using (var scope = container.BeginLifetimeScope())
+                {
+                    var program = scope.Resolve<Program>();
+                    var testLoader = scope.Resolve<ITestLoader>();
+                    var testComposer = scope.Resolve<TestComposer>();
+                    var testRunner = scope.Resolve<ITestRunner>();                  
+
+                    Directory.SetCurrentDirectory(program.CurrentDirectory);
+
+                    //_logger.Log(Abstraction.Layer.Infrastructure().Action().Finished("Initialization"));
+                    //_logger.Log(Abstraction.Layer.Infrastructure().Data().Property(new { Version }));
+
+                    var tests = testLoader.LoadTests(program.TestsDirectoryName).ToList();
+                    var compositions = testComposer.ComposeTests(tests).ToList();
+                    testRunner.RunTests(compositions, args.Select(SoftString.Create));
+
+                    //_logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ExitCode = ExitCode.Success }));
+                    //_logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(Main)));
+                }
+
+                logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(Start)));
+            }
+            catch (Exception ex)
+            {
+                logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(Start)), ex);
+                throw;
+            }
         }
 
         #region Initialization
 
+        [NotNull]
         private static ILoggerFactory InitializeLogging()
         {
             try
@@ -127,9 +134,9 @@ namespace Gunter
                         {
                             new AppSetting("Environment", "Environment"),
                             //new AppSetting("Product", "Product"),
-                            new Lambda("Product", _ => Product), // FullName),
+                            new Lambda("Product", _ => "Gunter"), // FullName),
                             new Timestamp<UtcDateTime>(),
-                            new Snapshot(new JsonStateSerializer
+                            new Snapshot(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
                             {
                                 Settings = new JsonSerializerSettings
                                 {
@@ -142,7 +149,7 @@ namespace Gunter
                                     }
                                 }
                             }),
-                            new Reusable.OmniLog.Attachements.Scope(new JsonStateSerializer
+                            new Reusable.OmniLog.Attachements.Scope(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
                             {
                                 Settings = new JsonSerializerSettings
                                 {
@@ -164,11 +171,11 @@ namespace Gunter
             }
             catch (Exception innerException)
             {
-                //_logger.Failure(Layer.Application, innerException); // logger failed to initialize so it cannot be used
-                throw new InitializationException(innerException, ExitCode.LoggingIniializationFault);
+                throw new InitializationException(innerException, ExitCode.LoggingInializationFault);
             }
         }
 
+        [NotNull]
         private static IConfiguration InitializeConfiguration()
         {
             try
@@ -180,46 +187,26 @@ namespace Gunter
                     new AppSettings(settingConverter),
                     new InMemory(settingConverter)
                     {
-                        new Setting("LookupPaths")
+                        new Setting(nameof(CurrentDirectory))
                         {
-                            Value = new[]
-                            {
-                                AppDomainPaths.ConfigurationFile(),
-                                AppDomainPaths.BaseDirectory(),
-                                AppDomainPaths.ApplicationBase(),
-                                AppDomainPaths.PrivateBin()
-                            }
-                            .SelectMany(path => path)
-                            .Distinct()
-                            .ToList()
-                        }
+                            Value = Path.GetDirectoryName(typeof(Program).Assembly.Location)
+                        },
+                        new Setting(nameof(Product))
+                        {
+                            Value = "Gunter"
+                        },
+                        new Setting(nameof(Version))
+                        {
+                            Value = "4.1.0"
+                        },
                     },
                 });
 
-                _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(InitializeConfiguration)));
                 return configuration;
             }
             catch (Exception innerException)
             {
-                _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(InitializeConfiguration)), log => log.Exception(innerException));
                 throw new InitializationException(innerException, ExitCode.ConfigurationInitializationFault);
-            }
-        }
-
-        private static IContainer InitializeContainer(ILoggerFactory loggerFactory, IConfiguration configuration)
-        {
-            try
-            {
-                var container = Modules.Main.Create(loggerFactory, configuration);
-
-                _logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(InitializeContainer)));
-
-                return container;
-            }
-            catch (Exception innerException)
-            {
-                _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(InitializeContainer)), log => log.Exception(innerException));
-                throw new InitializationException(innerException, ExitCode.ContainerInitializationFault);
             }
         }
 
@@ -241,9 +228,9 @@ namespace Gunter
     {
         UnexpectedFault = -1,
         Success = 0,
-        LoggingIniializationFault = 1,
+        LoggingInializationFault = 1,
         ConfigurationInitializationFault = 2,
-        ContainerInitializationFault = 3,
+        DependencyInjectionInitializationFault = 3,
         RuntimeFault = 100,
     }
 }

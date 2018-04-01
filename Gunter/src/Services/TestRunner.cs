@@ -12,21 +12,26 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter
 {
+    public interface ITestRunner
+    {
+        Task RunTestsAsync(TestBundle testBundle, IEnumerable<SoftString> profiles);
+    }
+
     [UsedImplicitly]
     internal class TestRunner : ITestRunner
     {
+        private readonly RuntimeFormatter.Factory _createRuntimeFormatter;
         private readonly ILogger _logger;
-        private readonly IRuntimeFormatterFactory _runtimeFormatterFactory;
 
         public TestRunner(
             ILoggerFactory loggerFactory,
-            IRuntimeFormatterFactory runtimeFormatterFactory)
+            RuntimeFormatter.Factory createRuntimeFormatter)
         {
+            _createRuntimeFormatter = createRuntimeFormatter;
             _logger = loggerFactory.CreateLogger(nameof(TestRunner));
-            _runtimeFormatterFactory = runtimeFormatterFactory;
         }
 
-        public async Task RunTestsAsync(TestFile testFile, IEnumerable<SoftString> profiles)
+        public async Task RunTestsAsync(TestBundle testBundle, IEnumerable<SoftString> profiles)
         {
             //VariableValidator.ValidateNamesNotReserved(localVariables, _runtimeVariables.Select(x => x.Name));
 
@@ -34,19 +39,19 @@ namespace Gunter
 
             var testIndex = 0;
             var tests =
-                from testCase in testFile.Tests
+                from testCase in testBundle.Tests
                 where testCase.CanExecute(profiles)
-                from dataSource in testCase.DataSources(testFile)
+                from dataSource in testCase.DataSources(testBundle)
                 select (testCase, dataSource, testIndex: testIndex++);
 
-            var scope = _logger.BeginScope(nameof(RunTestAsync), new { testFile.FileName }).AttachElapsed();
+            var scope = _logger.BeginScope(nameof(RunTestAsync), new { testBundle.FileName }).AttachElapsed();
             try
             {
                 foreach (var current in tests)
                 {
                     try
                     {
-                        var canContinue = await RunTestAsync(testFile, current, cache);
+                        var canContinue = await RunTestAsync(testBundle, current, cache);
                         if (!canContinue)
                         {
                             break;
@@ -74,16 +79,16 @@ namespace Gunter
             }
         }
 
-        private async Task<bool> RunTestAsync(TestFile testFile, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan GetDataElapsed)> cache)
+        private async Task<bool> RunTestAsync(TestBundle testBundle, (TestCase testCase, IDataSource dataSource, int testIndex) current, IDictionary<int, (DataTable Value, TimeSpan GetDataElapsed)> cache)
         {
-            _logger.Log(Abstraction.Layer.Business().Data().Argument(new { testFile = testFile.FileName, current.testIndex }));
+            _logger.Log(Abstraction.Layer.Business().Data().Argument(new { testFile = testBundle.FileName, current.testIndex }));
 
             const bool canContinue = true;
 
             var localFormatter =
-                _runtimeFormatterFactory
-                    .Create(
-                        testFile.Locals
+                _createRuntimeFormatter(
+                        testBundle.Variables,
+                        Enumerable.Empty<object>()
                     );
 
             if (!cache.TryGetValue(current.dataSource.Id, out var data))
@@ -120,10 +125,10 @@ namespace Gunter
                 if (mustAlert)
                 {
                     var runtimeFormatter =
-                        _runtimeFormatterFactory
-                            .Create(
-                                testFile.Locals,
-                                testFile,
+                        _createRuntimeFormatter(
+                            variables: testBundle.Variables,
+                            runtimeObjects: new object[] {
+                                testBundle,
                                 current.testCase,
                                 current.dataSource,
                                 new TestStatistic
@@ -131,14 +136,14 @@ namespace Gunter
                                     GetDataElapsed = data.GetDataElapsed,
                                     AssertElapsed = assertStopwatch.Elapsed
                                 },
-                                typeof(Program)
-                            );
+                            }
+                        );
 
-                    foreach (var message in current.testCase.Messages(testFile))
+                    foreach (var message in current.testCase.Messages(testBundle))
                     {
                         await message.PublishAsync(new TestContext
                         {
-                            TestFile = testFile,
+                            TestBundle = testBundle,
                             TestCase = current.testCase,
                             DataSource = current.dataSource,
                             Data = data.Value,
@@ -171,10 +176,8 @@ namespace Gunter
 
     public static class TestRunnerExtensions
     {
-        public static void RunTests(this ITestRunner testRunner, IEnumerable<TestFile> testFiles, IEnumerable<SoftString> profiles)
+        public static void RunTests(this ITestRunner testRunner, IEnumerable<TestBundle> testFiles, IEnumerable<SoftString> profiles)
         {
-            //_logger.Log(e => e.Info().Message($"Profiles: [{string.Join(", ", runnableProfiles)}]"));
-
 #if DEBUG
             //var maxDegreeOfParallelism = 1;
 #else
@@ -184,13 +187,6 @@ namespace Gunter
             var tasks = testFiles.Select(testFile => testRunner.RunTestsAsync(testFile, profiles)).ToArray();
 
             Task.WaitAll(tasks);
-
-            //Parallel.ForEach
-            //(
-            //    source: testFiles,
-            //    parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism },
-            //    body: testFile => testRunner.RunTestsAsync(testFile, profiles)
-            //);
         }
     }
 

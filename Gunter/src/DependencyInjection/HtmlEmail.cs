@@ -1,12 +1,8 @@
-﻿using System;
-using System.IO;
-using Autofac;
+﻿using Autofac;
 using Gunter.Messaging.Emails;
-using Gunter.Messaging.Emails.Renderers;
-using Reusable.MarkupBuilder.Html;
-using Reusable.SmartConfig;
+using Gunter.Messaging.Emails.ModuleFactories;
 
-namespace Gunter.Modules
+namespace Gunter.DependencyInjection
 {
     internal class HtmlEmail : Module
     {
@@ -17,24 +13,16 @@ namespace Gunter.Modules
                 .As<IModuleFactory>();
 
             builder
-                .RegisterType<Greeting>()
+                .RegisterType<GreetingFactory>()
                 .As<IModuleFactory>();
 
             builder
-                .RegisterType<Table>()
+                .RegisterType<TableFactory>()
                 .As<IModuleFactory>();
 
             builder
-                .RegisterType<Signature>()
+                .RegisterType<SignatureFactory>()
                 .As<IModuleFactory>();
-
-            builder
-                .RegisterType<CssInliner>()
-                .As<ICssInliner>();
-
-            builder
-                .RegisterType<CssParser>()
-                .As<ICssParser>();            
 
             builder
                 .RegisterType<Messaging.Emails.HtmlEmail>();

@@ -11,23 +11,23 @@ namespace Gunter.Expanders
 
     public class JsonExpander : JsonVisitor
     {
-        private readonly IDictionary<string, object> _flat;
+        private readonly IDictionary<string, object> _properties;
 
         private JsonExpander(JObject source)
         {
-            _flat = new Dictionary<string, object>();
+            _properties = new Dictionary<string, object>();
             VisitJObject(source);
         }
 
         public static IDictionary<string, object> Expand(string json)
         {
             var jObject = JObject.Parse(json);
-            return new JsonExpander(jObject)._flat;
+            return new JsonExpander(jObject)._properties;
         }
 
         protected override void VisitJValue(JValue jValue)
         {
-            _flat[jValue.Path] = jValue.Value;
+            _properties[jValue.Path] = jValue.Value;
         }
     }
 }

@@ -11,12 +11,10 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Messaging
 {
-    public interface IMessage
+    public interface IMessage : IMergable
     {
-        [JsonRequired]
         int Id { get; set; }
 
-        [JsonRequired]
         [JsonProperty("Reports")]
         List<int> ReportIds { get; set; }
 
@@ -32,15 +30,21 @@ namespace Gunter.Messaging
 
         protected ILogger Logger { get; }
 
+        [JsonRequired]
         public int Id { get; set; }
 
+        public string Merge { get; set; }
+
+        [Mergable]
         public List<int> ReportIds { get; set; } = new List<int>();
+
+        public abstract IMergable New();
 
         public async Task PublishAsync(TestContext context)
         {
             var reports =
                 from id in ReportIds
-                join report in context.TestFile.Reports on id equals report.Id
+                join report in context.TestBundle.Reports on id equals report.Id
                 select report;
 
             foreach (var report in reports)

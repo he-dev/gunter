@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +10,6 @@ using MailrNET;
 using MailrNET.API;
 using MailrNET.Models;
 using Newtonsoft.Json;
-using Reusable;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
@@ -26,25 +23,37 @@ namespace Gunter.Messaging.Emails
     {
         private readonly IConfiguration _configuration;
         private readonly IEnumerable<IModuleFactory> _moduleFactories;
+        private readonly Factory _factory;
         private readonly IMailrClient _mailrClient;
+
+        public delegate HtmlEmail Factory();
 
         public HtmlEmail(
             ILoggerFactory loggerFactory,
             IConfiguration configuration,
             IMailrClient mailrClient,
-            IEnumerable<IModuleFactory> moduleFactories)
+            IEnumerable<IModuleFactory> moduleFactories,
+            Factory factory)
             : base(loggerFactory)
         {
             _configuration = configuration;
             _mailrClient = mailrClient;
             _moduleFactories = moduleFactories;
+            _factory = factory;
         }
 
-        [JsonRequired]
         public string To { get; set; }
 
         [DefaultValue("Default.css")]
         public string Theme { get; set; }
+
+        public override IMergable New()
+        {
+            var mergable = _factory();
+            mergable.Id = Id;
+            mergable.Merge = Merge;
+            return mergable;
+        }
 
         protected override async Task PublishReportAsync(IReport report, TestContext context)
         {
@@ -60,14 +69,10 @@ namespace Gunter.Messaging.Emails
                 }
             }));
 
-            foreach (var module in report.Modules)
-            {
-                var moduleFactory = _moduleFactories.Single(r => r.CanCreate(module));
-                foreach (var moduleObj in moduleFactory.Create(module, context))
-                {
-                    body.Add(moduleObj);
-                }
-            }
+            var modules =
+                from module in report.Modules
+                let moduleObject = _moduleFactories.Single(r => r.CanCreate(module)).Create(module, context)
+                select (module.GetType().Name, moduleObject);
 
             //Logger.Log(Abstraction.Layer.Business().Data().Property(new { To }));
 
@@ -76,18 +81,10 @@ namespace Gunter.Messaging.Emails
             var body = new
             {
                 Theme,
-                Message = new
-                {
-                    Level = new
-                    {
-
-                    }
-                }
+                Modules = modules.ToDictionary(t => t.Name, t => t.moduleObject)
             };
 
-
             await _mailrClient.Emails("Gunter").SendAsync("RunTest", "Result", Email.Create(to, subject, body), CancellationToken.None);
-
         }
     }
 }

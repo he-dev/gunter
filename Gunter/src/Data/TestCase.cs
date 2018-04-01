@@ -15,65 +15,92 @@ using Reusable.OmniLog;
 namespace Gunter.Data
 {
     [PublicAPI]
-    public class TestCase
+    public class TestCase : IMergable
     {
+        private readonly Factory _factory;
+
+        public delegate TestCase Factory();
+
+        public TestCase(Factory factory)
+        {
+            _factory = factory;
+        }
+
+        public int Id { get; set; }
+
+        public string Merge { get; set; }
+
         [DefaultValue(true)]
         public bool Enabled { get; set; }
-       
-        [JsonRequired]
+
+        [Mergable]
         public LogLevel Level { get; set; } = LogLevel.Warning;
 
-        [JsonRequired]
+        [Mergable]
         public string Message { get; set; }
-
-        [JsonRequired]
+        
         [JsonProperty("DataSources", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<int> DataSourceIds { get; set; } = new List<int>();
+        [Mergable]
+        public IList<int> DataSourceIds { get; set; } = new List<int>();
 
+        [Mergable]
         public string Filter { get; set; }
 
-        [JsonRequired]
+        [Mergable]
         public string Expression { get; set; }
 
         [DefaultValue(true)]
+        [Mergable]
         public bool Assert { get; set; }
 
         [DefaultValue(TestActions.None)]
+        [Mergable]
         public TestActions OnPassed { get; set; }
 
         [DefaultValue(TestActions.Alert | TestActions.Halt)]
+        [Mergable]
         public TestActions OnFailed { get; set; }
 
         [JsonProperty("Messages", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<int> MessageIds { get; set; } = new List<int>();
+        [Mergable]
+        public IList<int> MessageIds { get; set; } = new List<int>();
 
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<SoftString> Profiles { get; set; } = new List<SoftString>();
+        [Mergable]
+        public IList<SoftString> Profiles { get; set; } = new List<SoftString>();
+
+        public IMergable New()
+        {
+            var mergable = _factory();
+            mergable.Id = Id;
+            mergable.Merge = Merge;
+            return mergable;
+        }
     }
 
     public static class TestCaseExtensions
     {
-        public static IEnumerable<IDataSource> DataSources(this TestCase testCase, TestFile testFile)
+        public static IEnumerable<IDataSource> DataSources(this TestCase testCase, TestBundle testBundle)
         {
             return
                 (from id in testCase.DataSourceIds
-                 join ds in testFile.DataSources on id equals ds.Id
+                 join ds in testBundle.DataSources on id equals ds.Id
                  select ds).Distinct();
         }
 
-        public static IEnumerable<IMessage> Messages(this TestCase testCase, TestFile testFile)
+        public static IEnumerable<IMessage> Messages(this TestCase testCase, TestBundle testBundle)
         {
             return
                 (from id in testCase.MessageIds
-                 join alert in testFile.Messages on id equals alert.Id
+                 join alert in testBundle.Messages on id equals alert.Id
                  select alert).Distinct();
         }
 
-        public static IEnumerable<IReport> Reports(this TestCase testCase, TestFile testFile)
+        public static IEnumerable<IReport> Reports(this TestCase testCase, TestBundle testBundle)
         {
             return
-                (from id in testCase.Messages(testFile).SelectMany(alert => alert.ReportIds)
-                 join report in testFile.Reports on id equals report.Id
+                (from id in testCase.Messages(testBundle).SelectMany(alert => alert.ReportIds)
+                 join report in testBundle.Reports on id equals report.Id
                  select report).Distinct();
         }
 

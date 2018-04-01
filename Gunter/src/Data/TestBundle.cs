@@ -13,10 +13,29 @@ using Reusable;
 namespace Gunter.Data
 {
     [PublicAPI]
-    public class TestFile
+    public class TestBundle
     {
+        private readonly IVariableNameValidator _variableNameValidator;
+
+        private Dictionary<SoftString, object> _variables = new Dictionary<SoftString, object>();
+
+        public delegate TestBundle Factory();
+
+        public TestBundle(IVariableNameValidator variableNameValidator)
+        {
+            _variableNameValidator = variableNameValidator;
+        }
+
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public Dictionary<SoftString, object> Locals { get; set; } = new Dictionary<SoftString, object>();
+        public Dictionary<SoftString, object> Variables
+        {
+            get => _variables;
+            set
+            {
+                _variableNameValidator.ValidateNamesNotReserved(value);
+                _variables = value;
+            }
+        }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
@@ -35,7 +54,10 @@ namespace Gunter.Data
 
         [NotNull]
         [JsonIgnore]
-        public string FileName => Path.GetFileName(FullName);
+        public SoftString FileName => Path.GetFileName(FullName);
+
+        [JsonIgnore]
+        public SoftString Name => Path.GetFileNameWithoutExtension(FileName.ToString());
     }
 }
 

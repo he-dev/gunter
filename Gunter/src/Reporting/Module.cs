@@ -14,6 +14,8 @@ namespace Gunter.Reporting
 
         [CanBeNull]
         string Text { get; set; }
+
+        int Ordinal { get; set; }
     }
 
     public abstract class Module : IModule
@@ -21,6 +23,8 @@ namespace Gunter.Reporting
         public string Heading { get; set; }
 
         public string Text { get; set; }
+
+        public int Ordinal { get; set; }
     }
 
     public interface ITabular
@@ -29,7 +33,7 @@ namespace Gunter.Reporting
         TableOrientation Orientation { get; }
 
         [JsonIgnore]
-        bool HasFooter { get; }
+        bool HasFoot { get; }
 
         DataTable Create(TestContext context);
     }

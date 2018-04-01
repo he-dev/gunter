@@ -43,7 +43,7 @@ namespace Gunter.Reporting.Modules
 
         public TableOrientation Orientation => TableOrientation.Horizontal;
 
-        public bool HasFooter => true;
+        public bool HasFoot => true;
 
         [DefaultValue(true)]
         public bool HasGroupCount { get; set; } = true;

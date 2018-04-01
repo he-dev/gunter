@@ -104,34 +104,45 @@ namespace Gunter.Data
         public override bool Equals(object other) => other is IRuntimeVariable runtimeVariable && Equals(runtimeVariable);
 
         public override int GetHashCode() => AutoEquality<IRuntimeVariable>.Comparer.GetHashCode(this);
+    }
 
-        #region Definitions
-
+    public static class RuntimeVariableHelper
+    {
         public static class Program
         {
-            public static readonly IRuntimeVariable FullName = FromExpression(() => Gunter.Program.FullName);
-            public static readonly IRuntimeVariable Environment = FromExpression(() => Gunter.Program.Environment);
+            public static readonly IRuntimeVariable FullName = RuntimeVariable.FromExpression<Gunter.Program>(x => x.FullName);
+            public static readonly IRuntimeVariable Environment = RuntimeVariable.FromExpression<Gunter.Program>(x => x.Environment);
         }
 
         public static class TestFile
         {
-            public static readonly IRuntimeVariable FullName = FromExpression<Gunter.Data.TestFile>(x => x.FullName);
-            public static readonly IRuntimeVariable FileName = FromExpression<Gunter.Data.TestFile>(x => x.FileName);
+            public static readonly IRuntimeVariable FullName = RuntimeVariable.FromExpression<Gunter.Data.TestBundle>(x => x.FullName);
+            public static readonly IRuntimeVariable FileName = RuntimeVariable.FromExpression<Gunter.Data.TestBundle>(x => x.FileName);
         }
 
         public static class TestCase
         {
-            public static readonly IRuntimeVariable Level = FromExpression<Gunter.Data.TestCase>(x => x.Level);
-            public static readonly IRuntimeVariable Message = FromExpression<Gunter.Data.TestCase>(x => x.Message);
+            public static readonly IRuntimeVariable Level = RuntimeVariable.FromExpression<Gunter.Data.TestCase>(x => x.Level);
+            public static readonly IRuntimeVariable Message = RuntimeVariable.FromExpression<Gunter.Data.TestCase>(x => x.Message);
         }
 
         public static class TestStatistic
         {
-            public static readonly IRuntimeVariable GetDataElapsed = FromExpression<Gunter.Data.TestStatistic>(x => x.GetDataElapsed);
-            public static readonly IRuntimeVariable AssertElapsed = FromExpression<Gunter.Data.TestStatistic>(x => x.AssertElapsed);
+            public static readonly IRuntimeVariable GetDataElapsed = RuntimeVariable.FromExpression<Gunter.Data.TestStatistic>(x => x.GetDataElapsed);
+            public static readonly IRuntimeVariable AssertElapsed = RuntimeVariable.FromExpression<Gunter.Data.TestStatistic>(x => x.AssertElapsed);
         }
 
-        #endregion
+        public static IEnumerable<IRuntimeVariable> EnumerateVariables()
+        {
+            yield return Program.FullName;
+            yield return Program.Environment;
+            yield return TestFile.FullName;
+            yield return TestFile.FileName;
+            yield return TestCase.Level;
+            yield return TestCase.Message;
+            yield return TestStatistic.GetDataElapsed;
+            yield return TestStatistic.AssertElapsed;
+        }
     }
 
     internal static class RuntimeVariableExtensions

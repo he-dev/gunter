@@ -1,6 +1,9 @@
 using Autofac;
+using Gunter.Data;
+using Gunter.Reporting;
+using Module = Autofac.Module;
 
-namespace Gunter.Modules
+namespace Gunter.DependencyInjection
 {
     internal class Data : Module
     {
@@ -9,6 +12,12 @@ namespace Gunter.Modules
             builder
                 .RegisterType<Gunter.Data.SqlClient.TableOrView>();
 
+            builder
+                .RegisterType<TestCase>()
+                .AsSelf();
+
+            builder
+                .RegisterType<Report>();
         }
     }
 }

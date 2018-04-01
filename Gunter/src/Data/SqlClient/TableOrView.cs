@@ -22,7 +22,11 @@ namespace Gunter.Data.SqlClient
     [PublicAPI]
     public class TableOrView : IDataSource
     {
+        private readonly Factory _factory;
+
         private static readonly IDictionary<SoftString, ExpandFunc> Expanders;
+
+        public delegate TableOrView Factory();
 
         static TableOrView()
         {
@@ -32,23 +36,30 @@ namespace Gunter.Data.SqlClient
             };
         }
 
-        public TableOrView(ILoggerFactory loggerFactory)
+        //[JsonConstructor]
+        public TableOrView(ILogger<TableOrView> logger, Factory factory)
         {
-            Logger = loggerFactory.CreateLogger(nameof(TableOrView));
+            _factory = factory;
+            Logger = logger;
         }
 
         private ILogger Logger { get; }
 
         public int Id { get; set; }
 
+        public string Merge { get; set; }
+
         [NotNull]
-        [JsonRequired]
+        [Mergable]
+        //[JsonRequired]
         public string ConnectionString { get; set; }
 
         [NotNull, ItemNotNull]
-        [JsonRequired]
+        [Mergable]
+        //[JsonRequired]
         public List<Command> Commands { get; set; }
 
+        [Mergable]
         public List<Expandable> Expandables { get; set; }
 
         public Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
@@ -92,7 +103,7 @@ namespace Gunter.Data.SqlClient
                         {
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
-                            
+
                             Expand(dataTable);
 
                             Logger.Log(Abstraction.Layer.Database().Data().Object(new { RowCount = dataTable.Rows.Count }));
@@ -150,6 +161,14 @@ namespace Gunter.Data.SqlClient
             var format = (FormatFunc)formatter.Format;
 
             return Commands.Select(cmd => (cmd.Name, Text: format(cmd.Text)));
+        }
+
+        public IMergable New()
+        {
+            var mergable = _factory();
+            mergable.Id = Id;
+            mergable.Merge = Merge;
+            return mergable;
         }
     }
 

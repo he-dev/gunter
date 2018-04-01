@@ -13,7 +13,7 @@ namespace Gunter.Reporting.Modules
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
-        public bool HasFooter => false;
+        public bool HasFoot => false;
 
         [DefaultValue("Timestamp")]
         public string TimestampColumn { get; set; }
@@ -47,7 +47,7 @@ namespace Gunter.Reporting.Modules
             }
 
             dataTable.AddRow("RowCount", context.Data.Rows.Count);
-            dataTable.AddRow("Elapsed", format($"{{{RuntimeVariable.TestStatistic.GetDataElapsed.Name.ToString()}:{TimespanFormat}}}"));
+            dataTable.AddRow("Elapsed", format($"{{{RuntimeVariableHelper.TestStatistic.GetDataElapsed.Name.ToString()}:{TimespanFormat}}}"));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.

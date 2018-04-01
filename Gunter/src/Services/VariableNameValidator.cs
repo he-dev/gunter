@@ -10,12 +10,17 @@ using Reusable.Extensions;
 
 namespace Gunter
 {
+    public interface IVariableNameValidator
+    {
+        void ValidateNamesNotReserved(IDictionary<SoftString, object> variables);
+    }
+
     [UsedImplicitly]
-    internal class VariableValidator : IVariableValidator
+    internal class VariableNameValidator : IVariableNameValidator
     {
         private readonly IEnumerable<SoftString> _reservedNames;
 
-        public VariableValidator(IEnumerable<IRuntimeVariable> runtimeVariables)
+        public VariableNameValidator(IEnumerable<IRuntimeVariable> runtimeVariables)
         {
             _reservedNames = runtimeVariables.Select(x => x.Name).ToList();
         }

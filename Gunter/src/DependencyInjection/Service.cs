@@ -1,40 +1,63 @@
-using System.Collections.Generic;
 using Autofac;
-using Gunter.Data;
+using Gunter.DependencyInjection.Helpers;
+using MailrNET;
+using Newtonsoft.Json.Serialization;
 using Reusable.IO;
 
-namespace Gunter.Modules
+namespace Gunter.DependencyInjection
 {
     internal class Service : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder
-                .RegisterType<RuntimeFormatterFactory>()
-                .As<IRuntimeFormatterFactory>();
+            //builder
+            //    .RegisterType<RuntimeFormatterFactory>()
+            //    .As<IRuntimeFormatterFactory>();
 
             builder
                 .Register(c =>
                 {
                     var context = c.Resolve<IComponentContext>();
                     return new AutofacContractResolver(context);
-                }).SingleInstance();
+                }).SingleInstance()
+                .As<IContractResolver>();
 
             builder
                 .RegisterType<FileSystem>()
                 .As<IFileSystem>();
 
             builder
-                .RegisterType<VariableValidator>()
-                .As<IVariableValidator>();
+                .RegisterType<VariableNameValidator>()
+                .As<IVariableNameValidator>();
 
             builder
                 .RegisterType<TestLoader>()
                 .As<ITestLoader>();
 
             builder
+                .RegisterType<TestComposer>()
+                .AsSelf();
+
+            builder
                 .RegisterType<TestRunner>()
                 .As<ITestRunner>();
+
+            builder
+                .RegisterType<RuntimeFormatter>()
+                .AsSelf();
+
+            builder
+                .Register(c =>
+                {
+                    var program = c.Resolve<Program>();
+                    return MailrClient.Create(
+                        program.MailrBaseUri, 
+                        program.Product, 
+                        program.Version, 
+                        $".{program.Environment}"
+                    );
+                })
+                .InstancePerLifetimeScope();
         }
     }
 }
