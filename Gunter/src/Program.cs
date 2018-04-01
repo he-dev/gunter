@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Autofac;
 using Gunter.Data;
 using Gunter.Json.Converters;
@@ -50,20 +51,20 @@ namespace Gunter
 
         public string CurrentDirectory => _configuration.GetValue(() => CurrentDirectory);
 
-        public Program(ILoggerFactory loggerFactory, IConfiguration configuration)
+        public Program(ILogger<Program> logger, IConfiguration configuration)
         {
             _configuration = configuration;
-            _logger = loggerFactory.CreateLogger<Program>();
+            _logger = logger;
         }
      
-        internal static int Main(string[] args)
+        internal static async Task<int> Main(string[] args)
         {
             try
             {
                 var loggerFactory = InitializeLogging();
                 var configuration = InitializeConfiguration();
 
-                Start(args, loggerFactory, configuration);
+                await StartAsync(args, loggerFactory, configuration);
 
                 return (int)ExitCode.Success;
             }
@@ -78,12 +79,12 @@ namespace Gunter
             }
         }
 
-        public static void Start(string[] args, ILoggerFactory loggerFactory, IConfiguration configuration)
+        public static async Task StartAsync(string[] args, ILoggerFactory loggerFactory, IConfiguration configuration)
         {
-            var logger = loggerFactory.CreateLogger("Init");
+            var logger = loggerFactory.CreateLogger<Program>();
             try
             {
-                using (var container = DependencyInjection.Main.Create(loggerFactory, configuration))
+                using (var container = DependencyInjection.Program.Create(loggerFactory, configuration))
                 using (var scope = container.BeginLifetimeScope())
                 {
                     var program = scope.Resolve<Program>();
@@ -98,17 +99,21 @@ namespace Gunter
 
                     var tests = testLoader.LoadTests(program.TestsDirectoryName).ToList();
                     var compositions = testComposer.ComposeTests(tests).ToList();
-                    testRunner.RunTests(compositions, args.Select(SoftString.Create));
+
+                    var profiles = args.Select(SoftString.Create);
+                    var tasks = compositions.Select(testFile => testRunner.RunTestsAsync(testFile, profiles)).ToArray();
+
+                    await Task.WhenAll(tasks);
 
                     //_logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ExitCode = ExitCode.Success }));
                     //_logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(Main)));
                 }
 
-                logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(Start)));
+                logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(StartAsync)));
             }
             catch (Exception ex)
             {
-                logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(Start)), ex);
+                logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(StartAsync)), ex);
                 throw;
             }
         }

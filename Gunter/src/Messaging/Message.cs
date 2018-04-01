@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
@@ -13,8 +14,6 @@ namespace Gunter.Messaging
 {
     public interface IMessage : IMergable
     {
-        int Id { get; set; }
-
         [JsonProperty("Reports")]
         List<int> ReportIds { get; set; }
 
@@ -23,9 +22,9 @@ namespace Gunter.Messaging
 
     public abstract class Message : IMessage
     {
-        protected Message([NotNull] ILoggerFactory loggerFactory)
+        protected Message([NotNull] ILogger logger)
         {
-            Logger = loggerFactory.CreateLogger(GetType().Name);
+            Logger = logger;
         }
 
         protected ILogger Logger { get; }

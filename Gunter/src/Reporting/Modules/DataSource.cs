@@ -47,7 +47,7 @@ namespace Gunter.Reporting.Modules
             }
 
             dataTable.AddRow("RowCount", context.Data.Rows.Count);
-            dataTable.AddRow("Elapsed", format($"{{{RuntimeVariableHelper.TestStatistic.GetDataElapsed.Name.ToString()}:{TimespanFormat}}}"));
+            dataTable.AddRow("Elapsed", format($"{RuntimeVariable.TestMetrics.GetDataElapsed}:{TimespanFormat}}}"));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.

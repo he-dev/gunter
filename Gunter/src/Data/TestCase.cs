@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Custom;
+using Gunter.Annotations;
 using Gunter.Messaging;
 using Gunter.Reporting;
 using JetBrains.Annotations;

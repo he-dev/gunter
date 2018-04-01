@@ -36,7 +36,7 @@ namespace Gunter
             _variables =
                 runtimeObjects
                     .Append(program)
-                    .Select(runtimeVariables.Resolve)
+                    .Select(runtimeVariables.GetValues)
                     .SelectMany(x => x)
                     .Concat(variables)
                     // We pick the last variable from each group to allow variable override.

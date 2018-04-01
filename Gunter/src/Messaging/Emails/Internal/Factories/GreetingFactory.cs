@@ -1,20 +1,19 @@
 using Gunter.Data;
 using Gunter.Reporting;
 
-namespace Gunter.Messaging.Emails.ModuleFactories
+namespace Gunter.Messaging.Emails.Internal.Factories
 {
-    [ModuleFactoryFor(typeof(Reporting.Modules.Level))]
-    public class LevelFactory : ModuleFactory
+    [ModuleFactoryFor(typeof(Reporting.Modules.Greeting))]
+    internal class GreetingFactory : ModuleFactory
     {
         public override object Create(IModule module, TestContext context)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
-            var level = context.TestCase.Level.ToString();
-
             return new
             {
-                Text = level,
+                Heading = format(module.Heading),
+                Text = format(module.Text),
                 module.Ordinal
             };            
         }

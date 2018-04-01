@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using Gunter.Data;
+﻿using Gunter.Data;
 using Gunter.Reporting;
 
-namespace Gunter.Messaging.Emails.ModuleFactories
+namespace Gunter.Messaging.Emails.Internal.Factories
 {
     [ModuleFactoryFor(typeof(Reporting.Modules.Signature))]
-    public class SignatureFactory : ModuleFactory
+    internal class SignatureFactory : ModuleFactory
     {
         public override object Create(IModule module, TestContext context)
         {
@@ -15,7 +12,7 @@ namespace Gunter.Messaging.Emails.ModuleFactories
 
             return new
             {
-                Text = format($"{{{RuntimeVariableHelper.Program.FullName.Name.ToString()}}}"),
+                Text = format($"{RuntimeVariable.Program.FullName}"),
                 module.Ordinal
             };
         }

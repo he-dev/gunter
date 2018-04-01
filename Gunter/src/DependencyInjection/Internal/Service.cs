@@ -4,7 +4,7 @@ using MailrNET;
 using Newtonsoft.Json.Serialization;
 using Reusable.IO;
 
-namespace Gunter.DependencyInjection
+namespace Gunter.DependencyInjection.Internal
 {
     internal class Service : Module
     {
@@ -49,7 +49,7 @@ namespace Gunter.DependencyInjection
             builder
                 .Register(c =>
                 {
-                    var program = c.Resolve<Program>();
+                    var program = c.Resolve<Gunter.Program>();
                     return MailrClient.Create(
                         program.MailrBaseUri, 
                         program.Product, 

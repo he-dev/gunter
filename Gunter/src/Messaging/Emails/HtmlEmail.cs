@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Gunter.Data;
+using Gunter.Messaging.Emails.Internal;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using MailrNET;
@@ -28,13 +29,13 @@ namespace Gunter.Messaging.Emails
 
         public delegate HtmlEmail Factory();
 
-        public HtmlEmail(
-            ILoggerFactory loggerFactory,
+        internal HtmlEmail(
+            ILogger<HtmlEmail> logger,
             IConfiguration configuration,
             IMailrClient mailrClient,
             IEnumerable<IModuleFactory> moduleFactories,
-            Factory factory)
-            : base(loggerFactory)
+            Factory factory
+        ) : base(logger)
         {
             _configuration = configuration;
             _mailrClient = mailrClient;

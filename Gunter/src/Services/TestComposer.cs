@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Custom;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Extensions;
 using Gunter.Messaging;
@@ -48,9 +49,7 @@ namespace Gunter
             composition = default;
             try
             {
-                composition = _createTestBundle();
-                composition.FullName = testBundle.FullName;
-                composition.Variables = testBundle.Variables;
+                composition = _createTestBundle(testBundle);                
 
                 var merge = composition.Variables.TryGetValue("Merge", out var x) && x is string m ? m : default;
                 if (merge.IsNotNullOrEmpty())
@@ -72,15 +71,6 @@ namespace Gunter
                 _logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(TryCompose)), ex);
                 return false;
             }
-        }
-
-        private static Dictionary<SoftString, object> MergeVariables(IEnumerable<KeyValuePair<SoftString, object>> variables)
-        {
-            return
-                variables
-                    .GroupBy(x => x.Key)
-                    .Select(g => g.Last())
-                    .ToDictionary(x => x.Key, x => x.Value);
         }
 
         private IEnumerable<T> Merge<T>(
@@ -139,6 +129,17 @@ namespace Gunter
             }
         }
 
+        #region Helpers
+
+        private static Dictionary<SoftString, object> MergeVariables(IEnumerable<KeyValuePair<SoftString, object>> variables)
+        {
+            return
+                variables
+                    .GroupBy(x => x.Key)
+                    .Select(g => g.Last())
+                    .ToDictionary(x => x.Key, x => x.Value);
+        }
+
         private static (SoftString Name, int Id, MergeMode Mode) ParseMerge(string merge)
         {
             var mergeMatch = Regex.Match(merge, @"(?<partial>[_a-z]+):(?<id>\d+):(?<mode>base|join)", RegexOptions.IgnoreCase);
@@ -180,5 +181,13 @@ namespace Gunter
                     .GetFileName(testBundle.FullName)
                     .StartsWith("_", StringComparison.OrdinalIgnoreCase);
         }
+        
+        #endregion
+    }
+
+    public enum MergeMode
+    {
+        Base,
+        Join
     }
 }

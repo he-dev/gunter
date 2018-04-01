@@ -1,14 +1,13 @@
-using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
 using Gunter.Data;
 using Gunter.Reporting;
 
-namespace Gunter.Messaging.Emails.ModuleFactories
+namespace Gunter.Messaging.Emails.Internal.Factories
 {
     [ModuleFactoryFor(typeof(ITabular))]
-    public class TableFactory : ModuleFactory
+    internal class TableFactory : ModuleFactory
     {
         private static readonly string DateTimeFormat = CultureInfo.InvariantCulture.DateTimeFormat.SortableDateTimePattern;
 

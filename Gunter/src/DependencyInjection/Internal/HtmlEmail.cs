@@ -1,8 +1,9 @@
 ﻿using Autofac;
 using Gunter.Messaging.Emails;
-using Gunter.Messaging.Emails.ModuleFactories;
+using Gunter.Messaging.Emails.Internal;
+using Gunter.Messaging.Emails.Internal.Factories;
 
-namespace Gunter.DependencyInjection
+namespace Gunter.DependencyInjection.Internal
 {
     internal class HtmlEmail : Module
     {

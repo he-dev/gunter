@@ -24,11 +24,11 @@ namespace Gunter
         private readonly ILogger _logger;
 
         public TestRunner(
-            ILoggerFactory loggerFactory,
+            ILogger<TestRunner> logger,
             RuntimeFormatter.Factory createRuntimeFormatter)
         {
             _createRuntimeFormatter = createRuntimeFormatter;
-            _logger = loggerFactory.CreateLogger(nameof(TestRunner));
+            _logger = logger;
         }
 
         public async Task RunTestsAsync(TestBundle testBundle, IEnumerable<SoftString> profiles)
@@ -131,7 +131,7 @@ namespace Gunter
                                 testBundle,
                                 current.testCase,
                                 current.dataSource,
-                                new TestStatistic
+                                new TestMetrics
                                 {
                                     GetDataElapsed = data.GetDataElapsed,
                                     AssertElapsed = assertStopwatch.Elapsed
@@ -171,22 +171,6 @@ namespace Gunter
             }
 
             return canContinue;
-        }
-    }
-
-    public static class TestRunnerExtensions
-    {
-        public static void RunTests(this ITestRunner testRunner, IEnumerable<TestBundle> testFiles, IEnumerable<SoftString> profiles)
-        {
-#if DEBUG
-            //var maxDegreeOfParallelism = 1;
-#else
-            //var maxDegreeOfParallelism = Environment.ProcessorCount;
-#endif
-
-            var tasks = testFiles.Select(testFile => testRunner.RunTestsAsync(testFile, profiles)).ToArray();
-
-            Task.WaitAll(tasks);
         }
     }
 

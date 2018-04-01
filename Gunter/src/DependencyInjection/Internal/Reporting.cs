@@ -1,0 +1,16 @@
+﻿using Autofac;
+
+namespace Gunter.DependencyInjection.Internal
+{
+    internal class Reporting : Autofac.Module
+    {
+        protected override void Load(ContainerBuilder builder)
+        {
+            builder.RegisterType<Gunter.Reporting.Modules.TestCase>();
+            builder.RegisterType<Gunter.Reporting.Modules.DataSource>();
+            builder.RegisterType<Gunter.Reporting.Modules.DataSummary>();
+            builder.RegisterType<Gunter.Reporting.Modules.TestCase>().AsSelf();
+            builder.RegisterType<Gunter.Reporting.Report>().AsSelf();
+        }
+    }
+}

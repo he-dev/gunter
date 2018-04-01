@@ -32,7 +32,7 @@ namespace Gunter.Reporting.Modules
                     .AddRow(nameof(Gunter.Data.TestCase.Assert), context.TestCase.Assert)
                     .AddRow(nameof(Gunter.Data.TestCase.OnPassed), context.TestCase.OnPassed)
                     .AddRow(nameof(Gunter.Data.TestCase.OnFailed), context.TestCase.OnFailed)
-                    .AddRow(nameof(Gunter.Data.TestStatistic.AssertElapsed), format($"{{{RuntimeVariableHelper.TestStatistic.AssertElapsed.Name.ToString()}:{TimespanFormat}}}")) // @"hh\:mm\:ss\.f")) /
+                    .AddRow(nameof(Gunter.Data.TestMetrics.AssertElapsed), format($"{RuntimeVariable.TestMetrics.AssertElapsed}:{TimespanFormat}}}")) // @"hh\:mm\:ss\.f")) /
                     .AddRow(nameof(Gunter.Data.TestCase.Profiles), $"[{string.Join(", ", context.TestCase.Profiles.Select(p => $"'{p}'"))}]");
 
             return table;

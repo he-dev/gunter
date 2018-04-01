@@ -19,11 +19,18 @@ namespace Gunter.Data
 
         private Dictionary<SoftString, object> _variables = new Dictionary<SoftString, object>();
 
-        public delegate TestBundle Factory();
+        public delegate TestBundle Factory(TestBundle otherBundle);
 
         public TestBundle(IVariableNameValidator variableNameValidator)
         {
             _variableNameValidator = variableNameValidator;
+        }
+
+        public TestBundle(IVariableNameValidator variableNameValidator, TestBundle otherBundle)
+            : this(variableNameValidator)
+        {
+            FullName = otherBundle.FullName;
+            Variables = otherBundle.Variables;
         }
 
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
@@ -32,7 +39,7 @@ namespace Gunter.Data
             get => _variables;
             set
             {
-                _variableNameValidator.ValidateNamesNotReserved(value);
+                _variableNameValidator.ValidateNamesNotReserved(value.Keys);
                 _variables = value;
             }
         }

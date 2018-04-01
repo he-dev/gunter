@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Gunter.Data;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
@@ -23,12 +19,12 @@ namespace Gunter
     {
         private readonly ILogger _logger;
         private readonly ITestFileProvider _testFileProvider;
-        private readonly TestFileSerializer _testFileSerializer;
+        private readonly ITestFileSerializer _testFileSerializer;
 
         public TestLoader(
             ILogger<TestLoader> logger,
             ITestFileProvider testFileProvider,
-            TestFileSerializer testFileSerializer)
+            ITestFileSerializer testFileSerializer)
         {
             _logger = logger;
             _testFileProvider = testFileProvider;
@@ -70,64 +66,4 @@ namespace Gunter
             }
         }
     }
-
-    internal class TestFileSerializer
-    {
-        private readonly Newtonsoft.Json.JsonSerializer _jsonSerializer;
-
-        public TestFileSerializer(IContractResolver contractResolver)
-        {
-            _jsonSerializer = new Newtonsoft.Json.JsonSerializer
-            {
-                ContractResolver = contractResolver,
-                DefaultValueHandling = DefaultValueHandling.Populate,
-                TypeNameHandling = TypeNameHandling.Auto,
-                ObjectCreationHandling = ObjectCreationHandling.Reuse,
-            };
-        }
-
-        public TestBundle Deserialize(Stream testFileStream)
-        {
-            using (var streamReader = new StreamReader(testFileStream))
-            using (var jsonReader = new JsonTextReader(streamReader))
-            {
-                return _jsonSerializer.Deserialize<TestBundle>(jsonReader);
-            }
-        }
-    }
-
-    internal interface ITestFileProvider
-    {
-        IEnumerable<TestFileInfo> EnumerateTestFiles(string path);
-    }
-
-    internal class TestFileProvider : ITestFileProvider
-    {
-        public IEnumerable<TestFileInfo> EnumerateTestFiles(string path)
-        {
-            return
-                Directory
-                    .EnumerateFiles(path, "*.json")
-                    .Select(testFileName => new TestFileInfo
-                    {
-                        Name = testFileName,
-                        CreateReadStream = () => File.OpenRead(testFileName)
-                    });
-        }
-    }
-
-    internal class TestFileInfo
-    {
-        public string Name { get; set; }
-
-        public Func<Stream> CreateReadStream { get; set; }
-    }
-
-    public enum MergeMode
-    {
-        Base,
-        Join
-    }
-
-    internal class MergableAttribute : Attribute { }
 }

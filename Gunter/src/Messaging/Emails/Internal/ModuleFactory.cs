@@ -7,10 +7,10 @@ using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 
-namespace Gunter.Messaging.Emails
+namespace Gunter.Messaging.Emails.Internal
 {
     [PublicAPI]
-    public interface IModuleFactory
+    internal interface IModuleFactory
     {
         bool CanCreate([NotNull] IModule module);
 
@@ -32,7 +32,7 @@ namespace Gunter.Messaging.Emails
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class ModuleFactoryForAttribute : Attribute, IEnumerable<Type>
+    internal class ModuleFactoryForAttribute : Attribute, IEnumerable<Type>
     {
         private readonly IEnumerable<Type> _renderables;
 

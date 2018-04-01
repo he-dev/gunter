@@ -12,7 +12,7 @@ namespace Gunter
 {
     public interface IVariableNameValidator
     {
-        void ValidateNamesNotReserved(IDictionary<SoftString, object> variables);
+        void ValidateNamesNotReserved(IEnumerable<SoftString> variableNames);
     }
 
     [UsedImplicitly]
@@ -22,17 +22,20 @@ namespace Gunter
 
         public VariableNameValidator(IEnumerable<IRuntimeVariable> runtimeVariables)
         {
-            _reservedNames = runtimeVariables.Select(x => x.Name).ToList();
+            _reservedNames = 
+                runtimeVariables
+                    .Select(x => x.Name)
+                    .ToList();
         }
 
-        public void ValidateNamesNotReserved(IDictionary<SoftString, object> variables)
+        public void ValidateNamesNotReserved(IEnumerable<SoftString> variableNames)
         {
-            var invalidVariableNames = variables.Keys.Intersect(_reservedNames).ToList();
+            var invalidVariableNames = variableNames.Intersect(_reservedNames).ToList();
             if (invalidVariableNames.Any())
             {
                 throw DynamicException.Factory.CreateDynamicException(
                     $"ReservedVariableName{nameof(Exception)}",
-                    $"Some variables use reserved names: {invalidVariableNames.Join(", ").EncloseWith("[]")}",
+                    $"These variable names use reserved names: {invalidVariableNames.Join(", ").EncloseWith("[]")}",
                     null
                 );
             }
