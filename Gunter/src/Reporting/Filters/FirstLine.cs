@@ -25,5 +25,10 @@ namespace Gunter.Reporting.Filters
                     ? string.Empty
                     : value.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
         }
+
+        public override string ToString()
+        {
+            return $"{nameof(FirstLine)}";
+        }
     }
 }

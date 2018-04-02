@@ -6,5 +6,10 @@ namespace Gunter.Reporting.Filters
         {
             return data;
         }
+
+        public override string ToString()
+        {
+            return $"{nameof(Unchanged)}";
+        }
     }
 }

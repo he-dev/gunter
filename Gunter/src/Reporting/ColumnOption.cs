@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
+using Gunter.Reporting;
+using Gunter.Reporting.Data;
 using Gunter.Reporting.Filters;
-using Gunter.Reporting.Formatters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Diagnostics;
 
-namespace Gunter.Reporting.Data
+
+namespace Gunter.Reporting
 {
-    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}"), PublicAPI]
     public class ColumnOption : IEquatable<ColumnOption>
     {
         public static readonly ColumnOption GroupCount = new ColumnOption
@@ -31,7 +33,13 @@ namespace Gunter.Reporting.Data
 
         public IFormatter Formatter { get; set; }
 
-        private string DebuggerDisplay => $"Name = {Name} IsKey = {IsKey} Filter = {Filter?.GetType().Name ?? "null"} Total = {Total}";
+        private string DebuggerDisplay() => DebuggerDisplayHelper<ColumnOption>.ToString(this, builder =>
+        {
+            builder.Property(x => x.Name);
+            builder.Property(x => IsKey);
+            builder.Property(x => Filter);
+            builder.Property(x => x.Total);
+        });
 
         public bool Equals(ColumnOption other) => AutoEquality<ColumnOption>.Comparer.Equals(this, other);
 
