@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Messaging.Emails.Internal;
 using Gunter.Reporting;
@@ -29,7 +30,7 @@ namespace Gunter.Messaging.Emails
 
         public delegate HtmlEmail Factory();
 
-        internal HtmlEmail(
+        public HtmlEmail(
             ILogger<HtmlEmail> logger,
             IConfiguration configuration,
             IMailrClient mailrClient,
@@ -43,9 +44,11 @@ namespace Gunter.Messaging.Emails
             _factory = factory;
         }
 
+        [Mergable]
         public string To { get; set; }
 
         [DefaultValue("Default.css")]
+        [Mergable]
         public string Theme { get; set; }
 
         public override IMergable New()
@@ -56,11 +59,11 @@ namespace Gunter.Messaging.Emails
             return mergable;
         }
 
-        protected override async Task PublishReportAsync(IReport report, TestContext context)
+        protected override async Task PublishReportAsync(TestContext context, IReport report)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
-            Logger.Log(Abstraction.Layer.Business().Data().Argument(new
+            Logger.Log(Abstraction.Layer.Business().Argument(new
             {
                 report = new
                 {
@@ -75,7 +78,6 @@ namespace Gunter.Messaging.Emails
                 let moduleObject = _moduleFactories.Single(r => r.CanCreate(module)).Create(module, context)
                 select (module.GetType().Name, moduleObject);
 
-            //Logger.Log(Abstraction.Layer.Business().Data().Property(new { To }));
 
             var to = format(To);
             var subject = format(report.Title);
@@ -85,7 +87,11 @@ namespace Gunter.Messaging.Emails
                 Modules = modules.ToDictionary(t => t.Name, t => t.moduleObject)
             };
 
-            await _mailrClient.Emails("Gunter").SendAsync("RunTest", "Result", Email.Create(to, subject, body), CancellationToken.None);
+            var email = Email.Create(to, subject, body);
+
+            Logger.Log(Abstraction.Layer.Infrastructure().Variable(new { email = new { email.To, email.Subject } }));
+
+            await _mailrClient.Emails("Gunter").SendAsync("RunTest", "Result", email, CancellationToken.None);
         }
     }
 }

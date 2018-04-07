@@ -26,12 +26,12 @@ namespace Gunter.Data
             _variableNameValidator = variableNameValidator;
         }
 
-        public TestBundle(IVariableNameValidator variableNameValidator, TestBundle otherBundle)
-            : this(variableNameValidator)
-        {
-            FullName = otherBundle.FullName;
-            Variables = otherBundle.Variables;
-        }
+        //public TestBundle(IVariableNameValidator variableNameValidator, TestBundle otherBundle)
+        //    : this(variableNameValidator)
+        //{
+        //    FullName = otherBundle.FullName;
+        //    Variables = otherBundle.Variables;
+        //}
 
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Dictionary<SoftString, object> Variables

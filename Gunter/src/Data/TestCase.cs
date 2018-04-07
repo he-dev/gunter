@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Custom;
 using Gunter.Annotations;
@@ -24,6 +25,7 @@ namespace Gunter.Data
 
         public TestCase(Factory factory)
         {
+            Debug.Assert(factory.IsNotNull());
             _factory = factory;
         }
 
@@ -32,6 +34,7 @@ namespace Gunter.Data
         public string Merge { get; set; }
 
         [DefaultValue(true)]
+        [Mergable]
         public bool Enabled { get; set; }
 
         [Mergable]
@@ -54,13 +57,13 @@ namespace Gunter.Data
         [Mergable]
         public bool Assert { get; set; }
 
-        [DefaultValue(TestActions.None)]
+        [DefaultValue(TestRunnerActions.None)]
         [Mergable]
-        public TestActions OnPassed { get; set; }
+        public TestRunnerActions OnPassed { get; set; }
 
-        [DefaultValue(TestActions.Alert | TestActions.Halt)]
+        [DefaultValue(TestRunnerActions.Alert | TestRunnerActions.Halt)]
         [Mergable]
-        public TestActions OnFailed { get; set; }
+        public TestRunnerActions OnFailed { get; set; }
 
         [JsonProperty("Messages", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergable]

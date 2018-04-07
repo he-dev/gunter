@@ -22,10 +22,10 @@ namespace Gunter.Data
             public static readonly IRuntimeVariable Message = RuntimeVariableFactory.Create<Gunter.Data.TestCase>(x => x.Message);
         }
 
-        public static class TestMetrics
+        public static class TestCounter
         {
-            public static readonly IRuntimeVariable GetDataElapsed = RuntimeVariableFactory.Create<Gunter.Data.TestMetrics>(x => x.GetDataElapsed);
-            public static readonly IRuntimeVariable AssertElapsed = RuntimeVariableFactory.Create<Gunter.Data.TestMetrics>(x => x.AssertElapsed);
+            public static readonly IRuntimeVariable GetDataElapsed = RuntimeVariableFactory.Create<Gunter.Data.TestCounter>(x => x.GetDataElapsed);
+            public static readonly IRuntimeVariable AssertElapsed = RuntimeVariableFactory.Create<Gunter.Data.TestCounter>(x => x.RunTestElapsed);
         }
 
         public static IEnumerable<IRuntimeVariable> Enumerate()
@@ -36,8 +36,8 @@ namespace Gunter.Data
             yield return TestFile.FileName;
             yield return TestCase.Level;
             yield return TestCase.Message;
-            yield return TestMetrics.GetDataElapsed;
-            yield return TestMetrics.AssertElapsed;
+            yield return TestCounter.GetDataElapsed;
+            yield return TestCounter.AssertElapsed;
         }
     }
 }

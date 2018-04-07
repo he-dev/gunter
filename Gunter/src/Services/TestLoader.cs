@@ -33,20 +33,23 @@ namespace Gunter
 
         public IEnumerable<TestBundle> LoadTests(string path)
         {
-            _logger.Log(Abstraction.Layer.IO().Data().Argument(new { path }));
+            _logger.Log(Abstraction.Layer.IO().Argument(new { path }));
 
             foreach (var testFileInfo in _testFileProvider.EnumerateTestFiles(path))
             {
-                if (TryLoadTestFile(testFileInfo, out var testFile))
+                using (_logger.BeginScope(nameof(LoadTests)))
                 {
-                    yield return testFile;
+                    if (TryLoadTestFile(testFileInfo, out var testFile))
+                    {
+                        yield return testFile;
+                    }
                 }
             }
         }
 
         private bool TryLoadTestFile(TestFileInfo testFileInfo, out TestBundle testBundle)
         {
-            _logger.Log(Abstraction.Layer.IO().Data().Argument(new { testFileInfo = new { testFileInfo.Name } }));
+            _logger.Log(Abstraction.Layer.IO().Argument(new { testFileInfo = new { testFileInfo.Name } }));
 
             testBundle = default;
             try
@@ -55,13 +58,13 @@ namespace Gunter
                 {
                     testBundle = _testFileSerializer.Deserialize(testFileStream);
                     testBundle.FullName = testFileInfo.Name;
-                    _logger.Log(Abstraction.Layer.IO().Action().Finished(nameof(TryLoadTestFile)));
+                    _logger.Log(Abstraction.Layer.IO().Routine(nameof(TryLoadTestFile)).Completed());
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                _logger.Log(Abstraction.Layer.IO().Action().Failed(nameof(TryLoadTestFile)), ex);
+                _logger.Log(Abstraction.Layer.IO().Routine(nameof(TryLoadTestFile)).Faulted(), ex);
                 return false;
             }
         }

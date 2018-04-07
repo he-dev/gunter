@@ -18,24 +18,12 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Data.SqlClient
 {
-    public delegate IDictionary<string, object> ExpandFunc(object data);
-
     [PublicAPI]
     public class TableOrView : IDataSource
     {
         private readonly Factory _factory;
 
-        private static readonly IDictionary<SoftString, ExpandFunc> Expanders;
-
         public delegate TableOrView Factory();
-
-        static TableOrView()
-        {
-            Expanders = new Dictionary<SoftString, ExpandFunc>
-            {
-                ["json"] = data => (data is string json ? JsonExpander.Expand(json) : throw new ArgumentException($"{nameof(JsonExpander)} requires data to be a string."))
-            };
-        }
 
         //[JsonConstructor]
         public TableOrView(ILogger<TableOrView> logger, Factory factory)
@@ -61,24 +49,23 @@ namespace Gunter.Data.SqlClient
         public List<Command> Commands { get; set; }
 
         [Mergable]
-        public List<Expandable> Expandables { get; set; }
+        public IList<IExpander> Expanders { get; set; }
 
-        public Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
+        public async Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
         {
-            if (!Commands.Any())
-            {
-                throw new InvalidOperationException($"You need to specify at least the one command.");
-            }
+            Debug.Assert(!(formatter is null));
+
+            if (!Commands.Any()) throw new InvalidOperationException($"You need to specify at least the one command.");
 
             var format = (FormatFunc)formatter.Format;
-
-            Logger.Log(Abstraction.Layer.Database().Data().Property(new { ConnectionString = format(ConnectionString) }));
-
             var scope = Logger.BeginScope(nameof(GetDataAsync)).AttachElapsed();
+            var connectionString = format(ConnectionString);
 
             try
             {
-                using (var conn = new SqlConnection(formatter.Format(ConnectionString)))
+                Logger.Log(Abstraction.Layer.Database().Variable(new { ConnectionString = format(ConnectionString) }));
+
+                using (var conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
 
@@ -93,32 +80,31 @@ namespace Gunter.Data.SqlClient
                                 .Parameters.Select(p => (p.Key, Value: format(p.Value)))
                                 .ToList();
 
-                        Logger.Log(Abstraction.Layer.Database().Data().Object(new { cmd = cmd.CommandText, parameters }));
+                        Logger.Log(Abstraction.Layer.Database().Variable(new { parameters }));
 
                         foreach (var (key, value) in parameters)
                         {
                             cmd.Parameters.AddWithValue(key, value);
                         }
 
-                        using (var dataReader = cmd.ExecuteReader())
+                        using (var dataReader = await cmd.ExecuteReaderAsync())
                         {
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
 
                             Expand(dataTable);
 
-                            Logger.Log(Abstraction.Layer.Database().Data().Object(new { RowCount = dataTable.Rows.Count }));
-                            Logger.Log(Abstraction.Layer.Database().Action().Finished(nameof(GetDataAsync)));
+                            Logger.Log(Abstraction.Layer.Database().Meta(new { DataTable = new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count } }));
+                            Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
 
-                            return Task.FromResult(dataTable);
+                            return dataTable;
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log(Abstraction.Layer.Database().Action().Failed(nameof(GetDataAsync)), ex);
-                return null;
+                throw DynamicException.Factory.CreateDynamicException("DataSource", "Unable to get data.", ex);
             }
             finally
             {
@@ -128,22 +114,22 @@ namespace Gunter.Data.SqlClient
 
         private void Expand(DataTable dataTable)
         {
-            foreach (var expandable in (Expandables ?? Enumerable.Empty<Expandable>()).Where(e => dataTable.Columns.Contains(e.Column)))
+            foreach (var expander in (Expanders ?? Enumerable.Empty<IExpander>()).Where(e => dataTable.Columns.Contains(e.Column)))
             {
-                if (!Expanders.TryGetValue(expandable.Expander, out var expand))
-                {
-                    throw DynamicException.Factory.CreateDynamicException($"ExpanderNotFoundException", $"Expander {expandable.Expander.QuoteWith("'")} does not exist.", null);
-                }
+                //if (!Gunter.Expanders.TryGetValue(expandable.Expander, out var expand))
+                //{
+                //    throw DynamicException.Factory.CreateDynamicException("ExpanderNotFound", $"Expander {expandable.Expander.QuoteWith("'")} does not exist.");
+                //}
 
                 foreach (var dataRow in dataTable.AsEnumerable())
                 {
-                    var data = dataRow.Field<string>(expandable.Column);
+                    var data = dataRow.Field<string>(expander.Column);
                     if (data is null)
                     {
                         continue;
                     }
 
-                    var properties = expand(data).ToDictionary(x => $"{expandable.Prefix}.{x.Key}", x => x.Value);
+                    var properties = expander.Expand(data).ToDictionary(x => $"{expander.Column}.{x.Key}", x => x.Value);
 
                     foreach (var property in properties.Where(x => !(x.Value is null)))
                     {
@@ -157,7 +143,7 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        public IEnumerable<(string Name, string Text)> ToString(IRuntimeFormatter formatter)
+        public IEnumerable<(string Name, string Text)> EnumerateQueries(IRuntimeFormatter formatter)
         {
             var format = (FormatFunc)formatter.Format;
 
@@ -193,11 +179,12 @@ namespace Gunter.Data.SqlClient
         [JsonRequired]
         public string Column { get; set; }
 
-        [JsonRequired]
         public string Prefix { get; set; }
 
         [JsonRequired]
         public string Expander { get; set; }
+
+        public int Index { get; set; }
     }
 
     public static class DataTableExpander

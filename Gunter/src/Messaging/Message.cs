@@ -48,23 +48,21 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                var scope = Logger.BeginScope(nameof(PublishAsync), new { reportId = report.Id }).AttachElapsed();
-                try
+                using (Logger.BeginScope(nameof(PublishAsync), new { reportId = report.Id }).AttachElapsed())
                 {
-                    await PublishReportAsync(report, context);
-                    Logger.Log(Abstraction.Layer.Network().Action().Finished(nameof(PublishAsync)));
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(Abstraction.Layer.Network().Action().Failed(nameof(PublishAsync)), log => log.Exception(ex));
-                }
-                finally
-                {
-                    scope.Dispose();
+                    try
+                    {
+                        await PublishReportAsync(context, report);
+                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(PublishAsync)).Completed());
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(PublishAsync)).Faulted(), ex);
+                    }
                 }
             }
         }
 
-        protected abstract Task PublishReportAsync(IReport report, TestContext context);
+        protected abstract Task PublishReportAsync(TestContext context, IReport report);
     }
 }

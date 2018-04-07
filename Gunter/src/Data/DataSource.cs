@@ -12,6 +12,7 @@ namespace Gunter.Data
         [JsonRequired]
         int Id { get; set; }
 
+        [JsonProperty("Merge")]
         string Merge { get; set; }
 
         IMergable New();
@@ -20,9 +21,9 @@ namespace Gunter.Data
     [UsedImplicitly, PublicAPI]
     public interface IDataSource : IMergable
     {
-        [CanBeNull]
+        [ItemNotNull]
         Task<DataTable> GetDataAsync(IRuntimeFormatter formatter);
 
-        IEnumerable<(string Name, string Text)> ToString(IRuntimeFormatter formatter);
+        IEnumerable<(string Name, string Text)> EnumerateQueries(IRuntimeFormatter formatter);
     }
 }

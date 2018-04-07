@@ -2,9 +2,9 @@
 
 namespace Gunter.Data
 {
-    public class TestMetrics
+    public class TestCounter
     {
         public TimeSpan GetDataElapsed { get; set; }
-        public TimeSpan AssertElapsed { get; set; }        
+        public TimeSpan RunTestElapsed { get; set; }        
     }
 }

@@ -33,7 +33,7 @@ namespace Gunter.Reporting
 
         public IFormatter Formatter { get; set; }
 
-        private string DebuggerDisplay() => DebuggerDisplayHelper<ColumnOption>.ToString(this, builder =>
+        private string DebuggerDisplay() => this.ToDebuggerDisplayString(builder =>
         {
             builder.Property(x => x.Name);
             builder.Property(x => IsKey);

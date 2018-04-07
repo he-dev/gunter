@@ -8,11 +8,15 @@ namespace Gunter.DependencyInjection.Internal
         {
             builder
                 .RegisterType<Gunter.Data.TestBundle>()
+                //.UsingConstructor(typeof(IVariableNameValidator))
                 .AsSelf();
 
             builder
                 .RegisterType<Gunter.Data.SqlClient.TableOrView>();
 
+            builder
+                .RegisterType<Gunter.Data.TestCase>()
+                .AsSelf();
 
         }
     }

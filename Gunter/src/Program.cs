@@ -11,6 +11,7 @@ using JetBrains.Annotations;
 using MailrNET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using Reusable;
 using Reusable.DateTimes;
 using Reusable.Exceptionize;
@@ -23,6 +24,8 @@ using Reusable.SmartConfig.Data;
 using Reusable.SmartConfig.DataStores;
 using Reusable.SmartConfig.SettingConverters;
 using Reusable.SmartConfig.Utilities;
+using Reusable.Utilities.ThirdParty.JsonNet;
+using Reusable.Utilities.ThirdParty.JsonNet.Serialization;
 
 namespace Gunter
 {
@@ -32,7 +35,6 @@ namespace Gunter
         private readonly IConfiguration _configuration;
 
         public static readonly string ElapsedFormat = @"mm\:ss\.fff";
-
 
         [Required]
         public string Environment => _configuration.GetValue(() => Environment);
@@ -56,7 +58,7 @@ namespace Gunter
             _configuration = configuration;
             _logger = logger;
         }
-     
+
         internal static async Task<int> Main(string[] args)
         {
             try
@@ -88,14 +90,18 @@ namespace Gunter
                 using (var scope = container.BeginLifetimeScope())
                 {
                     var program = scope.Resolve<Program>();
+
+                    logger.Log(Abstraction.Layer.Infrastructure().Variable(new { program.FullName }));
+                    logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Running());
+
                     var testLoader = scope.Resolve<ITestLoader>();
                     var testComposer = scope.Resolve<TestComposer>();
-                    var testRunner = scope.Resolve<ITestRunner>();                  
+                    var testRunner = scope.Resolve<ITestRunner>();
 
                     Directory.SetCurrentDirectory(program.CurrentDirectory);
 
-                    //_logger.Log(Abstraction.Layer.Infrastructure().Action().Finished("Initialization"));
-                    //_logger.Log(Abstraction.Layer.Infrastructure().Data().Property(new { Version }));
+                    logger.Log(Abstraction.Layer.Infrastructure().Property(new { program.CurrentDirectory }));
+
 
                     var tests = testLoader.LoadTests(program.TestsDirectoryName).ToList();
                     var compositions = testComposer.ComposeTests(tests).ToList();
@@ -104,16 +110,13 @@ namespace Gunter
                     var tasks = compositions.Select(testFile => testRunner.RunTestsAsync(testFile, profiles)).ToArray();
 
                     await Task.WhenAll(tasks);
-
-                    //_logger.Log(Abstraction.Layer.Infrastructure().Data().Variable(new { ExitCode = ExitCode.Success }));
-                    //_logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(Main)));
                 }
 
-                logger.Log(Abstraction.Layer.Infrastructure().Action().Finished(nameof(StartAsync)));
+                logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Completed());
             }
             catch (Exception ex)
             {
-                logger.Log(Abstraction.Layer.Infrastructure().Action().Failed(nameof(StartAsync)), ex);
+                logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Faulted(), ex);
                 throw;
             }
         }
@@ -164,6 +167,11 @@ namespace Gunter
                                     {
                                         new StringEnumConverter(),
                                         new SoftStringConverter(),
+                                    },
+                                    ContractResolver = new CompositeContractResolver
+                                    {
+                                        new InterfaceContractResolver<ILogScope>(),
+                                        new DefaultContractResolver()
                                     }
                                 }
                             }),
@@ -192,18 +200,10 @@ namespace Gunter
                     new AppSettings(settingConverter),
                     new InMemory(settingConverter)
                     {
-                        new Setting(nameof(CurrentDirectory))
-                        {
-                            Value = Path.GetDirectoryName(typeof(Program).Assembly.Location)
-                        },
-                        new Setting(nameof(Product))
-                        {
-                            Value = "Gunter"
-                        },
-                        new Setting(nameof(Version))
-                        {
-                            Value = "4.1.0"
-                        },
+                        { nameof(CurrentDirectory), Path.GetDirectoryName(typeof(Program).Assembly.Location) },
+                        { nameof(Product), "Gunter" },
+                        { nameof(Version), "4.1.0" },
+                        { nameof(ElapsedFormat), ElapsedFormat }
                     },
                 });
 

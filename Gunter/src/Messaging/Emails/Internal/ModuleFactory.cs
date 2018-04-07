@@ -10,7 +10,7 @@ using JetBrains.Annotations;
 namespace Gunter.Messaging.Emails.Internal
 {
     [PublicAPI]
-    internal interface IModuleFactory
+    public interface IModuleFactory
     {
         bool CanCreate([NotNull] IModule module);
 

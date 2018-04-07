@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Gunter.Reporting;
 
 namespace Gunter.DependencyInjection.Internal
 {
@@ -11,6 +12,7 @@ namespace Gunter.DependencyInjection.Internal
             builder.RegisterType<Gunter.Reporting.Modules.DataSummary>();
             builder.RegisterType<Gunter.Reporting.Modules.TestCase>().AsSelf();
             builder.RegisterType<Gunter.Reporting.Report>().AsSelf();
+            builder.RegisterType<Gunter.Reporting.Report>().As<IReport>();//.AsSelf();
         }
     }
 }

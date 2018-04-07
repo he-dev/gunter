@@ -1,33 +1,51 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Gunter.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Gunter.Expanders
 {
-    public interface IColumnExpander
+    public interface IExpander
     {
+        string Column { get; set; }
+
+        int? Index { get; set; }
+
         IDictionary<string, object> Expand(object data);
     }
 
-    public class JsonExpander : JsonVisitor
+    public class JsonExpander : IExpander
     {
-        private readonly IDictionary<string, object> _properties;
+        public string Column { get; set; }
 
-        private JsonExpander(JObject source)
-        {
-            _properties = new Dictionary<string, object>();
-            VisitJObject(source);
-        }
+        public int? Index { get; set; }
 
-        public static IDictionary<string, object> Expand(string json)
+        public IDictionary<string, object> Expand(object data)
         {
-            var jObject = JObject.Parse(json);
-            return new JsonExpander(jObject)._properties;
-        }
+            if (data is null || !(data is string json))
+            {
+                return new Dictionary<string, object>();
+            }
 
-        protected override void VisitJValue(JValue jValue)
-        {
-            _properties[jValue.Path] = jValue.Value;
+            var isArray = json.StartsWith("[") && json.EndsWith("]");
+            if (isArray && Index.HasValue)
+            {
+                var jToken = JArray.Parse(json).ElementAtOrDefault(Index.Value);
+                if (jToken is null)
+                {
+                    return new Dictionary<string, object>();
+                }
+                else
+                {
+                    var jObject = JObject.Parse(jToken.ToString());
+                    return JsonVisitor.GetProperties(jObject);
+                }
+            }
+            else
+            {
+                var jObject = JObject.Parse(json);
+                return JsonVisitor.GetProperties(jObject);
+            }
         }
     }
 }

@@ -1,9 +1,25 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace Gunter.Json
 {
-    public abstract class JsonVisitor
+    public class JsonVisitor
     {
+        private readonly IDictionary<string, object> _properties = new Dictionary<string, object>();
+
+        public void Visit(JObject source)
+        {
+            VisitJObject(source);
+        }
+
+        public static IDictionary<string, object> GetProperties(JObject source)
+        {
+            var visitor = new JsonVisitor();
+            visitor.Visit(source);
+            return visitor._properties;
+        }
+
         protected void VisitJObject(JObject source)
         {
             foreach (var item in source)
@@ -23,14 +39,14 @@ namespace Gunter.Json
             }
         }
 
-        protected virtual void VisitJArray(JArray jArray)
+        private void VisitJArray(JArray jArray)
         {
             // not used
         }
 
-        protected virtual void VisitJValue(JValue jValue)
+        private void VisitJValue(JValue jValue)
         {
-            // not used
-        }
+            _properties[jValue.Path] = jValue.Value;
+        }     
     }
 }
