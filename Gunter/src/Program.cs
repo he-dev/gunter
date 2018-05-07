@@ -8,7 +8,7 @@ using Autofac;
 using Gunter.Data;
 using Gunter.Json.Converters;
 using JetBrains.Annotations;
-using MailrNET;
+using MailrNet;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -128,7 +128,7 @@ namespace Gunter
         {
             try
             {
-                Reusable.Utilities.ThirdParty.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
+                Reusable.Utilities.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
                 var loggerFactory = new LoggerFactory
                 {
