@@ -47,7 +47,7 @@ namespace Gunter
         private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partialBundles, out TestBundle composition)
         {
             composition = default;
-            using (_logger.BeginScope(nameof(TryCompose)).AttachElapsed())
+            using (_logger.BeginScope().AttachElapsed())
             {
                 _logger.Log(Abstraction.Layer.Infrastructure().Argument(new { testBundle.FileName }));
                 try
@@ -77,33 +77,40 @@ namespace Gunter
         private IEnumerable<T> Merge<T>(TestBundle testBundle, Func<TestBundle, IEnumerable<T>> getMergables, IEnumerable<TestBundle> partialBundles) where T : class, IMergable
         {
             var mergables = getMergables(testBundle);
-
-            foreach (var mergable in mergables.Where(m => m.Merge.IsNotNullOrEmpty()))
+            
+            foreach (var mergable in mergables)
             {
-                var (otherName, otherId, mode) = ParseMerge(mergable.Merge);
-
-                var otherTestBundle = partialBundles.SingleOrDefault(p => p.Name == otherName) ?? throw DynamicException.Factory.CreateDynamicException("OtherTestBundleNotFound", $"Could not find test bundle '{otherName}'.");
-                var otherMergable = getMergables(otherTestBundle).SingleOrDefault(x => x.Id == otherId) ?? throw DynamicException.Factory.CreateDynamicException("OtherMergableNotFound", $"Could not find mergable '{otherId}'.");
-
-                var (first, second) = mode == MergeMode.Base ? (otherMergable, mergable) : (mergable, otherMergable);
-
-                var merged = mergable.New();
-
-                var mergableProperties =
-                    merged
-                        .GetType()
-                        .GetProperties()
-                        .Where(p => p.IsDefined(typeof(MergableAttribute)))
-                        .ToList();
-
-                foreach (var property in mergableProperties)
+                if (mergable.Merge.IsNullOrEmpty())
                 {
-                    var firstValue = property.GetValue(first);
-                    var newValue = firstValue ?? property.GetValue(second);
-                    property.SetValue(merged, newValue);
+                    yield return mergable;
                 }
+                else
+                {
+                    var (otherName, otherId, mode) = ParseMerge(mergable.Merge);
 
-                yield return (T)merged;
+                    var otherTestBundle = partialBundles.SingleOrDefault(p => p.Name == otherName) ?? throw DynamicException.Factory.CreateDynamicException("OtherTestBundleNotFound", $"Could not find test bundle '{otherName}'.");
+                    var otherMergable = getMergables(otherTestBundle).SingleOrDefault(x => x.Id == otherId) ?? throw DynamicException.Factory.CreateDynamicException("OtherMergableNotFound", $"Could not find mergable '{otherId}'.");
+
+                    var (first, second) = mode == MergeMode.Base ? (otherMergable, mergable) : (mergable, otherMergable);
+
+                    var merged = mergable.New();
+
+                    var mergableProperties =
+                        merged
+                            .GetType()
+                            .GetProperties()
+                            .Where(p => p.IsDefined(typeof(MergableAttribute)))
+                            .ToList();
+
+                    foreach (var property in mergableProperties)
+                    {
+                        var firstValue = property.GetValue(first);
+                        var newValue = firstValue ?? property.GetValue(second);
+                        property.SetValue(merged, newValue);
+                    }
+
+                    yield return (T) merged;
+                }
             }
         }
 

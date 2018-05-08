@@ -48,7 +48,7 @@ namespace Gunter.Messaging
 
             foreach (var report in reports)
             {
-                using (Logger.BeginScope(nameof(PublishAsync), new { reportId = report.Id }).AttachElapsed())
+                using (Logger.BeginScope().WithCorrelationContext(new { reportId = report.Id }).AttachElapsed())
                 {
                     try
                     {

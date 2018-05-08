@@ -58,7 +58,7 @@ namespace Gunter.Data.SqlClient
             if (!Commands.Any()) throw new InvalidOperationException($"You need to specify at least the one command.");
 
             var format = (FormatFunc)formatter.Format;
-            var scope = Logger.BeginScope(nameof(GetDataAsync)).AttachElapsed();
+            var scope = Logger.BeginScope().AttachElapsed();
             var connectionString = format(ConnectionString);
 
             try

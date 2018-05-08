@@ -8,7 +8,7 @@ using Autofac;
 using Gunter.Data;
 using Gunter.Json.Converters;
 using JetBrains.Annotations;
-using MailrNet;
+using MailrNET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -21,11 +21,9 @@ using Reusable.OmniLog.SemanticExtensions;
 using Reusable.OmniLog.SemanticExtensions.Attachements;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Data;
-using Reusable.SmartConfig.DataStores;
-using Reusable.SmartConfig.SettingConverters;
 using Reusable.SmartConfig.Utilities;
-using Reusable.Utilities.ThirdParty.JsonNet;
-using Reusable.Utilities.ThirdParty.JsonNet.Serialization;
+using Reusable.Utilities.JsonNet;
+using Reusable.Utilities.JsonNet.Serialization;
 
 namespace Gunter
 {
@@ -130,55 +128,65 @@ namespace Gunter
             {
                 Reusable.Utilities.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
-                var loggerFactory = new LoggerFactory
-                {
-                    Observers =
-                    {
-                        NLogRx.Create()
-                    },
-                    Configuration = new LoggerConfiguration
-                    {
-                        Attachements =
-                        {
-                            new AppSetting("Environment", "Environment"),
-                            //new AppSetting("Product", "Product"),
-                            new Lambda("Product", _ => "Gunter"), // FullName),
-                            new Timestamp<UtcDateTime>(),
-                            new Snapshot(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
-                            {
-                                Settings = new JsonSerializerSettings
-                                {
-                                    Formatting = Formatting.Indented,
-                                    Converters =
-                                    {
-                                        new SoftStringConverter(),
-                                        new LogLevelConverter(),
-                                        new StringEnumConverter()
-                                    }
-                                }
-                            }),
-                            new Reusable.OmniLog.Attachements.Scope(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
-                            {
-                                Settings = new JsonSerializerSettings
-                                {
-                                    NullValueHandling = NullValueHandling.Include,
-                                    Formatting = Formatting.Indented,
-                                    Converters =
-                                    {
-                                        new StringEnumConverter(),
-                                        new SoftStringConverter(),
-                                    },
-                                    ContractResolver = new CompositeContractResolver
-                                    {
-                                        new InterfaceContractResolver<ILogScope>(),
-                                        new DefaultContractResolver()
-                                    }
-                                }
-                            }),
-                            new Reusable.OmniLog.Attachements.ElapsedMilliseconds("Elapsed"),
-                        }
-                    }
-                };
+                var loggerFactory =
+                    new LoggerFactoryBuilder()
+                        .Environment(System.Configuration.ConfigurationManager.AppSettings["Program.Environment"])
+                        .Product("Gunter")
+                        .WithRx(NLogRx.Create())
+                        .ScopeSerializer(serializer => serializer.Formatting = Formatting.None)
+                        .SnapshotSerializer(serializer => serializer.Formatting = Formatting.None)
+                        .Build();
+
+
+                //    new LoggerFactory
+                //{
+                //    Observers =
+                //    {
+                //        NLogRx.Create()
+                //    },
+                //    Configuration = new LoggerConfiguration
+                //    {
+                //        Attachements =
+                //        {
+                //            new AppSetting("Environment", "Environment"),
+                //            //new AppSetting("Product", "Product"),
+                //            new Lambda("Product", _ => "Gunter"), // FullName),
+                //            new Timestamp<UtcDateTime>(),
+                //            new Snapshot(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
+                //            {
+                //                Settings = new JsonSerializerSettings
+                //                {
+                //                    Formatting = Formatting.None,
+                //                    Converters =
+                //                    {
+                //                        new SoftStringConverter(),
+                //                        new LogLevelConverter(),
+                //                        new StringEnumConverter()
+                //                    }
+                //                }
+                //            }),
+                //            new Reusable.OmniLog.Attachements.Scope(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
+                //            {
+                //                Settings = new JsonSerializerSettings
+                //                {
+                //                    NullValueHandling = NullValueHandling.Ignore,
+                //                    Formatting = Formatting.None,
+                //                    Converters =
+                //                    {
+                //                        new StringEnumConverter(),
+                //                        new SoftStringConverter(),
+                //                    },
+                //                    ContractResolver = new CompositeContractResolver
+                //                    {
+                //                        new InterfaceContractResolver<ILogScope>(),
+                //                        new DefaultContractResolver()
+                //                    }
+                //                }
+                //            }),
+                //            new Reusable.OmniLog.Attachements.ElapsedMilliseconds("Elapsed"),
+                //        }
+                //    }
+                //};
 
                 return loggerFactory;
             }

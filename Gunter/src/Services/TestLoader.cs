@@ -37,7 +37,7 @@ namespace Gunter
 
             foreach (var testFileInfo in _testFileProvider.EnumerateTestFiles(path))
             {
-                using (_logger.BeginScope(nameof(LoadTests)))
+                using (_logger.BeginScope())
                 {
                     if (TryLoadTestFile(testFileInfo, out var testFile))
                     {

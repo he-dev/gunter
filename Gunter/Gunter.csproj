@@ -5,21 +5,17 @@
     <TargetFramework>net47</TargetFramework>
     <AssemblyName>Gunter</AssemblyName>
     <RootNamespace>Gunter</RootNamespace>
-    <Configurations>Debug;Release;Debug.clasifid</Configurations>
-    <Optimize>false</Optimize>
+    <Configurations>Debug;Release</Configurations>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <LangVersion>latest</LangVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug.clasifid|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-    <DefineConstants>DEBUG;TRACE;DEBUG_HE_DEV;NET47</DefineConstants>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
@@ -33,10 +29,10 @@
 
   <ItemGroup>
     <Content Include="..\..\Classified\Gunter\cfg\tests\clasifid.json" Link="cfg\tests\clasifid.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Classified\Gunter\cfg\tests\_Global.json" Link="cfg\tests\_Global.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
@@ -44,23 +40,23 @@
     <PackageReference Include="Autofac" Version="4.6.2" />
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="MailrNET" Version="1.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NLog" Version="4.5.3" />
-    <PackageReference Include="Reusable.Converters" Version="4.10.0" />
-    <PackageReference Include="Reusable.Core" Version="5.1.0" />
-    <PackageReference Include="Reusable.Flawless" Version="4.10.0" />
-    <PackageReference Include="Reusable.OmniLog" Version="4.10.0" />
-    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="4.10.0" />
-    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="4.10.0" />
-    <PackageReference Include="Reusable.SemanticVersion" Version="4.10.0" />
-    <PackageReference Include="Reusable.SmartConfig.Core" Version="4.10.0" />
-    <PackageReference Include="Reusable.SmartConfig.Core.Utilities" Version="4.10.0" />
-    <PackageReference Include="Reusable.SmartConfig.DataStores.AppConfig" Version="4.10.0" />
-    <PackageReference Include="Reusable.SmartConfig.DataStores.InMemory" Version="4.10.0" />
-    <PackageReference Include="Reusable.SmartConfig.SettingConverters.Json" Version="4.10.0" />
-    <PackageReference Include="Reusable.Utilities.SqlClient" Version="4.10.0" />
-    <PackageReference Include="Reusable.Utilities.NLog" Version="5.1.0" />
-    <PackageReference Include="MailrNet" Version="2.0.0" />
+    <PackageReference Include="Reusable.Converters" Version="5.2.1" />
+    <PackageReference Include="Reusable.Core" Version="5.2.1" />
+    <PackageReference Include="Reusable.Flawless" Version="5.2.1" />
+    <PackageReference Include="Reusable.OmniLog" Version="5.2.1" />
+    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="5.2.1" />
+    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="5.2.1" />
+    <PackageReference Include="Reusable.SemanticVersion" Version="5.2.1" />
+    <PackageReference Include="Reusable.SmartConfig" Version="5.2.1" />
+    <PackageReference Include="Reusable.SmartConfig.Utilities" Version="5.2.1" />
+    <PackageReference Include="Reusable.SmartConfig.AppConfig" Version="5.2.1" />
+    <PackageReference Include="Reusable.SmartConfig.InMemory" Version="5.2.1" />
+    <PackageReference Include="Reusable.SmartConfig.JsonConverter" Version="5.2.1" />
+    <PackageReference Include="Reusable.Utilities.SqlClient" Version="5.2.1" />
+    <PackageReference Include="Reusable.Utilities.NLog" Version="5.2.1" />
+    <PackageReference Include="MailrNet" Version="2.1.0" />
     <PackageReference Include="System.Reactive" Version="3.1.1" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
@@ -71,12 +67,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>NLog.tt</DependentUpon>
-    </None>
     <None Update="NLog.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>NLog.config</LastGenOutput>
@@ -88,9 +78,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Condition="'$(Configuration)|$(Platform)'=='Debug.clasifid|AnyCPU'" Command="xcopy &quot;$(ProjectDir)cfg\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
-    <Exec Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'" Command="xcopy &quot;$(ProjectDir)cfg\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
-    <Exec Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" Command="xcopy &quot;$(ProjectDir)cfg\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
+    <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
   </Target>
 
 </Project>

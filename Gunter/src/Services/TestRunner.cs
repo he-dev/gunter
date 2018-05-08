@@ -35,11 +35,13 @@ namespace Gunter
             _createRuntimeFormatter = createRuntimeFormatter;
             _logger = logger;
             _configuration = configuration;
+            _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { foo = "bar" }));
         }
 
         public async Task RunTestsAsync(TestBundle testBundle, IEnumerable<SoftString> profiles)
         {
             //VariableValidator.ValidateNamesNotReserved(localVariables, _runtimeVariables.Select(x => x.Name));
+            _logger.Log(Abstraction.Layer.Business().Argument(new { testBundle = new { testBundle.FileName } }));
 
             var testIndex = 0;
             var tests =
@@ -50,7 +52,7 @@ namespace Gunter
 
             var testBundleFormatter = _createRuntimeFormatter(testBundle.Variables, Enumerable.Empty<object>());
 
-            using (var scope = _logger.BeginScope(nameof(RunTest), new { testBundle.FileName }).AttachElapsed())
+            using (var scope = _logger.BeginScope().AttachElapsed())
             using (var cache = new TestBundleDataCache())
             {
                 foreach (var current in tests)
@@ -59,7 +61,7 @@ namespace Gunter
                     {
                         var cacheItem = await GetDataAsync(current.dataSource, testBundleFormatter, cache);
                         var result = RunTest(current.testCase, cacheItem.Data);
-                       
+
                         _logger.Log(Abstraction.Layer.Business().Variable(new { test = new { result.Result, Elapsed = result.Elapsed.ToString(_configuration.GetValue<string>("ElapsedFormat")), result.Actions } }));
 
                         if (result.Actions.Alert())

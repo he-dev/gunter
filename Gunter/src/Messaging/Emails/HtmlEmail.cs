@@ -8,7 +8,7 @@ using Gunter.Data;
 using Gunter.Messaging.Emails.Internal;
 using Gunter.Reporting;
 using JetBrains.Annotations;
-using MailrNet;
+using MailrNET;
 using Newtonsoft.Json;
 using Reusable.Extensions;
 using Reusable.OmniLog;
