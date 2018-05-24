@@ -9,17 +9,7 @@
 			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
 			"Id": 1,
 			"ConnectionString": "{TEST_LOG}",
-			"Commands": [
-				{
-					"Name": "Main",
-					"Text": "SELECT * FROM {TestLog}",
-					"Parameters": { "@Environment": "{Workspace.Environment}" }
-				},
-				{
-					"Name": "Debug",
-					"Text": "{DebugCommand}"
-				}
-			]
+			"Query": "file:///{TestBundle.FileName}.TestLog.sql"
 		}
 	],
 	"Tests": [

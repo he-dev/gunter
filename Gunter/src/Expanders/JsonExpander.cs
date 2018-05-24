@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Gunter.Json;
+using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 
 namespace Gunter.Expanders
-{
+{    
     public interface IExpander
     {
         string Column { get; set; }
@@ -14,6 +15,7 @@ namespace Gunter.Expanders
         IDictionary<string, object> Expand(object data);
     }
 
+    [UsedImplicitly]
     public class JsonExpander : IExpander
     {
         public string Column { get; set; }

@@ -24,6 +24,7 @@ namespace Gunter.Data
         [ItemNotNull]
         Task<DataTable> GetDataAsync(IRuntimeFormatter formatter);
 
-        IEnumerable<(string Name, string Text)> EnumerateQueries(IRuntimeFormatter formatter);
+        [CanBeNull]
+        string ToString(IRuntimeFormatter formatter);
     }
 }

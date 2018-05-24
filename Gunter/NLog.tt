@@ -23,7 +23,7 @@
 	var schema = "dbo";
 	var tablePattern = "SemLog";
 	var mainLogPattern = "";
-	var internalLogFile = @"c:\temp\NLog.Reusable.Console.log";
+	var internalLogFile = @"c:\temp\Gunter.N.log";
 	
 #>
 <#

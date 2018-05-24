@@ -35,17 +35,18 @@ namespace Gunter.Reporting.Modules
 
             dataTable.AddRow("Type", context.DataSource.GetType().Name);
 
-            var commandNumber = 0;
-            foreach (var command in context.DataSource.EnumerateQueries(context.Formatter))
-            {
-                var commandNameOrCounter =
-                    string.IsNullOrEmpty(command.Name)
-                        ? commandNumber++.ToString()
-                        : command.Name;
+            //var commandNumber = 0;
+            //foreach (var command in context.DataSource.EnumerateQueries(context.Formatter))
+            //{
+            //    var commandNameOrCounter =
+            //        string.IsNullOrEmpty(command.Name)
+            //            ? commandNumber++.ToString()
+            //            : command.Name;
 
-                dataTable.AddRow($"Query: {commandNameOrCounter}", command.Text);
-            }
+            //    dataTable.AddRow($"Query: {commandNameOrCounter}", command.Text);
+            //}
 
+            dataTable.AddRow("Query", context.DataSource.ToString(context.Formatter));
             dataTable.AddRow("RowCount", context.Data.Rows.Count);
             dataTable.AddRow("Elapsed", format($"{RuntimeVariable.TestCounter.GetDataElapsed}:{TimespanFormat}}}"));
 

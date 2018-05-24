@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 
 namespace Gunter.Data
 {
@@ -10,8 +11,9 @@ namespace Gunter.Data
             public static readonly IRuntimeVariable Environment = RuntimeVariableFactory.Create<Gunter.Program>(x => x.Environment);
         }
 
-        public static class TestFile
+        public static class TestBundle
         {
+            //public static readonly IRuntimeVariable Name = RuntimeVariableFactory.Create<Gunter.Data.TestBundle>(x => Path.GetFileNameWithoutExtension(x.FullName));
             public static readonly IRuntimeVariable FullName = RuntimeVariableFactory.Create<Gunter.Data.TestBundle>(x => x.FullName);
             public static readonly IRuntimeVariable FileName = RuntimeVariableFactory.Create<Gunter.Data.TestBundle>(x => x.FileName);
         }
@@ -32,8 +34,8 @@ namespace Gunter.Data
         {
             yield return Program.FullName;
             yield return Program.Environment;
-            yield return TestFile.FullName;
-            yield return TestFile.FileName;
+            yield return TestBundle.FullName;
+            yield return TestBundle.FileName;
             yield return TestCase.Level;
             yield return TestCase.Message;
             yield return TestCounter.GetDataElapsed;

@@ -1,29 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
+using Reusable;
+using Reusable.OmniLog;
+using Reusable.OmniLog.SemanticExtensions;
+using Reusable.SmartConfig;
+using Reusable.SmartConfig.Utilities;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Gunter.Data;
-using Gunter.Json.Converters;
-using JetBrains.Annotations;
-using MailrNET;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
-using Reusable;
-using Reusable.DateTimes;
-using Reusable.Exceptionize;
-using Reusable.OmniLog;
-using Reusable.OmniLog.Attachements;
-using Reusable.OmniLog.SemanticExtensions;
-using Reusable.OmniLog.SemanticExtensions.Attachements;
-using Reusable.SmartConfig;
-using Reusable.SmartConfig.Data;
-using Reusable.SmartConfig.Utilities;
-using Reusable.Utilities.JsonNet;
-using Reusable.Utilities.JsonNet.Serialization;
 
 namespace Gunter
 {
@@ -71,11 +58,10 @@ namespace Gunter
             catch (Exception ex)
             {
                 Console.Error.WriteLine(ex.ToString());
-                if (ex is InitializationException ie)
-                {
-                    return (int)ie.ExitCode;
-                }
-                return (int)ExitCode.UnexpectedFault;
+                return
+                    ex is InitializationException ie
+                        ? (int)ie.ExitCode
+                        : (int)ExitCode.UnexpectedFault;
             }
         }
 
@@ -84,7 +70,7 @@ namespace Gunter
             var logger = loggerFactory.CreateLogger<Program>();
             try
             {
-                using (var container = DependencyInjection.Program.Create(loggerFactory, configuration))
+                using (var container = DependencyInjection.ProgramFactory.CreateProgram(loggerFactory, configuration))
                 using (var scope = container.BeginLifetimeScope())
                 {
                     var program = scope.Resolve<Program>();
@@ -137,57 +123,6 @@ namespace Gunter
                         .SnapshotSerializer(serializer => serializer.Formatting = Formatting.None)
                         .Build();
 
-
-                //    new LoggerFactory
-                //{
-                //    Observers =
-                //    {
-                //        NLogRx.Create()
-                //    },
-                //    Configuration = new LoggerConfiguration
-                //    {
-                //        Attachements =
-                //        {
-                //            new AppSetting("Environment", "Environment"),
-                //            //new AppSetting("Product", "Product"),
-                //            new Lambda("Product", _ => "Gunter"), // FullName),
-                //            new Timestamp<UtcDateTime>(),
-                //            new Snapshot(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
-                //            {
-                //                Settings = new JsonSerializerSettings
-                //                {
-                //                    Formatting = Formatting.None,
-                //                    Converters =
-                //                    {
-                //                        new SoftStringConverter(),
-                //                        new LogLevelConverter(),
-                //                        new StringEnumConverter()
-                //                    }
-                //                }
-                //            }),
-                //            new Reusable.OmniLog.Attachements.Scope(new Reusable.OmniLog.SemanticExtensions.JsonSerializer
-                //            {
-                //                Settings = new JsonSerializerSettings
-                //                {
-                //                    NullValueHandling = NullValueHandling.Ignore,
-                //                    Formatting = Formatting.None,
-                //                    Converters =
-                //                    {
-                //                        new StringEnumConverter(),
-                //                        new SoftStringConverter(),
-                //                    },
-                //                    ContractResolver = new CompositeContractResolver
-                //                    {
-                //                        new InterfaceContractResolver<ILogScope>(),
-                //                        new DefaultContractResolver()
-                //                    }
-                //                }
-                //            }),
-                //            new Reusable.OmniLog.Attachements.ElapsedMilliseconds("Elapsed"),
-                //        }
-                //    }
-                //};
-
                 return loggerFactory;
             }
             catch (Exception innerException)
@@ -208,10 +143,10 @@ namespace Gunter
                     new AppSettings(settingConverter),
                     new InMemory(settingConverter)
                     {
-                        { nameof(CurrentDirectory), Path.GetDirectoryName(typeof(Program).Assembly.Location) },
-                        { nameof(Product), "Gunter" },
-                        { nameof(Version), "4.1.0" },
-                        { nameof(ElapsedFormat), ElapsedFormat }
+                        { nameof(Program.CurrentDirectory), Path.GetDirectoryName(typeof(Program).Assembly.Location) },
+                        { nameof(Program.Product), "Gunter" },
+                        { nameof(Program.Version), "5.0.0" },
+                        { nameof(Program.ElapsedFormat), ElapsedFormat }
                     },
                 });
 
