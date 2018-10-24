@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.Exceptionize;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.Reflection;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Utilities;
 
@@ -62,7 +62,7 @@ namespace Gunter
                         var cacheItem = await GetDataAsync(current.dataSource, testBundleFormatter, cache);
                         var result = RunTest(current.testCase, cacheItem.Data);
 
-                        _logger.Log(Abstraction.Layer.Business().Variable(new { test = new { result.Result, Elapsed = result.Elapsed.ToString(_configuration.GetValue<string>("ElapsedFormat")), result.Actions } }));
+                        _logger.Log(Abstraction.Layer.Business().Variable(new { test = new { result.Result, Elapsed = result.Elapsed.ToString(Program.ElapsedFormat), result.Actions } }));
 
                         if (result.Actions.Alert())
                         {
@@ -99,7 +99,7 @@ namespace Gunter
 
                         _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunTestsAsync)).Completed());
                     }
-                    catch (DynamicException ex) when (ex.NameEquals("DataSourceException"))
+                    catch (DynamicException ex) when (ex.NameMatches("^DataSource"))
                     {
                         _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunTestsAsync)).Faulted(), ex);
                         break;

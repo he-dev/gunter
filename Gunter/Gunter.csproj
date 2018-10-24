@@ -6,7 +6,7 @@
     <AssemblyName>Gunter</AssemblyName>
     <RootNamespace>Gunter</RootNamespace>
     <Configurations>Debug;Release</Configurations>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -18,6 +18,12 @@
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="src\Expanders\**" />
+    <EmbeddedResource Remove="src\Expanders\**" />
+    <None Remove="src\Expanders\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="src\Json\Converters\SoftStringConverter.cs" />
@@ -38,27 +44,23 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.6.2" />
-    <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="MailrNET" Version="1.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="NLog" Version="4.5.3" />
-    <PackageReference Include="Reusable.Converters" Version="5.2.1" />
-    <PackageReference Include="Reusable.Core" Version="5.2.1" />
+    <PackageReference Include="Reusable.Converters" Version="7.0.22" />
+    <PackageReference Include="Reusable.Core" Version="7.0.22" />
     <PackageReference Include="Reusable.Flawless" Version="5.2.1" />
-    <PackageReference Include="Reusable.OmniLog" Version="5.2.1" />
-    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="5.2.1" />
-    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="5.2.1" />
-    <PackageReference Include="Reusable.SemanticVersion" Version="5.2.1" />
-    <PackageReference Include="Reusable.SmartConfig" Version="5.2.1" />
-    <PackageReference Include="Reusable.SmartConfig.Utilities" Version="5.2.1" />
-    <PackageReference Include="Reusable.SmartConfig.AppConfig" Version="5.2.1" />
-    <PackageReference Include="Reusable.SmartConfig.InMemory" Version="5.2.1" />
-    <PackageReference Include="Reusable.SmartConfig.JsonConverter" Version="5.2.1" />
-    <PackageReference Include="Reusable.Utilities.SqlClient" Version="5.2.1" />
-    <PackageReference Include="Reusable.Utilities.NLog" Version="5.2.1" />
+    <PackageReference Include="Reusable.OmniLog" Version="7.0.22" />
+    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="7.0.22" />
+    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="7.0.22" />
+    <PackageReference Include="Reusable.SemanticVersion" Version="7.0.22" />
+    <PackageReference Include="Reusable.SmartConfig" Version="7.0.22" />
+    <PackageReference Include="Reusable.SmartConfig.Utilities" Version="7.0.20" />
+    <PackageReference Include="Reusable.SmartConfig.AppConfig" Version="7.0.22" />
+    <PackageReference Include="Reusable.SmartConfig.InMemory" Version="7.0.22" />
+    <PackageReference Include="Reusable.SmartConfig.JsonConverter" Version="7.0.22" />
+    <PackageReference Include="Reusable.Utilities.SqlClient" Version="7.0.22" />
+    <PackageReference Include="Reusable.Utilities.NLog" Version="7.0.22" />
     <PackageReference Include="MailrNet" Version="2.1.0" />
-    <PackageReference Include="System.Reactive" Version="3.1.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,14 +7,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
-using Gunter.Expanders;
+using Gunter.Data.Attachements;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
-using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.Reflection;
 
 namespace Gunter.Data.SqlClient
 {
@@ -49,7 +49,7 @@ namespace Gunter.Data.SqlClient
         public List<Command> Commands { get; set; }
 
         [Mergable]
-        public IList<IExpander> Expanders { get; set; }
+        public IList<IAttachment> Attachments { get; set; }
 
         public async Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
         {
@@ -92,7 +92,7 @@ namespace Gunter.Data.SqlClient
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
 
-                            Expand(dataTable);
+                            EvaluateAttachements(dataTable);
 
                             Logger.Log(Abstraction.Layer.Database().Meta(new { DataTable = new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count } }));
                             Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
@@ -104,7 +104,7 @@ namespace Gunter.Data.SqlClient
             }
             catch (Exception ex)
             {
-                throw DynamicException.Factory.CreateDynamicException("DataSource", "Unable to get data.", ex);
+                throw DynamicException.Create("DataSource", $"Unable to get data for {Id}.", ex);
             }
             finally
             {
@@ -112,32 +112,27 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        private void Expand(DataTable dataTable)
+        private void EvaluateAttachements(DataTable dataTable)
         {
-            foreach (var expander in (Expanders ?? Enumerable.Empty<IExpander>()).Where(e => dataTable.Columns.Contains(e.Column)))
+            foreach (var attachment in Attachments ?? Enumerable.Empty<IAttachment>())
             {
-                //if (!Gunter.Expanders.TryGetValue(expandable.Expander, out var expand))
-                //{
-                //    throw DynamicException.Factory.CreateDynamicException("ExpanderNotFound", $"Expander {expandable.Expander.QuoteWith("'")} does not exist.");
-                //}
+                if (dataTable.Columns.Contains(attachment.Name))
+                {
+                    throw DynamicException.Create("ColumnAlreadyExists", $"The data-table already contains a column with the name '{attachment.Name}'.");
+                }
+
+                dataTable.Columns.Add(new DataColumn(attachment.Name, typeof(string)));
 
                 foreach (var dataRow in dataTable.AsEnumerable())
                 {
-                    var data = dataRow.Field<string>(expander.Column);
-                    if (data is null)
+                    try
                     {
-                        continue;
+                        var value = attachment.Compute(dataRow);
+                        dataRow[attachment.Name] = value;
                     }
-
-                    var properties = expander.Expand(data).ToDictionary(x => $"{expander.Column}.{x.Key}", x => x.Value);
-
-                    foreach (var property in properties.Where(x => !(x.Value is null)))
+                    catch (Exception inner)
                     {
-                        if (!dataTable.Columns.Contains(property.Key))
-                        {
-                            dataTable.Columns.Add(new DataColumn(property.Key, property.Value.GetType()));
-                        }
-                        dataRow[property.Key] = property.Value;
+                        throw DynamicException.Create($"{attachment.Name}Compute", $"Could not compute the {attachment.Name} attachement.", inner);
                     }
                 }
             }
@@ -174,48 +169,48 @@ namespace Gunter.Data.SqlClient
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
     }
 
-    public class Expandable
-    {
-        [JsonRequired]
-        public string Column { get; set; }
+    //public class Expandable
+    //{
+    //    [JsonRequired]
+    //    public string Column { get; set; }
 
-        public string Prefix { get; set; }
+    //    public string Prefix { get; set; }
 
-        [JsonRequired]
-        public string Expander { get; set; }
+    //    [JsonRequired]
+    //    public string Expander { get; set; }
 
-        public int Index { get; set; }
-    }
+    //    public int Index { get; set; }
+    //}
 
-    public static class DataTableExpander
-    {
-        public static DataTable Expand(this DataTable destination, IEnumerable<IDictionary<string, object>> source)
-        {
-            destination = destination ?? new DataTable();
+    //public static class DataTableExpander
+    //{
+    //    public static DataTable Expand(this DataTable destination, IEnumerable<IDictionary<string, object>> source)
+    //    {
+    //        destination = destination ?? new DataTable();
 
-            foreach (var mapping in source)
-            {
-                destination.Expand(mapping);
-            }
+    //        foreach (var mapping in source)
+    //        {
+    //            destination.Expand(mapping);
+    //        }
 
-            return destination;
-        }
+    //        return destination;
+    //    }
 
-        public static void Expand(this DataTable destination, IDictionary<string, object> source)
-        {
-            destination = destination ?? new DataTable();
+    //    public static void Expand(this DataTable destination, IDictionary<string, object> source)
+    //    {
+    //        destination = destination ?? new DataTable();
 
-            var newRow = destination.NewRow();
+    //        var newRow = destination.NewRow();
 
-            foreach (var property in source.Where(x => !(x.Value is null)))
-            {
-                if (!destination.Columns.Contains(property.Key))
-                {
-                    destination.Columns.Add(new DataColumn(property.Key, property.Value.GetType()));
-                }
-                newRow[property.Key] = property.Value;
-            }
-            destination.Rows.Add(newRow);
-        }
-    }
+    //        foreach (var property in source.Where(x => !(x.Value is null)))
+    //        {
+    //            if (!destination.Columns.Contains(property.Key))
+    //            {
+    //                destination.Columns.Add(new DataColumn(property.Key, property.Value.GetType()));
+    //            }
+    //            newRow[property.Key] = property.Value;
+    //        }
+    //        destination.Rows.Add(newRow);
+    //    }
+    //}
 }

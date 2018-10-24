@@ -79,7 +79,7 @@ namespace Gunter.Reporting.Modules
             // We'll use it a lot so materialize it.
             var keyColumns = columns.Where(x => x.IsKey).ToList();
 
-            var keyEqualityComparer = RelayEqualityComparer<DataRow>.Create(
+            var keyEqualityComparer = EqualityComparerFactory<DataRow>.Create(
                 (left, right) => left.Keys(keyColumns).SequenceEqual(right.Keys(keyColumns)),
                 (dataRow) => dataRow.Keys(keyColumns).CalcHashCode()
             );            

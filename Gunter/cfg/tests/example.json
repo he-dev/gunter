@@ -1,28 +1,36 @@
 {
-	"Locals": {
-		"TestLog": "[robots].[Gunter_TestLog]",
-		"Top1k": "1000",
-		"To": "test@email.com"
-	},
-	"DataSources": [
-		{
-			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
-			"Id": 1,
-			"ConnectionString": "{TEST_LOG}",
-			"Commands": [
-				{
-					"Name": "Main",
-					"Text": "SELECT * FROM {TestLog}",
-					"Parameters": { "@Environment": "{Workspace.Environment}" }
-				},
-				{
-					"Name": "Debug",
-					"Text": "{DebugCommand}"
-				}
-			]
-		}
-	],
-	"Tests": [
+  "Locals": {
+    "TestLog": "[robots].[Gunter_TestLog]",
+    "Top1k": "1000",
+    "To": "test@email.com"
+  },
+  "DataSources": [
+    {
+      "$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
+      "Id": 1,
+      "ConnectionString": "{TEST_LOG}",
+      "Commands": [
+        {
+          "Name": "Main",
+          "Text": "SELECT * FROM {TestLog}",
+          "Parameters": { "@Environment": "{Workspace.Environment}" }
+        },
+        {
+          "Name": "Debug",
+          "Text": "{DebugCommand}"
+        }
+      ],
+      "Attachments": [
+        {
+          "$type": "JsonValue",
+          "Name": "CorrelationContext",
+          "JsonColumn": "Scope",
+          "JsonPath": "$.[0].CorrelationContext"
+        }
+      ]
+    }
+  ],
+  "Tests": [
     {
       "Enabled": false,
       "Level": "Warning",
@@ -36,8 +44,8 @@
       "Alerts": [ 1 ],
       "Profiles": []
     }
-	],
-	"Alerts": [
+  ],
+  "Alerts": [
     {
       "$type": "Gunter.Alerting.Emails.HtmlEmail, Gunter",
       "Id": 1,
@@ -46,48 +54,58 @@
       "Theme": "Default.css",
       "Reports": [ 1 ]
     }
-	],
-	"Reports": [
-		{
-			"Id": 1,
-			"Title": "Glitch alert for {TestLog} - {TestCase.Severity}",
-			"Modules": [
-				{
-					"$type": "Gunter.Reporting.Modules.Greeting, Gunter",
-					"Heading": "Glitch detected!",
-					"Text": "{TestCase.Message}"
-				},
-				{
-					"$type": "Gunter.Reporting.Modules.TestCaseInfo, Gunter",
-					"Heading": "Test case"
-				},
-				{
-					"$type": "Gunter.Reporting.Modules.DataSourceInfo, Gunter",
-					"Heading": "Data-source",
-					"TimestampColumn": "Timestamp",
-					"TimespanFormat": "dd\\.hh\\:mm\\:ss"
-				},
-				{
-					"$type": "Gunter.Reporting.Modules.DataSummary, Gunter",
-					"Heading": "Data summary",
-					"Columns": [
-						{
-							"Name": "_nvarchar",
-							"IsKey": true,
-							"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
-						},
-						{ "Name": "_int", "Total": "Sum" },
-						{ "Name": "_datetime2" },
-						{ "Name": "_float", "Total": "Average" },
-						{ "Name": "_bit", "Total": "Count" },
-						{ "Name": "_money" },
-						{ "Name": "_numeric" }
-					]
-				},
-				{
-					"$type": "Gunter.Reporting.Modules.Signature, Gunter"
-				}
-			]
-		}
-	]
+  ],
+  "Reports": [
+    {
+      "Id": 1,
+      "Title": "Glitch alert for {TestLog} - {TestCase.Severity}",
+      "Modules": [
+        {
+          "$type": "Gunter.Reporting.Modules.Greeting, Gunter",
+          "Heading": "Glitch detected!",
+          "Text": "{TestCase.Message}"
+        },
+        {
+          "$type": "Gunter.Reporting.Modules.TestCaseInfo, Gunter",
+          "Heading": "Test case"
+        },
+        {
+          "$type": "Gunter.Reporting.Modules.DataSourceInfo, Gunter",
+          "Heading": "Data-source",
+          "TimestampColumn": "Timestamp",
+          "TimespanFormat": "dd\\.hh\\:mm\\:ss"
+        },
+        {
+          "$type": "Gunter.Reporting.Modules.DataSummary, Gunter",
+          "Heading": "Data summary",
+          "Columns": [
+            {
+              "Name": "_nvarchar",
+              "IsKey": true,
+              "Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
+            },
+            {
+              "Name": "_int",
+              "Total": "Sum"
+            },
+            { "Name": "_datetime2" },
+            {
+              "Name": "_float",
+              "Total": "Average"
+            },
+            {
+              "Name": "_bit",
+              "Total": "Count"
+            },
+            { "Name": "_money" },
+            { "Name": "_numeric" },
+            { "Name": "CorrelationContext" }
+          ]
+        },
+        {
+          "$type": "Gunter.Reporting.Modules.Signature, Gunter"
+        }
+      ]
+    }
+  ]
 }

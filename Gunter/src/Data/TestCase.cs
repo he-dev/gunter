@@ -120,7 +120,7 @@ namespace Gunter.Data
             bool ProfileMatches()
             {
                 return
-                    profiles.None() ||
+                    profiles.Empty() ||
                     profiles.Any(runnableProfile => testCase.Profiles.Contains(runnableProfile));
             }
         }
