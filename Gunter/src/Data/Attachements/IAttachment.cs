@@ -41,8 +41,8 @@ namespace Gunter.Data.Attachements
             switch (jToken)
             {
                 case null: return default;
-                case JProperty jProperty: return jProperty.Value;
-                default: throw DynamicException.Create($"{Name}JsonPath", $"Expected {nameof(JProperty)} but found {jToken.GetType().Name}. {nameof(JsonPath)} must select a single value from {JsonColumn}. ");
+                case JValue jValue: return jValue.Value;
+                default: throw DynamicException.Create($"{Name}JsonPath", $"Expected {nameof(JValue)} but found {jToken.GetType().Name}. {nameof(JsonPath)} must select a single value from {JsonColumn}. ");
             }
         }
     }
