@@ -27,10 +27,10 @@ namespace Gunter
         );
 
         public RuntimeFormatter(
+            Program program,
             IEnumerable<IRuntimeVariable> runtimeVariables,
             IEnumerable<KeyValuePair<SoftString, object>> variables,
-            IEnumerable<object> runtimeObjects,
-            Program program
+            IEnumerable<object> runtimeObjects
         )
         {
             _variables =

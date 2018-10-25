@@ -13,7 +13,7 @@ namespace Gunter.DependencyInjection
         private readonly ILoggerFactory _loggerFactory;
         private readonly IConfiguration _configuration;
 
-        private Program(ILoggerFactory loggerFactory, IConfiguration configuration)
+        public Program(ILoggerFactory loggerFactory, IConfiguration configuration)
         {
             _loggerFactory = loggerFactory;
             _configuration = configuration;
@@ -49,32 +49,5 @@ namespace Gunter.DependencyInjection
             builder
                 .RegisterInstance(RuntimeVariable.Enumerate());
         }
-
-        public static IContainer Create(ILoggerFactory loggerFactory, IConfiguration configuration, Autofac.Module testModule = null)
-        {
-            try
-            {
-                var builder = new ContainerBuilder();
-                
-                builder.RegisterModule(new Program(loggerFactory, configuration));
-
-                builder.RegisterModule<Service>();
-                builder.RegisterModule<Internal.Data>();
-                builder.RegisterModule<Internal.Reporting>();
-                builder.RegisterModule<HtmlEmail>();
-
-                if (!(testModule is null))
-                {
-                    builder.RegisterModule(testModule);
-                }
-
-                return builder.Build();
-            }
-            catch (Exception innerException)
-            {
-                throw new InitializationException(innerException, ExitCode.DependencyInjectionInitializationFault);
-            }
-        }
     }
-
 }

@@ -49,7 +49,10 @@ namespace Gunter
                 from dataSource in testCase.DataSources(testBundle)
                 select (testCase, dataSource, testIndex: testIndex++);
 
-            var testBundleFormatter = _createRuntimeFormatter(testBundle.Variables, Enumerable.Empty<object>());
+            var testBundleFormatter = _createRuntimeFormatter(testBundle.Variables, runtimeObjects: new object[]
+            {
+                testBundle,
+            });
 
             using (var scope = _logger.BeginScope().AttachElapsed())
             using (var cache = new TestBundleDataCache())

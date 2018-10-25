@@ -12,11 +12,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,18 +30,6 @@
   <ItemGroup>
     <Compile Remove="src\Json\Converters\SoftStringConverter.cs" />
     <Compile Remove="src\Reporting\Filters\Elapsed.cs" />
-    <Compile Remove="src\Services\FileSystem.cs" />
-    <Compile Remove="src\Services\PathResolver.cs" />
-    <Compile Remove="src\Services\RuntimeFormatterFactory.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\..\Classified\Gunter\cfg\tests\clasifid.json" Link="cfg\tests\clasifid.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\Classified\Gunter\cfg\tests\_Global.json" Link="cfg\tests\_Global.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>

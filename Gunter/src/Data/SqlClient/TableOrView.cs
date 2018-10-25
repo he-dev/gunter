@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
@@ -21,13 +23,15 @@ namespace Gunter.Data.SqlClient
     [PublicAPI]
     public class TableOrView : IDataSource
     {
+        private readonly Program _program;
         private readonly Factory _factory;
 
         public delegate TableOrView Factory();
 
         //[JsonConstructor]
-        public TableOrView(ILogger<TableOrView> logger, Factory factory)
+        public TableOrView(ILogger<TableOrView> logger, Program program, Factory factory)
         {
+            _program = program;
             _factory = factory;
             Logger = logger;
         }
@@ -43,11 +47,12 @@ namespace Gunter.Data.SqlClient
         //[JsonRequired]
         public string ConnectionString { get; set; }
 
-        [NotNull, ItemNotNull]
+        [NotNull]
         [Mergable]
         //[JsonRequired]
-        public List<Command> Commands { get; set; }
+        public string Query { get; set; }
 
+        [CanBeNull]
         [Mergable]
         public IList<IAttachment> Attachments { get; set; }
 
@@ -55,15 +60,15 @@ namespace Gunter.Data.SqlClient
         {
             Debug.Assert(!(formatter is null));
 
-            if (!Commands.Any()) throw new InvalidOperationException($"You need to specify at least the one command.");
+            if (Query.IsNullOrEmpty()) throw new InvalidOperationException("You need to specify the Query property.");
 
-            var format = (FormatFunc)formatter.Format;
             var scope = Logger.BeginScope().AttachElapsed();
-            var connectionString = format(ConnectionString);
+            var connectionString = ConnectionString.FormatWith(formatter);
+            var query = ToString(formatter);
 
             try
             {
-                Logger.Log(Abstraction.Layer.Database().Variable(new { ConnectionString = format(ConnectionString) }));
+                Logger.Log(Abstraction.Layer.Database().Composite(new { properties = new { connectionString, query } }));
 
                 using (var conn = new SqlConnection(connectionString))
                 {
@@ -71,21 +76,8 @@ namespace Gunter.Data.SqlClient
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = format(Commands.First().Text);
+                        cmd.CommandText = query;
                         cmd.CommandType = CommandType.Text;
-
-                        var parameters =
-                            Commands
-                                .First()
-                                .Parameters.Select(p => (p.Key, Value: format(p.Value)))
-                                .ToList();
-
-                        Logger.Log(Abstraction.Layer.Database().Variable(new { parameters }));
-
-                        foreach (var (key, value) in parameters)
-                        {
-                            cmd.Parameters.AddWithValue(key, value);
-                        }
 
                         using (var dataReader = await cmd.ExecuteReaderAsync())
                         {
@@ -138,11 +130,35 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        public IEnumerable<(string Name, string Text)> EnumerateQueries(IRuntimeFormatter formatter)
+        public string ToString(IRuntimeFormatter formatter)
         {
-            var format = (FormatFunc)formatter.Format;
+            var query = Query.FormatWith(formatter);
 
-            return Commands.Select(cmd => (cmd.Name, Text: format(cmd.Text)));
+            try
+            {
+                if (Uri.TryCreate(query, UriKind.Absolute, out var uri))
+                {
+                    var isAbsolutePath =
+                        uri.AbsolutePath.StartsWith("/") == false &&
+                        Path.IsPathRooted(uri.AbsolutePath);
+
+                    query =
+                        isAbsolutePath
+                            ? File.ReadAllText(uri.AbsolutePath)
+                            : File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), _program.TestsDirectoryName, uri.AbsolutePath.TrimStart('/')));
+
+                    return query.FormatWith(formatter);
+                }
+                else
+                {
+                    return query;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(ToString)).Faulted(), ex);
+                return null;
+            }
         }
 
         public IMergable New()
@@ -152,65 +168,5 @@ namespace Gunter.Data.SqlClient
             mergable.Merge = Merge;
             return mergable;
         }
-    }
-
-    [PublicAPI]
-    public class Command
-    {
-        [CanBeNull]
-        public string Name { get; set; }
-
-        [NotNull]
-        [JsonRequired]
-        public string Text { get; set; }
-
-        [NotNull]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
-    }
-
-    //public class Expandable
-    //{
-    //    [JsonRequired]
-    //    public string Column { get; set; }
-
-    //    public string Prefix { get; set; }
-
-    //    [JsonRequired]
-    //    public string Expander { get; set; }
-
-    //    public int Index { get; set; }
-    //}
-
-    //public static class DataTableExpander
-    //{
-    //    public static DataTable Expand(this DataTable destination, IEnumerable<IDictionary<string, object>> source)
-    //    {
-    //        destination = destination ?? new DataTable();
-
-    //        foreach (var mapping in source)
-    //        {
-    //            destination.Expand(mapping);
-    //        }
-
-    //        return destination;
-    //    }
-
-    //    public static void Expand(this DataTable destination, IDictionary<string, object> source)
-    //    {
-    //        destination = destination ?? new DataTable();
-
-    //        var newRow = destination.NewRow();
-
-    //        foreach (var property in source.Where(x => !(x.Value is null)))
-    //        {
-    //            if (!destination.Columns.Contains(property.Key))
-    //            {
-    //                destination.Columns.Add(new DataColumn(property.Key, property.Value.GetType()));
-    //            }
-    //            newRow[property.Key] = property.Value;
-    //        }
-    //        destination.Rows.Add(newRow);
-    //    }
-    //}
+    }    
 }

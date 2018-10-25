@@ -9,15 +9,10 @@ using Gunter;
 using Gunter.Data;
 using Gunter.Json.Converters;
 using JetBrains.Annotations;
-using MailrNET;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using Reusable;
 using Reusable.OmniLog;
-using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.OmniLog.SemanticExtensions.Attachements;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Annotations;
 using Reusable.SmartConfig.Data;
@@ -73,11 +68,10 @@ namespace Gunter
             catch (Exception ex)
             {
                 Console.Error.WriteLine(ex.ToString());
-                if (ex is InitializationException ie)
-                {
-                    return (int)ie.ExitCode;
-                }
-                return (int)ExitCode.UnexpectedFault;
+                return
+                    ex is InitializationException ie
+                        ? (int)ie.ExitCode
+                        : (int)ExitCode.UnexpectedFault;
             }
         }
 
@@ -86,7 +80,7 @@ namespace Gunter
             var logger = loggerFactory.CreateLogger<Program>();
             try
             {
-                using (var container = DependencyInjection.Program.Create(loggerFactory, configuration))
+                using (var container = DependencyInjection.ProgramFactory.CreateProgram(loggerFactory, configuration))
                 using (var scope = container.BeginLifetimeScope())
                 {
                     var program = scope.Resolve<Program>();
@@ -159,10 +153,10 @@ namespace Gunter
                     new AppSettings(settingConverter),
                     new InMemory(settingConverter)
                     {
-                        { nameof(CurrentDirectory), Path.GetDirectoryName(typeof(Program).Assembly.Location) },
-                        { nameof(Product), "Gunter" },
-                        { nameof(Version), "4.1.0" },
-                        { nameof(ElapsedFormat), ElapsedFormat }
+                        { nameof(Program.CurrentDirectory), Path.GetDirectoryName(typeof(Program).Assembly.Location) },
+                        { nameof(Program.Product), "Gunter" },
+                        { nameof(Program.Version), "5.0.0" },
+                        { nameof(Program.ElapsedFormat), ElapsedFormat }
                     },
                 });
 

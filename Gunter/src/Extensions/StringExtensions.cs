@@ -12,5 +12,10 @@ namespace Gunter.Extensions
         {
             return $"_{input.TrimStart('_')}";
         }
+
+        public static string FormatWith(this string input, IRuntimeFormatter formatter)
+        {
+            return formatter.Format(input);
+        }
     }
 }

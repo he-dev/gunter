@@ -1,6 +1,0 @@
-{
-  "Globals": {
-    "TEST_LOG": "data source=(local);initial catalog=TEST_LOG;integrated security=true",
-    "Report.Title1": "{TestCase.Severity} alert in {Table}"
-  }
-}
