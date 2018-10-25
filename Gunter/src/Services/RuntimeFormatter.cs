@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Custom;
 using Gunter.Data;
@@ -7,7 +6,7 @@ using JetBrains.Annotations;
 using Reusable;
 using Reusable.Extensions;
 
-namespace Gunter
+namespace Gunter.Services
 {
     public delegate string FormatFunc(string text);
 

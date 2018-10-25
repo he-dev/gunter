@@ -12,7 +12,7 @@ using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
 using Reusable.SmartConfig;
 
-namespace Gunter
+namespace Gunter.Services
 {
     public interface ITestRunner
     {

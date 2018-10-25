@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using Gunter.Services;
 using JetBrains.Annotations;
 
 namespace Gunter.Data
@@ -13,7 +14,7 @@ namespace Gunter.Data
         int Id { get; set; }
 
         [JsonProperty("Merge")]
-        string Merge { get; set; }
+        Merge Merge { get; set; }
 
         IMergable New();
     }

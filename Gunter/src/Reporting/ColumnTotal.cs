@@ -1,4 +1,4 @@
-﻿namespace Gunter.Reporting.Data
+﻿namespace Gunter.Reporting
 {
     public enum ColumnTotal
     {

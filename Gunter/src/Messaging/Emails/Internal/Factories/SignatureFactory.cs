@@ -1,5 +1,6 @@
 ﻿using Gunter.Data;
 using Gunter.Reporting;
+using Gunter.Services;
 
 namespace Gunter.Messaging.Emails.Internal.Factories
 {

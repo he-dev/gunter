@@ -1,5 +1,6 @@
 using Autofac;
 using Gunter.DependencyInjection.Helpers;
+using Gunter.Services;
 using MailrNET;
 using Newtonsoft.Json.Serialization;
 using Reusable.IO;

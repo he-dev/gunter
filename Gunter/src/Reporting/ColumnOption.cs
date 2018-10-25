@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using Gunter.Reporting;
-using Gunter.Reporting.Data;
 using Gunter.Reporting.Filters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;

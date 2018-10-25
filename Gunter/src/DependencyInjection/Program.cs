@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Autofac;
 using Gunter.Data;
 using Gunter.DependencyInjection.Internal;
+using Gunter.Services;
 using Reusable.OmniLog;
 using Reusable.SmartConfig;
 

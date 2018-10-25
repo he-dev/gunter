@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Reporting;
+using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.OmniLog;
@@ -32,7 +33,7 @@ namespace Gunter.Messaging
         [JsonRequired]
         public int Id { get; set; }
 
-        public string Merge { get; set; }
+        public Merge Merge { get; set; }
 
         [Mergable]
         public List<int> ReportIds { get; set; } = new List<int>();

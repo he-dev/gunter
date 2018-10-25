@@ -5,19 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Linq.Custom;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Extensions;
-using Gunter.Messaging;
-using Gunter.Reporting;
 using Reusable;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
 
-namespace Gunter
+namespace Gunter.Services
 {
     internal class TestComposer
     {
@@ -54,7 +51,7 @@ namespace Gunter
                 {
                     composition = _createTestBundle(testBundle);
                     composition.FullName = testBundle.FullName;
-                    composition.Variables = testBundle.Variables;                    
+                    composition.Variables = testBundle.Variables;
 
                     composition.Variables = Merge(testBundle.Variables, partialBundles);
                     composition.DataSources = Merge(testBundle, tb => tb.DataSources, partialBundles).ToList();
@@ -77,40 +74,32 @@ namespace Gunter
         private IEnumerable<T> Merge<T>(TestBundle testBundle, Func<TestBundle, IEnumerable<T>> getMergables, IEnumerable<TestBundle> partialBundles) where T : class, IMergable
         {
             var mergables = getMergables(testBundle);
-            
-            foreach (var mergable in mergables)
+
+            foreach (var mergable in mergables.Where(x => x.Merge.IsNotNull()))
             {
-                if (mergable.Merge.IsNullOrEmpty())
+                var merge = mergable.Merge;
+                var otherTestBundle = partialBundles.SingleOrDefault(p => p.Name == merge.OtherFileName) ?? throw DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{merge.OtherFileName}'.");
+                var otherMergable = getMergables(otherTestBundle).SingleOrDefault(x => x.Id == merge.OtherId) ?? throw DynamicException.Create("OtherMergableNotFound", $"Could not find mergable '{merge.OtherId}'.");
+
+                var (first, second) = merge.Mode == MergeMode.Base ? (otherMergable, mergable) : (mergable, otherMergable);
+
+                var merged = mergable.New();
+
+                var mergableProperties =
+                    merged
+                        .GetType()
+                        .GetProperties()
+                        .Where(p => p.IsDefined(typeof(MergableAttribute)))
+                        .ToList();
+
+                foreach (var property in mergableProperties)
                 {
-                    yield return mergable;
+                    var firstValue = property.GetValue(first);
+                    var newValue = firstValue ?? property.GetValue(second);
+                    property.SetValue(merged, newValue);
                 }
-                else
-                {
-                    var (otherName, otherId, mode) = ParseMerge(mergable.Merge);
 
-                    var otherTestBundle = partialBundles.SingleOrDefault(p => p.Name == otherName) ?? throw DynamicException.Factory.CreateDynamicException("OtherTestBundleNotFound", $"Could not find test bundle '{otherName}'.");
-                    var otherMergable = getMergables(otherTestBundle).SingleOrDefault(x => x.Id == otherId) ?? throw DynamicException.Factory.CreateDynamicException("OtherMergableNotFound", $"Could not find mergable '{otherId}'.");
-
-                    var (first, second) = mode == MergeMode.Base ? (otherMergable, mergable) : (mergable, otherMergable);
-
-                    var merged = mergable.New();
-
-                    var mergableProperties =
-                        merged
-                            .GetType()
-                            .GetProperties()
-                            .Where(p => p.IsDefined(typeof(MergableAttribute)))
-                            .ToList();
-
-                    foreach (var property in mergableProperties)
-                    {
-                        var firstValue = property.GetValue(first);
-                        var newValue = firstValue ?? property.GetValue(second);
-                        property.SetValue(merged, newValue);
-                    }
-
-                    yield return (T) merged;
-                }
+                yield return (T)merged;
             }
         }
 
@@ -136,28 +125,7 @@ namespace Gunter
             }
         }
 
-        #region Helpers
-
-        private (SoftString Name, int Id, MergeMode Mode) ParseMerge(string merge)
-        {
-            _logger.Log(Abstraction.Layer.Infrastructure().Argument(new { merge }));
-
-            var mergeMatch = Regex.Match(merge, @"(?<partial>[_a-z]+):(?<id>\d+):(?<mode>base|join)", RegexOptions.IgnoreCase);
-            if (!mergeMatch.Success)
-            {
-                throw DynamicException.Factory.CreateDynamicException(
-                    $"InvalidMergeExpression",
-                    $"{merge.QuoteWith("'")} is not a valid merge expression. Expected: 'Name:Id:Mode'."
-                );
-            }
-
-            return
-            (
-                mergeMatch.Groups["partial"].Value.FormatPartialName().ToSoftString(),
-                int.Parse(mergeMatch.Groups["id"].Value),
-                (MergeMode)Enum.Parse(typeof(MergeMode), mergeMatch.Groups["mode"].Value, ignoreCase: true)
-            );
-        }
+        #region Helpers        
 
         private static bool IsPartial(TestBundle testBundle)
         {
@@ -172,9 +140,5 @@ namespace Gunter
         #endregion
     }
 
-    public enum MergeMode
-    {
-        Base,
-        Join
-    }
+    
 }

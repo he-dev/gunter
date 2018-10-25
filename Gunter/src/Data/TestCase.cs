@@ -9,6 +9,7 @@ using System.Linq.Custom;
 using Gunter.Annotations;
 using Gunter.Messaging;
 using Gunter.Reporting;
+using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Extensions;
@@ -31,7 +32,7 @@ namespace Gunter.Data
 
         public int Id { get; set; }
 
-        public string Merge { get; set; }
+        public Merge Merge { get; set; }
 
         [DefaultValue(true)]
         [Mergable]

@@ -8,6 +8,7 @@ using Autofac;
 using Gunter;
 using Gunter.Data;
 using Gunter.Json.Converters;
+using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;

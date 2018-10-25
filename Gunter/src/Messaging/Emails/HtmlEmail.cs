@@ -7,6 +7,7 @@ using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Messaging.Emails.Internal;
 using Gunter.Reporting;
+using Gunter.Services;
 using JetBrains.Annotations;
 using MailrNET;
 using Newtonsoft.Json;

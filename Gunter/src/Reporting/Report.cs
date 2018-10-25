@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Data;
+using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -34,7 +35,7 @@ namespace Gunter.Reporting
         [JsonRequired]
         public int Id { get; set; }
 
-        public string Merge { get; set; }
+        public Merge Merge { get; set; }
 
         [Mergable]
         public string Title { get; set; }

@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Gunter.Data;
 using Gunter.Extensions;
-using Gunter.Reporting.Data;
 using Gunter.Reporting.Filters;
 using JetBrains.Annotations;
 using Reusable.Collections;

@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.Reflection;
 
-namespace Gunter
+namespace Gunter.Services
 {
     internal interface ITestLoader
     {

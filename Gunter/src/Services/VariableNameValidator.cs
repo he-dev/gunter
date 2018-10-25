@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Custom;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
-using System.Linq.Custom;
 using Reusable.Extensions;
 using Reusable.Reflection;
 
-namespace Gunter
+namespace Gunter.Services
 {
     public interface IVariableNameValidator
     {
