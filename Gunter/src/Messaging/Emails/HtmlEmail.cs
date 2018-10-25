@@ -14,7 +14,6 @@ using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
-using Reusable.SmartConfig.Utilities;
 
 namespace Gunter.Messaging.Emails
 {

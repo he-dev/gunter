@@ -21,7 +21,6 @@ using Reusable.OmniLog.SemanticExtensions.Attachements;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Annotations;
 using Reusable.SmartConfig.Data;
-using Reusable.SmartConfig.Utilities;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Serialization;
 

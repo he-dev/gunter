@@ -11,7 +11,6 @@ using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
 using Reusable.SmartConfig;
-using Reusable.SmartConfig.Utilities;
 
 namespace Gunter
 {
@@ -35,7 +34,7 @@ namespace Gunter
             _createRuntimeFormatter = createRuntimeFormatter;
             _logger = logger;
             _configuration = configuration;
-            _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { foo = "bar" }));
+            //_logger.Log(Abstraction.Layer.Infrastructure().Meta(new { foo = "bar" }));
         }
 
         public async Task RunTestsAsync(TestBundle testBundle, IEnumerable<SoftString> profiles)

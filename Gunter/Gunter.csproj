@@ -48,13 +48,11 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Reusable.Converters" Version="7.0.22" />
     <PackageReference Include="Reusable.Core" Version="7.0.22" />
-    <PackageReference Include="Reusable.Flawless" Version="5.2.1" />
     <PackageReference Include="Reusable.OmniLog" Version="7.0.22" />
     <PackageReference Include="Reusable.OmniLog.NLogRx" Version="7.0.22" />
     <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="7.0.22" />
     <PackageReference Include="Reusable.SemanticVersion" Version="7.0.22" />
     <PackageReference Include="Reusable.SmartConfig" Version="7.0.22" />
-    <PackageReference Include="Reusable.SmartConfig.Utilities" Version="7.0.20" />
     <PackageReference Include="Reusable.SmartConfig.AppConfig" Version="7.0.22" />
     <PackageReference Include="Reusable.SmartConfig.InMemory" Version="7.0.22" />
     <PackageReference Include="Reusable.SmartConfig.JsonConverter" Version="7.0.22" />
