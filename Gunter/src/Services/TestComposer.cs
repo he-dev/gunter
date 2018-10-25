@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Linq.Custom;
@@ -41,6 +42,7 @@ namespace Gunter.Services
             }
         }
 
+        [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
         private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partialBundles, out TestBundle composition)
         {
             composition = default;

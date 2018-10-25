@@ -97,7 +97,6 @@ namespace Gunter
 
                     logger.Log(Abstraction.Layer.Infrastructure().Property(new { program.CurrentDirectory }));
 
-
                     var tests = testLoader.LoadTests(program.TestsDirectoryName).ToList();
                     var compositions = testComposer.ComposeTests(tests).ToList();
 

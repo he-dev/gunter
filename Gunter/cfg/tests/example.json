@@ -1,26 +1,26 @@
 {
-	"Locals": {
-		"TestLog": "[robots].[Gunter_TestLog]",
-		"Top1k": "1000",
-		"To": "test@email.com"
-	},
-	"DataSources": [
-		{
-			"$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
-			"Id": 1,
-			"ConnectionString": "{TEST_LOG}",
-			"Query": "file:///{TestBundle.FileName}.TestLog.sql",
-			"Attachments": [
-			  {
-			    "$type": "JsonValue",
-			    "Name": "CorrelationContext",
-			    "JsonColumn": "Scope",
-			    "JsonPath": "$.[0].CorrelationContext"
-			  }
-			]
-		}
-	],
-	"Tests": [
+  "Locals": {
+    "TestLog": "[robots].[Gunter_TestLog]",
+    "Top1k": "1000",
+    "To": "test@email.com"
+  },
+  "DataSources": [
+    {
+      "$type": "Gunter.Data.SqlClient.TableOrView, Gunter",
+      "Id": 1,
+      "ConnectionString": "{TEST_LOG}",
+      "Query": "file:///{TestBundle.FileName}.TestLog.sql",
+      "Attachments": [
+        {
+          "$type": "JsonValue",
+          "Name": "CorrelationContext",
+          "JsonColumn": "Scope",
+          "JsonPath": "$.[0].CorrelationContext"
+        }
+      ]
+    }
+  ],
+  "Tests": [
     {
       "Enabled": false,
       "Level": "Warning",
