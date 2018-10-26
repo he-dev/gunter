@@ -23,23 +23,18 @@ namespace Gunter.Messaging.Emails
     {
         private readonly IConfiguration _configuration;
         private readonly IEnumerable<IModuleFactory> _moduleFactories;
-        private readonly Factory _factory;
         private readonly IMailrClient _mailrClient;
-
-        public delegate HtmlEmail Factory();
 
         public HtmlEmail(
             ILogger<HtmlEmail> logger,
             IConfiguration configuration,
             IMailrClient mailrClient,
-            IEnumerable<IModuleFactory> moduleFactories,
-            Factory factory
+            IEnumerable<IModuleFactory> moduleFactories
         ) : base(logger)
         {
             _configuration = configuration;
             _mailrClient = mailrClient;
             _moduleFactories = moduleFactories;
-            _factory = factory;
         }
 
         [Mergable]
@@ -47,15 +42,7 @@ namespace Gunter.Messaging.Emails
 
         [DefaultValue("Default.css")]
         [Mergable]
-        public string Theme { get; set; }
-
-        public override IMergable New()
-        {
-            var mergable = _factory();
-            mergable.Id = Id;
-            mergable.Merge = Merge;
-            return mergable;
-        }
+        public string Theme { get; set; }        
 
         protected override async Task PublishReportAsync(TestContext context, IReport report)
         {

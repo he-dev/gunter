@@ -3,8 +3,10 @@ using Gunter.Data;
 using Newtonsoft.Json;
 using System.Linq;
 using System;
+using System.Collections;
 using System.Data;
 using System.IO;
+using Gunter.Annotations;
 using Gunter.Messaging;
 using Gunter.Reporting;
 using Gunter.Services;
@@ -16,34 +18,8 @@ namespace Gunter.Data
     [PublicAPI]
     public class TestBundle
     {
-        private readonly IVariableNameValidator _variableNameValidator;
-
-        private Dictionary<SoftString, object> _variables = new Dictionary<SoftString, object>();
-
-        public delegate TestBundle Factory(TestBundle otherBundle);
-
-        public TestBundle(IVariableNameValidator variableNameValidator)
-        {
-            _variableNameValidator = variableNameValidator;
-        }
-
-        //public TestBundle(IVariableNameValidator variableNameValidator, TestBundle otherBundle)
-        //    : this(variableNameValidator)
-        //{
-        //    FullName = otherBundle.FullName;
-        //    Variables = otherBundle.Variables;
-        //}
-
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public Dictionary<SoftString, object> Variables
-        {
-            get => _variables;
-            set
-            {
-                _variableNameValidator.ValidateNamesNotReserved(value.Keys);
-                _variables = value;
-            }
-        }
+        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public List<VariableSet> Variables { get; set; } = new List<VariableSet>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
@@ -66,6 +42,45 @@ namespace Gunter.Data
 
         [JsonIgnore]
         public SoftString Name => Path.GetFileNameWithoutExtension(FileName.ToString());
+    }
+
+    public static class TestBundleExtensions
+    {
+        public static IEnumerable<KeyValuePair<SoftString, object>> AllVariables(this TestBundle testBundle) => testBundle.Variables.SelectMany(x => x);   
+    }
+
+    [JsonObject]
+    public interface IVariableSet : IEnumerable<KeyValuePair<SoftString, object>> { }
+
+    public class VariableSet : IVariableSet, IMergable
+    {
+        private Dictionary<SoftString, object> _variables = new Dictionary<SoftString, object>();
+
+        public int Id { get; set; }
+
+        public string Prefix { get; set; }
+
+        public Merge Merge { get; set; }
+
+        [Mergable]
+        public IDictionary<SoftString, object> Items { get; set; }
+        //{
+        //    get => _variables;
+        //    set
+        //    {
+        //        _variableNameValidator.ValidateNamesNotReserved(this.Select(x => x.Key));
+        //        _variables = value;
+        //    }
+        //}
+
+        public IEnumerator<KeyValuePair<SoftString, object>> GetEnumerator()
+        {
+            var prefix = Prefix is null ? default : $"{Prefix}.";
+            return Items.Select(x => new KeyValuePair<SoftString, object>($"{prefix}{x.ToString()}", x.Value)).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     }
 }
 

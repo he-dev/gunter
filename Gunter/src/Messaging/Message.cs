@@ -16,7 +16,7 @@ namespace Gunter.Messaging
     public interface IMessage : IMergable
     {
         [JsonProperty("Reports")]
-        List<int> ReportIds { get; set; }
+        ISet<int> ReportIds { get; set; }
 
         Task PublishAsync(TestContext context);
     }
@@ -36,9 +36,7 @@ namespace Gunter.Messaging
         public Merge Merge { get; set; }
 
         [Mergable]
-        public List<int> ReportIds { get; set; } = new List<int>();
-
-        public abstract IMergable New();
+        public ISet<int> ReportIds { get; set; } = new HashSet<int>();
 
         public async Task PublishAsync(TestContext context)
         {

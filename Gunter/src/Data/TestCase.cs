@@ -73,14 +73,6 @@ namespace Gunter.Data
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergable]
         public IList<SoftString> Profiles { get; set; } = new List<SoftString>();
-
-        public IMergable New()
-        {
-            var mergable = _factory();
-            mergable.Id = Id;
-            mergable.Merge = Merge;
-            return mergable;
-        }
     }
 
     public static class TestCaseExtensions

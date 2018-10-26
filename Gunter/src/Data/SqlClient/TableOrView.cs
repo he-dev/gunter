@@ -26,15 +26,11 @@ namespace Gunter.Data.SqlClient
     public class TableOrView : IDataSource
     {
         private readonly Program _program;
-        private readonly Factory _factory;
-
-        public delegate TableOrView Factory();
 
         //[JsonConstructor]
-        public TableOrView(ILogger<TableOrView> logger, Program program, Factory factory)
+        public TableOrView(ILogger<TableOrView> logger, Program program)
         {
             _program = program;
-            _factory = factory;
             Logger = logger;
         }
 
@@ -161,14 +157,6 @@ namespace Gunter.Data.SqlClient
                 Logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(ToString)).Faulted(), ex);
                 return null;
             }
-        }
-
-        public IMergable New()
-        {
-            var mergable = _factory();
-            mergable.Id = Id;
-            mergable.Merge = Merge;
-            return mergable;
         }
     }    
 }

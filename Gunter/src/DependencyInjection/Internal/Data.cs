@@ -1,3 +1,4 @@
+using System;
 using Autofac;
 
 namespace Gunter.DependencyInjection.Internal
@@ -8,7 +9,6 @@ namespace Gunter.DependencyInjection.Internal
         {
             builder
                 .RegisterType<Gunter.Data.TestBundle>()
-                //.UsingConstructor(typeof(IVariableNameValidator))
                 .AsSelf();
 
             builder
@@ -17,7 +17,6 @@ namespace Gunter.DependencyInjection.Internal
             builder
                 .RegisterType<Gunter.Data.TestCase>()
                 .AsSelf();
-
         }
     }
 }

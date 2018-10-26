@@ -49,7 +49,7 @@ namespace Gunter.Services
                 from dataSource in testCase.DataSources(testBundle)
                 select (testCase, dataSource, testIndex: testIndex++);
 
-            var testBundleFormatter = _createRuntimeFormatter(testBundle.Variables, runtimeObjects: new object[]
+            var testBundleFormatter = _createRuntimeFormatter(testBundle.AllVariables(), runtimeObjects: new object[]
             {
                 testBundle,
             });
@@ -70,7 +70,7 @@ namespace Gunter.Services
                         {
                             var testCaseFormatter =
                                 _createRuntimeFormatter(
-                                    variables: testBundle.Variables,
+                                    variables: testBundle.AllVariables(),
                                     runtimeObjects: new object[]
                                     {
                                         testBundle,

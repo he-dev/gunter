@@ -23,15 +23,6 @@ namespace Gunter.Reporting
     [JsonObject]
     public class Report : IReport, IEnumerable<IModule>
     {
-        private readonly Factory _factory;
-
-        public delegate Report Factory();
-
-        public Report(Factory factory)
-        {
-            _factory = factory;
-        }
-
         [JsonRequired]
         public int Id { get; set; }
 
@@ -42,14 +33,6 @@ namespace Gunter.Reporting
 
         [Mergable]
         public List<IModule> Modules { get; set; } = new List<IModule>();
-
-        public IMergable New()
-        {
-            var mergable = _factory();
-            mergable.Id = Id;
-            mergable.Merge = Merge;
-            return mergable;
-        }
 
         public IEnumerator<IModule> GetEnumerator() => Modules.GetEnumerator();
 
