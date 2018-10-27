@@ -52,10 +52,9 @@ namespace Gunter.DependencyInjection.Internal
                 {
                     var program = c.Resolve<Gunter.Program>();
                     return MailrClient.Create(
-                        program.MailrBaseUri, 
-                        program.Product, 
-                        program.Version, 
-                        $".{program.Environment}"
+                        baseUri: program.MailrBaseUri,
+                        product: $"{program.Product}-{program.Version}",
+                        environment: program.Environment
                     );
                 })
                 .InstancePerLifetimeScope();

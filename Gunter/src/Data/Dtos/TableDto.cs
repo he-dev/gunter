@@ -4,20 +4,10 @@ using System.Linq;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Extensions;
 
 namespace Gunter.Data.Dtos
-{
-    internal class TableDto
-    {
-        public TableDto(IEnumerable<SoftString> columns)
-        {
-        }
-
-        public List<List<string>> Head { get; set; } = new List<List<string>>();
-        public List<List<string>> Body { get; set; } = new List<List<string>>();
-        public List<List<string>> Foot { get; set; } = new List<List<string>>();
-    }
-
+{   
     public class TripleTableDto
     {
         public TripleTableDto(IEnumerable<SoftString> columns, bool areHeaders = true)
