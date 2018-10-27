@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
 using Gunter.Data;
+using Gunter.Data.Dtos;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Data;
@@ -24,32 +26,21 @@ namespace Gunter.Reporting.Modules
         [DefaultValue(@"mm\:ss\.fff")]
         public string TimespanFormat { get; set; }
 
-        public DataTable Create(TestContext context)
+        public override SectionDto CreateDto(TestContext context)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
             // Initialize the data-table;
-            var dataTable =
-                new DataTable(nameof(DataSource))
-                    .AddColumn("Property", c => c.DataType = typeof(string))
-                    .AddColumn("Value", c => c.DataType = typeof(string));
+            var section = new SectionDto
+            {
+                Table = new TripleTableDto(new[] { "Property", "Value" })
+            };
+            var table = section.Table;
 
-            dataTable.AddRow("Type", context.DataSource.GetType().Name);
-
-            //var commandNumber = 0;
-            //foreach (var command in context.DataSource.EnumerateQueries(context.Formatter))
-            //{
-            //    var commandNameOrCounter =
-            //        string.IsNullOrEmpty(command.Name)
-            //            ? commandNumber++.ToString()
-            //            : command.Name;
-
-            //    dataTable.AddRow($"Query: {commandNameOrCounter}", command.Text);
-            //}
-
-            dataTable.AddRow("Query", context.DataSource.ToString(context.Formatter));
-            dataTable.AddRow("RowCount", context.Data.Rows.Count);
-            dataTable.AddRow("Elapsed", format($"{RuntimeVariable.TestCounter.GetDataElapsed}:{TimespanFormat}}}"));
+            table.Body.Add("Type", context.DataSource.GetType().Name);
+            table.Body.Add("Query", context.DataSource.ToString(context.Formatter));
+            table.Body.Add("RowCount", context.Data.Rows.Count.ToString());
+            table.Body.Add("Elapsed", format($"{RuntimeVariable.TestCounter.GetDataElapsed.ToString(TimespanFormat)}"));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
@@ -59,14 +50,14 @@ namespace Gunter.Reporting.Modules
                 var timestampMin = context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
                 var timestampMax = context.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn));
 
-                dataTable.AddRow("Timestamp: min", timestampMin.ToString(CultureInfo.InvariantCulture));
-                dataTable.AddRow("Timestamp: max", timestampMax.ToString(CultureInfo.InvariantCulture));
+                table.Body.Add(new List<string> { "Timestamp: min", timestampMin.ToString(CultureInfo.InvariantCulture) });
+                table.Body.Add(new List<string> { "Timestamp: max", timestampMax.ToString(CultureInfo.InvariantCulture) });
 
                 var timespan = timestampMax - timestampMin;
-                dataTable.AddRow("Timespan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture));
+                table.Body.Add(new List<string> { "Timespan", timespan.ToString(TimespanFormat, CultureInfo.InvariantCulture) });
             }
 
-            return dataTable;
+            return section;
         }
     }
 }

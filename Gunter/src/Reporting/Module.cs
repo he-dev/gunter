@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using Gunter.Data;
+using Gunter.Data.Dtos;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -16,6 +17,8 @@ namespace Gunter.Reporting
         string Text { get; set; }
 
         int Ordinal { get; set; }
+
+        SectionDto CreateDto(TestContext context);
     }
 
     public abstract class Module : IModule
@@ -25,6 +28,8 @@ namespace Gunter.Reporting
         public string Text { get; set; }
 
         public int Ordinal { get; set; }
+
+        public abstract SectionDto CreateDto(TestContext context);
     }
 
     public interface ITabular
@@ -35,7 +40,7 @@ namespace Gunter.Reporting
         [JsonIgnore]
         bool HasFoot { get; }
 
-        DataTable Create(TestContext context);
+        //DataTable Create(TestContext context);
     }
 
     public enum TableOrientation

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Gunter.Data;
 using Gunter.Json.Converters;
+using Gunter.Messaging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Reusable;
@@ -52,7 +53,7 @@ namespace Gunter.Services
         {
             typeof(Gunter.Data.SqlClient.TableOrView),
             typeof(Gunter.Data.Attachements.JsonValue),
-            typeof(Gunter.Messaging.Emails.HtmlEmail),
+            typeof(Gunter.Messaging.Mailr),
             typeof(Gunter.Reporting.Modules.Level),
             typeof(Gunter.Reporting.Modules.Greeting),
             typeof(Gunter.Reporting.Modules.TestCase),

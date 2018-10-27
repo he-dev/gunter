@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
+using Gunter.Extensions;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.OmniLog;
@@ -165,7 +166,7 @@ namespace Gunter.Services
 
     //internal class 
 
-    internal class TestBundleDataCache : Dictionary<int, (DataTable Data, TimeSpan Elapsed)>, IDisposable
+    internal class TestBundleDataCache : Dictionary<SoftString, (DataTable Data, TimeSpan Elapsed)>, IDisposable
     {
         public void Dispose()
         {

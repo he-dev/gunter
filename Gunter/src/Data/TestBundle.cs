@@ -2,12 +2,13 @@
 using Gunter.Data;
 using Newtonsoft.Json;
 using System.Linq;
-using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Data;
 using System.IO;
 using Gunter.Annotations;
 using Gunter.Messaging;
+using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
@@ -16,10 +17,14 @@ using Reusable;
 namespace Gunter.Data
 {
     [PublicAPI]
-    public class TestBundle
+    [JsonObject]
+    public class TestBundle : IEnumerable<IEnumerable<IMergeable>>
     {
+        [DefaultValue(true)]
+        public bool Enabled { get; set; }
+        
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<VariableSet> Variables { get; set; } = new List<VariableSet>();
+        public List<VariableCollection> Variables { get; set; } = new List<VariableCollection>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
@@ -42,23 +47,27 @@ namespace Gunter.Data
 
         [JsonIgnore]
         public SoftString Name => Path.GetFileNameWithoutExtension(FileName.ToString());
-    }
 
-    public static class TestBundleExtensions
-    {
-        public static IEnumerable<KeyValuePair<SoftString, object>> AllVariables(this TestBundle testBundle) => testBundle.Variables.SelectMany(x => x);   
+        public IEnumerator<IEnumerable<IMergeable>> GetEnumerator()
+        {
+            yield return Variables;
+            yield return DataSources;
+            yield return Tests;
+            yield return Messages;
+            yield return Reports;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     [JsonObject]
-    public interface IVariableSet : IEnumerable<KeyValuePair<SoftString, object>> { }
-
-    public class VariableSet : IVariableSet, IMergable
+    public class VariableCollection : IEnumerable<KeyValuePair<SoftString, object>>, IMergeable
     {
         private Dictionary<SoftString, object> _variables = new Dictionary<SoftString, object>();
 
-        public int Id { get; set; }
+        public SoftString Id { get; set; }
 
-        public string Prefix { get; set; }
+        //public string Prefix { get; set; }
 
         public Merge Merge { get; set; }
 
@@ -73,14 +82,13 @@ namespace Gunter.Data
         //    }
         //}
 
-        public IEnumerator<KeyValuePair<SoftString, object>> GetEnumerator()
-        {
-            var prefix = Prefix is null ? default : $"{Prefix}.";
-            return Items.Select(x => new KeyValuePair<SoftString, object>($"{prefix}{x.ToString()}", x.Value)).GetEnumerator();
-        }
+        public IEnumerator<KeyValuePair<SoftString, object>> GetEnumerator() => Items.GetEnumerator();
+        //{
+        //var prefix = Prefix is null ? default : $"{Prefix}.";
+        //return Items.Select(x => new KeyValuePair<SoftString, object>($"{prefix}{x.ToString()}", x.Value)).GetEnumerator();
+        //return Items.GetEnumerator();
+        //}
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
     }
 }
-

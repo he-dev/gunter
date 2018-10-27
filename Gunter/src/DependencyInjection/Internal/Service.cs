@@ -37,7 +37,7 @@ namespace Gunter.DependencyInjection.Internal
 
             builder
                 .RegisterType<TestComposer>()
-                .AsSelf();
+                .As<ITestComposer>();
 
             builder
                 .RegisterType<TestRunner>()

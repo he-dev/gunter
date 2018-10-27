@@ -7,7 +7,7 @@ namespace Gunter.Extensions
 {
     internal static class DataRowExtensions
     {
-        public static IEnumerable<object> Select(this IEnumerable<DataRow> dataRows, string columnName)
+        public static IEnumerable<object> Values(this IEnumerable<DataRow> dataRows, string columnName)
         {
             return dataRows.Select(dataRow => dataRow[columnName]);
         }

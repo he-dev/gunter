@@ -10,7 +10,7 @@ namespace Gunter.Reporting.Filters
     {
         public object Apply(object data)
         {
-            if (data is null)
+            if (data is null || data is DBNull)
             {
                 return null;                
             }

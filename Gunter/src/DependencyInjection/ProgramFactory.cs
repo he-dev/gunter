@@ -1,5 +1,6 @@
 ﻿using System;
 using Autofac;
+using Gunter.Services;
 using Reusable.OmniLog;
 using Reusable.SmartConfig;
 using DI = Gunter.DependencyInjection;
@@ -18,7 +19,7 @@ namespace Gunter.DependencyInjection
                 builder.RegisterModule<DI.Internal.Service>();
                 builder.RegisterModule<DI.Internal.Data>();
                 builder.RegisterModule<DI.Internal.Reporting>();
-                builder.RegisterModule<DI.Internal.HtmlEmail>();
+                builder.RegisterModule<DI.Internal.Mailr>();
 
                 if (!(testModule is null))
                 {
@@ -27,9 +28,9 @@ namespace Gunter.DependencyInjection
 
                 return builder.Build();
             }
-            catch (Exception innerException)
+            catch (Exception inner)
             {
-                throw new InitializationException(innerException, ExitCode.DependencyInjectionInitializationFault);
+                throw ExceptionHelper.InitializationException(inner);
             }
         }        
     }

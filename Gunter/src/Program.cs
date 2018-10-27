@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter;
-using Gunter.Data;
-using Gunter.Json.Converters;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -16,9 +13,6 @@ using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Annotations;
-using Reusable.SmartConfig.Data;
-using Reusable.Utilities.JsonNet;
-using Reusable.Utilities.JsonNet.Serialization;
 
 [assembly: SettingProvider(typeof(AppSettings), Prefix = "app", SettingNameStrength = SettingNameStrength.Low, AssemblyType = typeof(Program))]
 [assembly: SettingProvider(typeof(InMemory), SettingNameStrength = SettingNameStrength.Low)]
@@ -69,10 +63,7 @@ namespace Gunter
             catch (Exception ex)
             {
                 Console.Error.WriteLine(ex.ToString());
-                return
-                    ex is InitializationException ie
-                        ? (int)ie.ExitCode
-                        : (int)ExitCode.UnexpectedFault;
+                return (int)ExitCode.Error;
             }
         }
 
@@ -90,7 +81,7 @@ namespace Gunter
                     logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Running());
 
                     var testLoader = scope.Resolve<ITestLoader>();
-                    var testComposer = scope.Resolve<TestComposer>();
+                    var testComposer = scope.Resolve<ITestComposer>();
                     var testRunner = scope.Resolve<ITestRunner>();
 
                     Directory.SetCurrentDirectory(program.CurrentDirectory);
@@ -105,7 +96,7 @@ namespace Gunter
 
                     await Task.WhenAll(tasks);
                 }
-                
+
                 logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Completed());
             }
             catch (Exception ex)
@@ -135,9 +126,9 @@ namespace Gunter
 
                 return loggerFactory;
             }
-            catch (Exception innerException)
+            catch (Exception inner)
             {
-                throw new InitializationException(innerException, ExitCode.LoggingInializationFault);
+                throw ExceptionHelper.InitializationException(inner);
             }
         }
 
@@ -162,33 +153,18 @@ namespace Gunter
 
                 return configuration;
             }
-            catch (Exception innerException)
+            catch (Exception inner)
             {
-                throw new InitializationException(innerException, ExitCode.ConfigurationInitializationFault);
+                throw ExceptionHelper.InitializationException(inner);
             }
         }
 
         #endregion
     }
 
-    internal class InitializationException : Exception
-    {
-        public InitializationException(Exception innerException, ExitCode exitCode)
-            : base(null, innerException)
-        {
-            ExitCode = exitCode;
-        }
-
-        public ExitCode ExitCode { get; }
-    }
-
     internal enum ExitCode
     {
-        UnexpectedFault = -1,
         Success = 0,
-        LoggingInializationFault = 1,
-        ConfigurationInitializationFault = 2,
-        DependencyInjectionInitializationFault = 3,
-        RuntimeFault = 100,
+        Error = 1,
     }
 }

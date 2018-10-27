@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Data;
+using Gunter.Data.Dtos;
 using Gunter.Reporting;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 
-namespace Gunter.Messaging
+namespace Gunter.Messaging.Abstractions
 {
-    public interface IMessage : IMergable
+    public interface IMessage : IMergeable
     {
         [JsonProperty("Reports")]
-        ISet<int> ReportIds { get; set; }
+        IList<SoftString> ReportIds { get; set; }
 
         Task PublishAsync(TestContext context);
     }
@@ -31,12 +33,12 @@ namespace Gunter.Messaging
         protected ILogger Logger { get; }
 
         [JsonRequired]
-        public int Id { get; set; }
+        public SoftString Id { get; set; }
 
         public Merge Merge { get; set; }
 
         [Mergable]
-        public ISet<int> ReportIds { get; set; } = new HashSet<int>();
+        public IList<SoftString> ReportIds { get; set; } = new List<SoftString>();
 
         public async Task PublishAsync(TestContext context)
         {
@@ -51,7 +53,12 @@ namespace Gunter.Messaging
                 {
                     try
                     {
-                        await PublishReportAsync(context, report);
+                        var dtos =
+                            from module in report.Modules
+                            let dto = module.CreateDto(context)
+                            select (module.GetType().Name, dto);
+                        
+                        await PublishReportAsync(context, report, dtos);
                         Logger.Log(Abstraction.Layer.Network().Routine(nameof(PublishAsync)).Completed());
                     }
                     catch (Exception ex)
@@ -62,6 +69,6 @@ namespace Gunter.Messaging
             }
         }
 
-        protected abstract Task PublishReportAsync(TestContext context, IReport report);
+        protected abstract Task PublishReportAsync(TestContext context, IReport report, IEnumerable<(string Name, SectionDto Section)> sections);
     }
 }

@@ -37,7 +37,7 @@ namespace Gunter.Services
             {
                 using (_logger.BeginScope())
                 {
-                    if (TryLoadTestFile(testFileInfo, out var testFile))
+                    if (TryLoadTestFile(testFileInfo, out var testFile) && testFile.Enabled)
                     {
                         yield return testFile;
                     }

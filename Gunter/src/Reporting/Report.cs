@@ -9,10 +9,11 @@ using Gunter.Data;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable;
 
 namespace Gunter.Reporting
 {
-    public interface IReport : IMergable
+    public interface IReport : IMergeable
     {
         string Title { get; set; }
 
@@ -24,7 +25,7 @@ namespace Gunter.Reporting
     public class Report : IReport, IEnumerable<IModule>
     {
         [JsonRequired]
-        public int Id { get; set; }
+        public SoftString Id { get; set; }
 
         public Merge Merge { get; set; }
 

@@ -36,7 +36,7 @@ namespace Gunter.Data.SqlClient
 
         private ILogger Logger { get; }
 
-        public int Id { get; set; }
+        public SoftString Id { get; set; }
 
         public Merge Merge { get; set; }
 
@@ -82,7 +82,7 @@ namespace Gunter.Data.SqlClient
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
 
-                            EvaluateAttachements(dataTable);
+                            EvaluateAttachments(dataTable);
 
                             Logger.Log(Abstraction.Layer.Database().Meta(new { DataTable = new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count } }));
                             Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
@@ -102,7 +102,7 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        private void EvaluateAttachements(DataTable dataTable)
+        private void EvaluateAttachments(DataTable dataTable)
         {
             foreach (var attachment in Attachments ?? Enumerable.Empty<IAttachment>())
             {
@@ -158,5 +158,5 @@ namespace Gunter.Data.SqlClient
                 return null;
             }
         }
-    }    
+    }
 }

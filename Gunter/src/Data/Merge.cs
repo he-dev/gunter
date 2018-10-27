@@ -10,7 +10,7 @@ namespace Gunter.Data
 {
     public class Merge
     {
-        public Merge(string otherFileName, int otherId)
+        public Merge(string otherFileName, SoftString otherId)
         {
             OtherFileName = otherFileName;
             OtherId = otherId;
@@ -18,7 +18,7 @@ namespace Gunter.Data
 
         public SoftString OtherFileName { get; }
 
-        public int OtherId { get; }
+        public SoftString OtherId { get; }
 
         public static Merge Parse(string merge)
         {
@@ -26,16 +26,16 @@ namespace Gunter.Data
 
             //var joinTypes = Enum.GetNames(typeof(JoinType)).Join("|");
             //var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z]+)\\/(?<otherId>\\d+)\\?(?<type>{joinTypes})", RegexOptions.IgnoreCase);
-            var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z]+)\\/(?<otherId>\\d+)", RegexOptions.IgnoreCase);
+            var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z0-9-]+)\\/(?<otherId>[_a-z0-9-]+)", RegexOptions.IgnoreCase);
             if (!mergeMatch.Success)
             {
-                throw DynamicException.Create($"InvalidMergeExpression", $"{merge.QuoteWith("'")} is not a valid merge expression. Expected: 'Name/Id?Mode'.");
+                throw DynamicException.Create($"InvalidMergeExpression", $"{merge.QuoteWith("'")} is not a valid merge expression. Expected: 'Name/Id'.");
             }
 
             return new Merge
             (
                 mergeMatch.Groups["otherFileName"].Value,
-                int.Parse(mergeMatch.Groups["otherId"].Value)
+                mergeMatch.Groups["otherId"].Value
                 //(JoinType)Enum.Parse(typeof(JoinType), mergeMatch.Groups["type"].Value, ignoreCase: true)
             );
         }

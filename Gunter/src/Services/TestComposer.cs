@@ -13,15 +13,32 @@ using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Extensions;
 using Reusable;
+using Reusable.Collections;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
+using Reusable.Validation;
 
 namespace Gunter.Services
 {
-    internal class TestComposer
+    internal interface ITestComposer
     {
+        IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> tests);
+    }
+    
+    internal class TestComposer : ITestComposer
+    {
+        private static readonly IBouncer<TestBundle> TestBundleBouncer = Bouncer.For<TestBundle>(builder =>
+        {
+            var comparer = EqualityComparerFactory<IMergeable>.Create((x, y) => x.Id == y.Id, obj => obj.Id.GetHashCode());
+            builder.Ensure(x => ContainsUniqueIds(x.Variables, comparer));
+            builder.Ensure(x => ContainsUniqueIds(x.DataSources, comparer));
+            builder.Ensure(x => ContainsUniqueIds(x.Tests, comparer));
+            builder.Ensure(x => ContainsUniqueIds(x.Messages, comparer));
+            builder.Ensure(x => ContainsUniqueIds(x.Reports, comparer));
+        });
+
         private readonly ILogger _logger;
         private readonly IComponentContext _componentContext;
 
@@ -33,7 +50,7 @@ namespace Gunter.Services
 
         public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> tests)
         {
-            var partials = tests.ToLookup(IsPartial);
+            var partials = tests.ToLookup(TestBundleExtensions.IsPartial);
 
             foreach (var testBundle in partials[false])
             {
@@ -42,6 +59,11 @@ namespace Gunter.Services
                     yield return composition;
                 }
             }
+        }
+
+        private static bool ContainsUniqueIds(IEnumerable<IMergeable> mergeables, IEqualityComparer<IMergeable> comparer)
+        {
+            return mergeables.GroupBy(y => y, comparer).All(g => g.Count() == 1);
         }
 
         [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
@@ -60,6 +82,8 @@ namespace Gunter.Services
                 composition.Messages = Merge(testBundle, partials, bundle => bundle.Messages).ToList();
                 composition.Reports = Merge(testBundle, partials, bundle => bundle.Reports).ToList();
 
+                composition.ValidateWith(TestBundleBouncer).ThrowIfInvalid();
+
                 _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Completed());
 
                 return true;
@@ -76,40 +100,41 @@ namespace Gunter.Services
             }
         }
 
-        private IEnumerable<T> Merge<T>(TestBundle testBundle, IEnumerable<TestBundle> partials, Func<TestBundle, IEnumerable<T>> selectMergables) where T : class, IMergable
+        private IEnumerable<T> Merge<T>(TestBundle testBundle, IEnumerable<TestBundle> partials, Func<TestBundle, IEnumerable<T>> selectMergeables) where T : class, IMergeable
         {
-            var mergables = selectMergables(testBundle);
-            foreach (var mergable in mergables.Where(x => x.Merge.IsNotNull()))
+            var mergeables = selectMergeables(testBundle);
+            foreach (var mergeable in mergeables) //.Where(x => x.Merge.IsNotNull()))
             {
-                var merge = mergable.Merge;
+                if (mergeable.Merge is null)
+                {
+                    yield return mergeable;
+                    continue;
+                }
+                
+                var merge = mergeable.Merge;
                 var otherTestBundle = partials.SingleOrDefault(p => p.Name == merge.OtherFileName) ?? throw DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{merge.OtherFileName}'.");
-                var otherMergables = selectMergables(otherTestBundle).SingleOrDefault(x => x.Id == merge.OtherId) ?? throw DynamicException.Create("OtherMergableNotFound", $"Could not find mergable '{merge.OtherId}'.");
+                var otherMergeables = selectMergeables(otherTestBundle).SingleOrDefault(x => x.Id == merge.OtherId) ?? throw DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{merge.OtherId}'.");
 
-                var (first, second) = (mergable, otherMergables);
+                var (first, second) = (mergeable, otherMergeables);
 
-                var merged = (IMergable)_componentContext.Resolve(mergable.GetType());
-                merged.Id = mergable.Id;
-                merged.Merge = mergable.Merge;
+                var merged = (IMergeable)_componentContext.Resolve(mergeable.GetType());
+                merged.Id = mergeable.Id;
+                merged.Merge = mergeable.Merge;
 
-                var mergableProperties =
-                    merged
-                        .GetType()
-                        .GetProperties()
-                        .Where(p => p.IsDefined(typeof(MergableAttribute)))
-                        .ToList();
+                var mergeableProperties = merged.GetType().GetProperties().Where(p => p.IsDefined(typeof(MergableAttribute)));
 
-                foreach (var property in mergableProperties)
+                foreach (var property in mergeableProperties)
                 {
                     var firstValue = property.GetValue(first);
                     var newValue = property.GetValue(second);
                     switch (firstValue)
                     {
-                        case ISet<int> set when newValue is ISet<int> other:
-                            set.UnionWith(other);
+                        case IEnumerable<SoftString> x when newValue is IEnumerable<SoftString> y:
+                            newValue = x.Union(y).ToList();
                             break;
 
-                        case IDictionary<SoftString, object>  dict when newValue is IDictionary<SoftString, object> other:
-                            dict.UnionWith(other);
+                        case IEnumerable<KeyValuePair<SoftString, object>> x when newValue is IEnumerable<KeyValuePair<SoftString, object>> y:
+                            newValue = x.Union(y).ToDictionary(p => p.Key, p => p.Value);
                             break;
                     }
 
@@ -117,56 +142,6 @@ namespace Gunter.Services
                 }
 
                 yield return (T)merged;
-            }
-        }
-
-        // private Dictionary<SoftString, object> Merge(Dictionary<SoftString, object> variables, IEnumerable<TestBundle> partialBundles)
-        // {
-        //     if (variables.TryGetValue("Merge", out var x) && x is string merge)
-        //     {
-        //         _logger.Log(Abstraction.Layer.Infrastructure().Variable(new { merge }));
-        //
-        //         var merges = merge.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(n => n.FormatPartialName().ToSoftString()).ToList();
-        //         var otherVariables = partialBundles.Where(p => p.Name.In(merges)).SelectMany(p => p.Variables);
-        //
-        //         return
-        //             variables
-        //                 .Concat(otherVariables)
-        //                 .GroupBy(v => v.Key)
-        //                 .Select(g => g.Last())
-        //                 .ToDictionary(g => g.Key, g => g.Value);
-        //     }
-        //     else
-        //     {
-        //         return variables;
-        //     }
-        // }
-
-    #region Helpers        
-
-        private static bool IsPartial(TestBundle testBundle)
-        {
-            Debug.Assert(testBundle.FileName.IsNotNullOrEmpty());
-
-            return
-                Path
-                    .GetFileName(testBundle.FullName)
-                    .StartsWith("_", StringComparison.OrdinalIgnoreCase);
-        }
-
-    #endregion
-    }
-
-    internal static class DictionaryExtensions
-    {
-        public static void UnionWith<TKey, TValue>(this IDictionary<TKey, TValue> target, IEnumerable<KeyValuePair<TKey, TValue>> other)
-        {
-            foreach (var pair in other)
-            {
-                if (!target.ContainsKey(pair.Key))
-                {
-                    target.Add(pair);
-                }
             }
         }
     }

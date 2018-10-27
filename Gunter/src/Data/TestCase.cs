@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Custom;
 using Gunter.Annotations;
 using Gunter.Messaging;
+using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
@@ -18,7 +19,7 @@ using Reusable.OmniLog;
 namespace Gunter.Data
 {
     [PublicAPI]
-    public class TestCase : IMergable
+    public class TestCase : IMergeable
     {
         private readonly Factory _factory;
 
@@ -30,7 +31,7 @@ namespace Gunter.Data
             _factory = factory;
         }
 
-        public int Id { get; set; }
+        public SoftString Id { get; set; }
 
         public Merge Merge { get; set; }
 
@@ -46,7 +47,7 @@ namespace Gunter.Data
         
         [JsonProperty("DataSources", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergable]
-        public IList<int> DataSourceIds { get; set; } = new List<int>();
+        public IList<SoftString> DataSourceIds { get; set; } = new List<SoftString>();
 
         [Mergable]
         public string Filter { get; set; }
@@ -68,7 +69,7 @@ namespace Gunter.Data
 
         [JsonProperty("Messages", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergable]
-        public IList<int> MessageIds { get; set; } = new List<int>();
+        public IList<SoftString> MessageIds { get; set; } = new List<SoftString>();
 
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergable]
