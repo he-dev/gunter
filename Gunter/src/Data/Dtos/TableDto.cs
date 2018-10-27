@@ -81,6 +81,8 @@ namespace Gunter.Data.Dtos
         {
         }
 
+        internal IEnumerable<ColumnDto> Columns => _columnByName.Values;
+
         [NotNull]
         public RowDto<T> LastRow => _rows.LastOrDefault() ?? throw new InvalidOperationException("There are no rows.");
 
@@ -97,19 +99,33 @@ namespace Gunter.Data.Dtos
             return newRow;
         }
 
-        public void Add(IEnumerable<T> values)
+        //public void Add(IEnumerable<T> values)
+        //{
+        //    var newRow = NewRow();
+        //    foreach (var (column, value) in _columnByName.Values.Zip(values, (column, value) => (column, value)))
+        //    {
+        //        newRow[column.Name] = value;
+        //    }
+        //}
+
+        //public void Add(params T[] values) => Add((IEnumerable<T>)values);
+
+        [NotNull, ItemNotNull]
+        public IEnumerable<IEnumerable<T>> Dump() => _rows.Select(row => row.Dump());
+    }
+
+    public static class TableDtoExtensions
+    {
+        public static void Add<T>(this TableDto<T> table, IEnumerable<T> values)
         {
-            var newRow = NewRow();
-            foreach (var (column, value) in _columnByName.Values.Zip(values, (column, value) => (column, value)))
+            var newRow = table.NewRow();
+            foreach (var (column, value) in table.Columns.Zip(values, (column, value) => (column, value)))
             {
                 newRow[column.Name] = value;
             }
         }
 
-        public void Add(params T[] values) => Add((IEnumerable<T>)values);
-
-        [NotNull, ItemNotNull]
-        public IEnumerable<IEnumerable<T>> Dump() => _rows.Select(row => row.Dump());
+        public static void Add<T>(this TableDto<T> table, params T[] values) => table.Add((IEnumerable<T>)values);
     }
 
     internal class ColumnDto
