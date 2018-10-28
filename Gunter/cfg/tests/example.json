@@ -4,7 +4,8 @@
       "Id": "var-1",
       "Merge": "_Gunter/var-1",
       "Items": {
-        "ProductName": "Gunter"
+        "ProductName": "Gunter",
+        "Greeting-1": "Hi there!"
       }
     }
   ],
@@ -20,11 +21,11 @@
       "Id": "tst-1",
       "Enabled": true,
       "Level": "Warning",
-      "Message": "Some commands did not complete successfully.",
+      "Message": "Trace logging is enabled.",
       "DataSources": [
         "src-1"
       ],
-      "Filter": "[Level] = 'Warning'",
+      "Filter": "[Level] = 'trace'",
       "Expression": "Count([Id]) = 0",
       "Assert": true,
       "OnPassed": "None",
@@ -97,7 +98,7 @@
         },
         {
           "$t": "Greeting",
-          "Heading": "{Greeting1}",
+          "Heading": "{Greeting-1}",
           "Text": "{TestCase.Message}"
         },
         {
@@ -117,14 +118,14 @@
             },
             {
               "Name": "Product",
-              "IsKey": true
+              "IsGroupKey": true
             },
             {
               "Name": "Logger"
             },
             {
-              "Name": "Scope"
-              //"Name": "Command"
+              //"Name": "Scope"
+              "Name": "CorrelationId"
             },
             {
               "Name": "Layer"
@@ -142,13 +143,10 @@
               "Name": "Snapshot"
             },
             {
-              "Name": "RequestPath"
-            },
-            {
               "Name": "Elapsed",
               "Total": "Average",
               "Formatter": {
-                "$t": "Elapsed"
+                "$t": "TimeSpan"
               }
             },
             {
@@ -156,10 +154,15 @@
             },
             {
               "Name": "Exception",
-              "IsKey": true,
+              "IsGroupKey": true,
               "Filter": {
                 "$t": "FirstLine"
               }
+            },
+            {
+              "Name": "GroupCount",
+              "Other": "Id",
+              "Total": "Count"
             }
           ]
         }

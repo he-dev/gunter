@@ -5,40 +5,43 @@ using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
 using Reusable.Extensions;
+using Reusable.Reflection;
 
 namespace Gunter.Data.Dtos
-{   
+{
     public class TripleTableDto
     {
-        public TripleTableDto(IEnumerable<SoftString> columns, bool areHeaders = true)
+        public TripleTableDto(IEnumerable<ColumnDto> columns, bool areHeaders = true)
         {
-            Head = new TableDto<object>(columns);
+            //var columnList = columns.ToList();
+
+            Head = new TableDto(columns);
             if (areHeaders)
             {
-                Head.NewRow();
+                var row = Head.NewRow();
                 foreach (var column in columns)
                 {
-                    Head.LastRow[column] = column.ToString();
+                    row[column.Name] = column.Name.ToString();
                 }
             }
 
-            Body = new TableDto<object>(columns);
-            Foot = new TableDto<object>(columns);
+            Body = new TableDto(columns);
+            Foot = new TableDto(columns);
         }
 
-        public TripleTableDto(IEnumerable<string> columns, bool areHeaders = true)
-            : this(columns.Select(SoftString.Create), areHeaders)
-        {
-        }
+        //public TripleTableDto(IEnumerable<string> columns, bool areHeaders = true)
+        //    : this(columns.Select(SoftString.Create), areHeaders)
+        //{
+        //}
 
         [NotNull]
-        public TableDto<object> Head { get; }
+        public TableDto Head { get; }
 
         [NotNull]
-        public TableDto<object> Body { get; }
+        public TableDto Body { get; }
 
         [NotNull]
-        public TableDto<object> Foot { get; }
+        public TableDto Foot { get; }
 
         [NotNull]
         public IDictionary<string, IEnumerable<IEnumerable<object>>> Dump()
@@ -52,34 +55,40 @@ namespace Gunter.Data.Dtos
         }
     }
 
-    public class TableDto<T>
+    public class TableDto
     {
         private readonly IDictionary<SoftString, ColumnDto> _columnByName;
         private readonly IDictionary<int, ColumnDto> _columnByOrdinal;
 
-        private readonly List<RowDto<T>> _rows = new List<RowDto<T>>();
+        private readonly List<RowDto> _rows = new List<RowDto>();
 
-        public TableDto(IEnumerable<SoftString> names)
+        public TableDto(IEnumerable<ColumnDto> columns)
         {
-            var columns = names.Select((name, ordinal) => new ColumnDto { Name = name, Ordinal = ordinal }).ToList();
-
+            //var columns = names.Select((name, ordinal) => new ColumnDto { Name = name, Ordinal = ordinal }).ToList();
+            //var columnList = columns.ToList();
+            columns = columns.Select((column, ordinal) => new ColumnDto
+            {
+                Name = column.Name,
+                Ordinal = ordinal,
+                Type = column.Type
+            }).ToList();
             _columnByName = columns.ToDictionary(x => x.Name);
             _columnByOrdinal = columns.ToDictionary(x => x.Ordinal);
         }
 
-        public TableDto(params string[] names) : this(names.Select(SoftString.Create))
-        {
-        }
+        //public TableDto(params ColumnDto[] columns) : this((IEnumerable<ColumnDto>)columns)
+        //{
+        //}
 
         internal IEnumerable<ColumnDto> Columns => _columnByName.Values;
 
-        [NotNull]
-        public RowDto<T> LastRow => _rows.LastOrDefault() ?? throw new InvalidOperationException("There are no rows.");
+        //[NotNull]
+        //public RowDto LastRow => _rows.LastOrDefault() ?? throw new InvalidOperationException("There are no rows.");
 
         [NotNull]
-        public RowDto<T> NewRow()
+        public RowDto NewRow()
         {
-            var newRow = new RowDto<T>
+            var newRow = new RowDto
             (
                 _columnByName.Values,
                 name => _columnByName.GetItemSafely(name),
@@ -101,12 +110,12 @@ namespace Gunter.Data.Dtos
         //public void Add(params T[] values) => Add((IEnumerable<T>)values);
 
         [NotNull, ItemNotNull]
-        public IEnumerable<IEnumerable<T>> Dump() => _rows.Select(row => row.Dump());
+        public IEnumerable<IEnumerable<object>> Dump() => _rows.Select(row => row.Dump());
     }
 
     public static class TableDtoExtensions
     {
-        public static void Add<T>(this TableDto<T> table, IEnumerable<T> values)
+        public static void Add(this TableDto table, IEnumerable<object> values)
         {
             var newRow = table.NewRow();
             foreach (var (column, value) in table.Columns.Zip(values, (column, value) => (column, value)))
@@ -115,10 +124,10 @@ namespace Gunter.Data.Dtos
             }
         }
 
-        public static void Add<T>(this TableDto<T> table, params T[] values) => table.Add((IEnumerable<T>)values);
+        public static void Add(this TableDto table, params object[] values) => table.Add((IEnumerable<object>)values);
     }
 
-    internal class ColumnDto
+    public class ColumnDto
     {
         public static readonly IComparer<ColumnDto> Comparer = ComparerFactory<ColumnDto>.Create
         (
@@ -127,43 +136,85 @@ namespace Gunter.Data.Dtos
             isGreaterThan: (x, y) => x.Ordinal > y.Ordinal
         );
 
-        public SoftString Name { get; set; }
+        public SoftString Name { get; internal set; }
 
-        public int Ordinal { get; set; }
+        public int Ordinal { get; internal set; }
+
+        public Type Type { get; internal set; }
+
+        internal static ColumnDto Create<T>(SoftString name) => new ColumnDto
+        {
+            Name = name,
+            //Ordinal = ordinal,
+            Type = typeof(T)
+        };
 
         public override string ToString() => $"{Name}[{Ordinal}]";
     }
 
-    public class RowDto<T>
+    //public class ColumnDtoBuilder
+    //{
+    //    private readonly List<ColumnDto> _columns = new List<ColumnDto>();
+
+    //    public ColumnDtoBuilder Add<T>(SoftString name)
+    //    {
+    //        _columns.Add(ColumnDto.Create<T>(name, _columns.Count));
+    //        return this;
+    //    }
+
+    //    public static implicit operator List<ColumnDto>(ColumnDtoBuilder builder) => builder._columns;
+    //}
+
+    public class RowDto
     {
-        private readonly IDictionary<ColumnDto, T> _data;
+        private readonly IDictionary<ColumnDto, object> _data;
         private readonly Func<SoftString, ColumnDto> _getColumnByName;
         private readonly Func<int, ColumnDto> _getColumnByOrdinal;
 
         internal RowDto(IEnumerable<ColumnDto> columns, Func<SoftString, ColumnDto> getColumnByName, Func<int, ColumnDto> getColumnByOrdinal)
         {
             // All rows need to have the same length so initialize them with 'default' values.
-            _data = new SortedDictionary<ColumnDto, T>(columns.ToDictionary(x => x, _ => default(T)), ColumnDto.Comparer);
+            _data = new SortedDictionary<ColumnDto, object>(columns.ToDictionary(x => x, _ => default(object)), ColumnDto.Comparer);
             _getColumnByName = getColumnByName;
             _getColumnByOrdinal = getColumnByOrdinal;
         }
 
         [CanBeNull]
-        public T this[SoftString name]
+        public object this[SoftString name]
         {
             get => _data.GetItemSafely(_getColumnByName(name));
-            set => _data[_getColumnByName(name)] = value;
+            set => SetValue(_getColumnByName(name), value);
         }
 
         [CanBeNull]
-        public T this[int ordinal]
+        public object this[int ordinal]
         {
             get => _data.GetItemSafely(_getColumnByOrdinal(ordinal));
-            set => _data[_getColumnByOrdinal(ordinal)] = value;
+            set => SetValue(_getColumnByOrdinal(ordinal), value);
+        }
+
+        private void SetValue(ColumnDto column, object value)
+        {
+            if (!(value is null) && value.GetType() != column.Type)
+            {
+                throw DynamicException.Create(
+                    $"{column.Name.ToString()}Type",
+                    $"The specified value has an invalid type for this column. Expected '{column.Type.Name}' but found '{value.GetType().Name}'."
+                );
+            }
+
+            _data[column] = value;
         }
 
         [NotNull, ItemCanBeNull]
-        public IEnumerable<T> Dump() => _data.Values;
+        public IEnumerable<object> Dump() => _data.Values;
+    }
+
+    public static class RowDtoExtensions
+    {
+        public static T Value<T>(this RowDto row, SoftString name) => row[name] is T value ? value : default;
+
+        public static T Value<T>(this RowDto row, int ordinal) => row[ordinal] is T value ? value : default;
     }
 
     internal static class ComparerFactory<T>

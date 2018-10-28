@@ -26,7 +26,7 @@ namespace Gunter.Services
     {
         IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> tests);
     }
-    
+
     internal class TestComposer : ITestComposer
     {
         private static readonly IBouncer<TestBundle> TestBundleBouncer = Bouncer.For<TestBundle>(builder =>
@@ -103,14 +103,14 @@ namespace Gunter.Services
         private IEnumerable<T> Merge<T>(TestBundle testBundle, IEnumerable<TestBundle> partials, Func<TestBundle, IEnumerable<T>> selectMergeables) where T : class, IMergeable
         {
             var mergeables = selectMergeables(testBundle);
-            foreach (var mergeable in mergeables) //.Where(x => x.Merge.IsNotNull()))
+            foreach (var mergeable in mergeables)
             {
                 if (mergeable.Merge is null)
                 {
                     yield return mergeable;
                     continue;
                 }
-                
+
                 var merge = mergeable.Merge;
                 var otherTestBundle = partials.SingleOrDefault(p => p.Name == merge.OtherFileName) ?? throw DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{merge.OtherFileName}'.");
                 var otherMergeables = selectMergeables(otherTestBundle).SingleOrDefault(x => x.Id == merge.OtherId) ?? throw DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{merge.OtherId}'.");
@@ -136,6 +136,14 @@ namespace Gunter.Services
                         case IEnumerable<KeyValuePair<SoftString, object>> x when newValue is IEnumerable<KeyValuePair<SoftString, object>> y:
                             newValue = x.Union(y).ToDictionary(p => p.Key, p => p.Value);
                             break;
+                    }
+
+                    if (property.GetCustomAttribute<MergableAttribute>().Required && newValue is null)
+                    {
+                        throw DynamicException.Create(
+                            "MissingValue",
+                            $"You need to specify a value for '{property.Name}' in '{testBundle.FileName}'. Either directly or via a merge."
+                        );
                     }
 
                     property.SetValue(merged, newValue);

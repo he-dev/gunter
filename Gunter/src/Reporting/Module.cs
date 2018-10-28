@@ -51,15 +51,4 @@ namespace Gunter.Reporting
         // Header on the left
         Vertical
     }
-
-    public interface IDataFilter
-    {
-        object Apply(object data);
-    }
-
-    [UsedImplicitly, PublicAPI]
-    public interface IFormatter
-    {
-        string Apply(object value);
-    }
 }

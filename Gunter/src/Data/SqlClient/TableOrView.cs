@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
-using Gunter.Data.Attachements;
+using Gunter.Data.Attachements.Abstractions;
 using Gunter.Extensions;
 using Gunter.Services;
 using JetBrains.Annotations;
@@ -41,12 +41,12 @@ namespace Gunter.Data.SqlClient
         public Merge Merge { get; set; }
 
         [NotNull]
-        [Mergable]
+        [Mergable(Required = true)]
         //[JsonRequired]
         public string ConnectionString { get; set; }
 
         [NotNull]
-        [Mergable]
+        [Mergable(Required = true)]
         //[JsonRequired]
         public string Query { get; set; }
 
@@ -56,14 +56,12 @@ namespace Gunter.Data.SqlClient
 
         public async Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
         {
-            Debug.Assert(!(formatter is null));
+            Debug.Assert(!(formatter is null));            
 
-            if (Query.IsNullOrEmpty()) throw new InvalidOperationException("You need to specify the Query property.");
-
-            var scope = Logger.BeginScope().AttachElapsed();
             var connectionString = ConnectionString.FormatWith(formatter);
             var query = ToString(formatter);
 
+            var scope = Logger.BeginScope().AttachElapsed();
             try
             {
                 Logger.Log(Abstraction.Layer.Database().Composite(new { properties = new { connectionString, query } }));
@@ -122,7 +120,7 @@ namespace Gunter.Data.SqlClient
                     }
                     catch (Exception inner)
                     {
-                        throw DynamicException.Create($"{attachment.Name}Compute", $"Could not compute the {attachment.Name} attachement.", inner);
+                        throw DynamicException.Create("AttachementCompute", $"Could not compute the '{attachment.Name}' attachement.", inner);
                     }
                 }
             }

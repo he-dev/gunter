@@ -15,12 +15,19 @@ using JetBrains.Annotations;
 using Reusable.Collections;
 using Reusable.Data;
 using Reusable.Extensions;
+using Reusable.Reflection;
 
 namespace Gunter.Reporting.Modules
 {
     [PublicAPI]
     public class DataSummary : Module, ITabular
     {
+        private static readonly IEqualityComparer<IEnumerable<object>> GroupKeyEqualityComparer =
+            EqualityComparerFactory<IEnumerable<object>>.Create(
+                (left, right) => left.SequenceEqual(right),
+                (keys) => keys.CalcHashCode()
+            );
+
         private delegate object AggregateCallback([NotNull, ItemCanBeNull] IEnumerable<object> values);
 
         private static readonly Dictionary<ColumnTotal, AggregateCallback> Aggregates = new Dictionary<ColumnTotal, AggregateCallback>
@@ -38,22 +45,19 @@ namespace Gunter.Reporting.Modules
 
         public bool HasFoot => true;
 
-        [DefaultValue(true)]
-        public bool HasGroupCount { get; set; } = true;
-
         [NotNull]
         [ItemCanBeNull]
-        public List<ColumnOption> Columns { get; set; } = new List<ColumnOption>();
+        public List<ColumnMetadata> Columns { get; set; } = new List<ColumnMetadata>();
 
         public override SectionDto CreateDto(TestContext context)
         {
             // Materialize it because we'll be modifying it.
             var columns = Columns.ToList();
 
+            // Use all columns by default if none-specified.
             if (!Columns.Any())
             {
-                // Use default columns if none-specified.
-                columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnOption
+                columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnMetadata
                 {
                     Name = c.ColumnName,
                     Total = ColumnTotal.Last
@@ -61,40 +65,26 @@ namespace Gunter.Reporting.Modules
                 .ToList();
             }
 
-            if (HasGroupCount)
-            {
-                columns.Add(ColumnOption.GroupCount);
-            }
-
-            // Filter rows before processing them.
-            var dataRows = context.Data.Select(context.TestCase.Filter);
-
-            // We'll use it a lot so materialize it.
-            var keyColumns = columns.Where(x => x.IsKey).ToList();
-
-            var keyEqualityComparer = EqualityComparerFactory<IEnumerable<object>>.Create(
-                (left, right) => left.SequenceEqual(right),
-                (keys) => keys.CalcHashCode()
-            );            
-
-            //var rowGroups =
-            //    from dataRow in dataRows
-            //    group dataRow by keyEqualityComparer into g
-            //    select g;
-
-            var rowGroups = dataRows.GroupBy(row => row.Keys(keyColumns), keyEqualityComparer);
-
-            // Create the data-table.
-            //var dataTable = new DataTable(nameof(DataSummary));
             var section = new SectionDto
             {
-                Table = new TripleTableDto(columns.Select(c => c.Name.ToString()))
+                Table = new TripleTableDto(columns.Select(column => ColumnDto.Create<string>(column.Name.ToString())))
             };
-            var table = section.Table;                       
+            var table = section.Table;
 
-            // Create aggregated rows and add them to the final data-table.
-            var rows = rowGroups.Select(rowGroup => AggregateRows(columns, rowGroup));
-            foreach (var row in rows)
+            // Filter rows before processing them.
+            var filteredRows = context.Data.Select(context.TestCase.Filter);
+
+            // We'll use it a lot so materialize it.
+            var groupColumns = columns.Where(x => x.IsGroupKey).ToList();
+            var rowGroups = filteredRows.GroupBy(row => row.GroupKey(groupColumns), GroupKeyEqualityComparer);
+
+            // Create aggregated rows and add them to the final data-table.            
+            var aggregatedRows =
+                from rowGroup in rowGroups
+                from column in columns
+                select Aggregate(column, rowGroup).ToList();
+
+            foreach (var row in aggregatedRows)
             {
                 table.Body.Add(row);
             }
@@ -103,39 +93,46 @@ namespace Gunter.Reporting.Modules
             table.Foot.Add(columns.Select(column => string.Join(", ", StringifyColumnOption(column))).ToList());
 
             return section;
-            
-            IEnumerable<string> StringifyColumnOption(ColumnOption column)
+
+            IEnumerable<string> StringifyColumnOption(ColumnMetadata column)
             {
-                if (column.IsKey) yield return "Key";
+                if (column.IsGroupKey) yield return "Key";
                 if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
                 yield return column.Total.ToString();
             }
         }
 
-        private List<string> AggregateRows(IEnumerable<ColumnOption> columns, IGrouping<IEnumerable<object>, DataRow> rowGroup)
+        private string Aggregate(ColumnMetadata column, IEnumerable<DataRow> rowGroup)
         {
-            var row = new List<string>();
-            foreach (var column in columns.Where(c => !c.Equals(ColumnOption.GroupCount)))
+            try
             {
                 var aggregate = Aggregates[column.Total];
-                var values = rowGroup.Values(column).NotDBNull();
+                var values = rowGroup.Values((column.Other ?? column.Name).ToString()).NotDBNull();
                 var value = aggregate(values);
-                value = column.Filter is null ? value : column.Filter.Apply(value);
-                value = column.Formatter is null ? value : column.Formatter.Apply(value);
-                row.Add(value?.ToString());
+                if (value is null)
+                {
+                    return default;
+                }
+                else
+                {
+                    value = column.Filter is null ? value : column.Filter.Apply(value);
+                    value = column.Formatter is null ? value : column.Formatter.Apply(value);
+                    return value.ToString();
+                }
             }
-
-            if (HasGroupCount)
+            catch (Exception inner)
             {
-                row.Add(rowGroup.Count().ToString());
+                throw DynamicException.Create("Aggregate", $"Could not aggegate '{column.Name.ToString()}'.", inner);
             }
-            return row;
         }
     }
 
     internal static class DataRowExtensions
     {
-        public static IEnumerable<object> Keys(this DataRow dataRow, IEnumerable<ColumnOption> keyColumns)
+        /// <summary>
+        /// Creates a gorup-key for the specified row.
+        /// </summary>
+        public static IEnumerable<object> GroupKey(this DataRow dataRow, IEnumerable<ColumnMetadata> keyColumns)
         {
             // Get key values and apply their filters.
             return keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]));

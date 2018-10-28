@@ -17,10 +17,10 @@
       "Attachments": [
         {
           "$t": "JsonValue",
-          "Name": "RequestPath",
-          "JsonColumn": "Snapshot",
-          //"JsonPath": "$.[0].CorrelationContext.Command"
-          "JsonPath": "$.Request.Path"
+          "Name": "CorrelationId",
+          "JsonColumn": "Scope",
+          "JsonPath": "$.[0].CorrelationId"
+          //"JsonPath": "$.Request.Path"
         }
       ]
     }
@@ -31,8 +31,8 @@
       "$t": "Mailr",
       "Id": "msg-1",
       //"To": "{Services}",
-      "To": "stringbuilder.append@gmail.com",
-      "Theme": "Default.css",
+      "To": "...@gmail.com",
+      "Theme": "Default",
       "Reports": []
     }
   ],
@@ -75,7 +75,7 @@
               "Name": "Elapsed",
               "Total": "Average",
               "Formatter": {
-                "$t": "Elapsed"
+                "$t": "TimeSpan"
               }
             },
             //{ "Name": "_bit", "Total": "Count" },

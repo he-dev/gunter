@@ -33,7 +33,11 @@ namespace Gunter.Reporting.Modules
             // Initialize the data-table;
             var section = new SectionDto
             {
-                Table = new TripleTableDto(new[] { "Property", "Value" })
+                Table = new TripleTableDto(new[]
+                {
+                    ColumnDto.Create<string>("Property"),
+                    ColumnDto.Create<string>("Value")
+                })
             };
             var table = section.Table;
 

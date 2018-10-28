@@ -59,7 +59,7 @@ namespace Gunter.Services
             typeof(Gunter.Reporting.Modules.TestCase),
             typeof(Gunter.Reporting.Modules.DataSource),
             typeof(Gunter.Reporting.Modules.DataSummary),
-            typeof(Gunter.Reporting.Formatters.Elapsed),
+            typeof(Gunter.Reporting.Formatters.TimeSpan),
             typeof(Gunter.Reporting.Filters.FirstLine),
         };
 

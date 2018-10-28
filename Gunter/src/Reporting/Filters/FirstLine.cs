@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Gunter.Reporting.Filters.Abstractions;
 
 namespace Gunter.Reporting.Filters
 {
-    internal class FirstLine : IDataFilter
+    internal class FirstLine : IFilter
     {
         public object Apply(object data)
         {

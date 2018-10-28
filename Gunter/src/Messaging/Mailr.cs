@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
@@ -49,15 +50,14 @@ namespace Gunter.Messaging
             var subject = format(report.Title);
             var body = new
             {
-                Theme,
                 Modules = sections.ToDictionary(t => t.Name, t => t.Section.Dump())
             };
 
-            var email = Email.Create(to, subject, body);
+            var email = Email.CreateHtml(to, subject, body, Theme);
 
-            Logger.Log(Abstraction.Layer.Infrastructure().Variable(new { email = new { email.To, email.Subject } }));
+            Logger.Log(Abstraction.Layer.Infrastructure().Variable(new { email = new { email.To, email.Subject, email.Theme } }));
 
             await _mailrClient.Emails("Gunter").SendAsync("RunTest", "Result", email, CancellationToken.None);
         }
-    }
+    }    
 }

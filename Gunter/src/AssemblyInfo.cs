@@ -6,4 +6,4 @@ using System.Text;
 using System.Threading.Tasks;
 using Gunter.Reporting;
 
-[assembly: DebuggerDisplay("{DebuggerDisplay(),nq}", Target = typeof(ColumnOption))]
+[assembly: DebuggerDisplay("{DebuggerDisplay(),nq}", Target = typeof(ColumnMetadata))]

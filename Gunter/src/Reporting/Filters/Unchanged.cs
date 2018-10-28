@@ -1,6 +1,8 @@
+using Gunter.Reporting.Filters.Abstractions;
+
 namespace Gunter.Reporting.Filters
 {
-    internal class Unchanged : IDataFilter
+    internal class Unchanged : IFilter
     {
         public object Apply(object data)
         {
