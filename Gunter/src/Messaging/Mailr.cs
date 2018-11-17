@@ -11,7 +11,7 @@ using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
-using MailrNET;
+using Reusable.Mailr;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
@@ -44,8 +44,8 @@ namespace Gunter.Messaging
 
         protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<(string Name, SectionDto Section)> sections)
         {
-            var format = (FormatFunc)context.Formatter.Format;            
-            
+            var format = (FormatFunc)context.Formatter.Format;
+
             var to = format(To);
             var subject = format(report.Title);
             var body = new
@@ -53,11 +53,11 @@ namespace Gunter.Messaging
                 Modules = sections.ToDictionary(t => t.Name, t => t.Section.Dump())
             };
 
-            var email = Email.CreateHtml(to, subject, body, Theme);
+            var email = Email.CreateHtml(to, subject, body, e => e.Theme = Theme);
 
             Logger.Log(Abstraction.Layer.Infrastructure().Variable(new { email = new { email.To, email.Subject, email.Theme } }));
 
-            await _mailrClient.Emails("Gunter").SendAsync("RunTest", "Result", email, CancellationToken.None);
+            await _mailrClient.Resource("Gunter", "Alerts", "TestResult").SendAsync(email);
         }
-    }    
+    }
 }

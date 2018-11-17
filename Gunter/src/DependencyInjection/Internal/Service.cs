@@ -1,9 +1,10 @@
 using Autofac;
 using Gunter.DependencyInjection.Helpers;
 using Gunter.Services;
-using MailrNET;
 using Newtonsoft.Json.Serialization;
 using Reusable.IO;
+using Reusable.Mailr;
+using Reusable.Net.Http;
 
 namespace Gunter.DependencyInjection.Internal
 {
@@ -23,9 +24,9 @@ namespace Gunter.DependencyInjection.Internal
                 }).SingleInstance()
                 .As<IContractResolver>();
 
-            builder
-                .RegisterType<FileSystem>()
-                .As<IFileSystem>();
+            //builder
+            //    .RegisterType<FileSystem>()
+            //    .As<IFileSystem>();
 
             builder
                 .RegisterType<VariableNameValidator>()
@@ -51,11 +52,7 @@ namespace Gunter.DependencyInjection.Internal
                 .Register(c =>
                 {
                     var program = c.Resolve<Gunter.Program>();
-                    return MailrClient.Create(
-                        baseUri: program.MailrBaseUri,
-                        product: $"{program.Product}-{program.Version}",
-                        environment: program.Environment
-                    );
+                    return MailrClient.Create(program.MailrBaseUri, headers => headers.AcceptJson().UserAgent(program.Product, program.Version));
                 })
                 .InstancePerLifetimeScope();
         }

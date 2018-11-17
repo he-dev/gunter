@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
 using Reusable.SmartConfig.Annotations;
@@ -116,13 +117,14 @@ namespace Gunter
                 Reusable.Utilities.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
                 var loggerFactory =
-                    new LoggerFactoryBuilder()
-                        .Environment(System.Configuration.ConfigurationManager.AppSettings["Program.Environment"])
-                        .Product("Gunter")
-                        .WithRx(NLogRx.Create())
-                        .ScopeSerializer(serializer => serializer.Formatting = Formatting.None)
-                        .SnapshotSerializer(serializer => serializer.Formatting = Formatting.None)
-                        .Build();
+                    new LoggerFactory()
+                        .AttachObject("Environment", System.Configuration.ConfigurationManager.AppSettings["Program.Environment"])
+                        .AttachObject("Product", "Gunter")
+                        .AttachScope()
+                        .AttachSnapshot()
+                        .Attach<Timestamp<DateTimeUtc>>()
+                        .AttachElapsedMilliseconds()
+                        .AddObserver<NLogRx>();                       
 
                 return loggerFactory;
             }
