@@ -11,9 +11,9 @@ using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
-using Reusable.Mailr;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.sdk.Mailr;
 using Reusable.SmartConfig;
 
 namespace Gunter.Messaging

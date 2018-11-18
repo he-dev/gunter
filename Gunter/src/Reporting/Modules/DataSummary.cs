@@ -80,9 +80,8 @@ namespace Gunter.Reporting.Modules
 
             // Create aggregated rows and add them to the final data-table.            
             var aggregatedRows =
-                from rowGroup in rowGroups
-                from column in columns
-                select Aggregate(column, rowGroup).ToList();
+                from rowGroup in rowGroups                
+                select (from column in columns select Aggregate(column, rowGroup));
 
             foreach (var row in aggregatedRows)
             {

@@ -44,6 +44,6 @@ namespace Gunter.Services
                     .ToDictionary(x => x.Key, x => x.Value);
         }
 
-        public string Format(string text) => text.Format(_variables);
+        public string Format(string text) => text.Format((string key, out object value) => _variables.TryGetValue(key, out value));
     }
 }

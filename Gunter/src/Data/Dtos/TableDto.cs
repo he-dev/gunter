@@ -199,7 +199,7 @@ namespace Gunter.Data.Dtos
             {
                 throw DynamicException.Create(
                     $"{column.Name.ToString()}Type",
-                    $"The specified value has an invalid type for this column. Expected '{column.Type.Name}' but found '{value.GetType().Name}'."
+                    $"The specified value has an invalid type for this column. Expected '{column.Type.Name}' but found '{value.GetType().ToPrettyString()}'."
                 );
             }
 

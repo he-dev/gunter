@@ -3,8 +3,8 @@ using Gunter.DependencyInjection.Helpers;
 using Gunter.Services;
 using Newtonsoft.Json.Serialization;
 using Reusable.IO;
-using Reusable.Mailr;
-using Reusable.Net.Http;
+using Reusable.sdk.Http;
+using Reusable.sdk.Mailr;
 
 namespace Gunter.DependencyInjection.Internal
 {
