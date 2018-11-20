@@ -49,7 +49,7 @@ namespace Gunter.Messaging.Abstractions
 
             foreach (var report in reports)
             {
-                using (Logger.BeginScope().WithCorrelationContext(new { reportId = report.Id }).AttachElapsed())
+                using (Logger.BeginScope().WithCorrelationContext(new { Report = report.Id }).AttachElapsed())
                 {
                     try
                     {

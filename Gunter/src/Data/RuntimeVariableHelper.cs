@@ -7,8 +7,8 @@ namespace Gunter.Data
     {
         public static class Program
         {
-            public static readonly IRuntimeVariable FullName = RuntimeVariableFactory.Create<Gunter.Program>(x => x.FullName);
-            public static readonly IRuntimeVariable Environment = RuntimeVariableFactory.Create<Gunter.Program>(x => x.Environment);
+            public static readonly IRuntimeVariable FullName = RuntimeVariableFactory.Create<Gunter.ProgramInfo>(_ => ProgramInfo.FullName);
+            public static readonly IRuntimeVariable Environment = RuntimeVariableFactory.Create<Gunter.ProgramInfo>(x => x.Environment);
         }
 
         public static class TestBundle

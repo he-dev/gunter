@@ -10,5 +10,6 @@ namespace Gunter.Data
         public DataTable Data { get; set; }
         public IDataSource DataSource { get; set; }
         public IRuntimeFormatter Formatter { get; set; }
+        public string Query { get; set; }
     }
 }

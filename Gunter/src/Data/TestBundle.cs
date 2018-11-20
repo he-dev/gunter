@@ -41,8 +41,10 @@ namespace Gunter.Data
         [JsonIgnore]
         public string FullName { get; set; }
 
-        [NotNull]
-        [JsonIgnore]
+        [NotNull, JsonIgnore]
+        public string Directoryname => Path.GetDirectoryName(FullName);
+
+        [NotNull, JsonIgnore]
         public SoftString FileName => Path.GetFileNameWithoutExtension(FullName);
 
         [JsonIgnore]

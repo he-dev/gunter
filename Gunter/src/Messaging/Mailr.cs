@@ -25,7 +25,8 @@ namespace Gunter.Messaging
 
         private readonly IMailrClient _mailrClient;
 
-        public Mailr(
+        public Mailr
+        (
             ILogger<Mailr> logger,
             IConfiguration configuration,
             IMailrClient mailrClient
@@ -38,7 +39,7 @@ namespace Gunter.Messaging
         [Mergable]
         public string To { get; set; }
 
-        [DefaultValue("Default.css")]
+        [DefaultValue("default")]
         [Mergable]
         public string Theme { get; set; }
 

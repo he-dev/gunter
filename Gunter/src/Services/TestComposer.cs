@@ -70,8 +70,6 @@ namespace Gunter.Services
         private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partials, out TestBundle composition)
         {
             var scope = _logger.BeginScope().AttachElapsed();
-            _logger.Log(Abstraction.Layer.Infrastructure().Argument(new { testBundle.FileName }));
-
             try
             {
                 composition = _componentContext.Resolve<TestBundle>();
@@ -84,13 +82,13 @@ namespace Gunter.Services
 
                 composition.ValidateWith(TestBundleBouncer).ThrowIfInvalid();
 
-                _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Completed());
+                _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Completed(), testBundle.FileName.ToString());
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Faulted(), ex);
+                _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Faulted(), testBundle.FileName.ToString(), ex);
                 composition = default;
                 return false;
             }

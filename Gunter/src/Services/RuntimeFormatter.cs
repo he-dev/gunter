@@ -26,7 +26,7 @@ namespace Gunter.Services
         );
 
         public RuntimeFormatter(
-            Program program,
+            ProgramInfo programInfo,
             IEnumerable<IRuntimeVariable> runtimeVariables,
             IEnumerable<KeyValuePair<SoftString, object>> variables,
             IEnumerable<object> runtimeObjects
@@ -34,7 +34,7 @@ namespace Gunter.Services
         {
             _variables =
                 runtimeObjects
-                    .Append(program)
+                    .Append(programInfo)
                     .Select(runtimeVariables.GetValues)
                     .SelectMany(x => x)
                     .Concat(variables)

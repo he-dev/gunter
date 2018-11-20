@@ -4,60 +4,42 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Gunter;
+using Gunter.Components;
 using Gunter.Services;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Reusable;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
-using Reusable.SmartConfig.Annotations;
-
-[assembly: SettingProvider(typeof(AppSettings), Prefix = "app", SettingNameStrength = SettingNameStrength.Low, AssemblyType = typeof(Program))]
-[assembly: SettingProvider(typeof(InMemory), SettingNameStrength = SettingNameStrength.Low)]
 
 namespace Gunter
 {
-    public class Program
+    public class Program : IDisposable
     {
+        private readonly IContainer _container;
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
 
-        public static readonly string ElapsedFormat = @"mm\:ss\.fff";
-
-        [Required]
-        public string Environment => _configuration.GetValue(() => Environment);
-
-        [Required]
-        public string TestsDirectoryName => _configuration.GetValue(() => TestsDirectoryName);
-
-        [Required]
-        public string MailrBaseUri => _configuration.GetValue(() => MailrBaseUri);
-
-        public string Product => _configuration.GetValue(() => Product);
-
-        public string Version => _configuration.GetValue(() => Version);
-
-        public string FullName => $"{Product}-v{Version}";
-
-        public string CurrentDirectory => _configuration.GetValue(() => CurrentDirectory);
-
-        public Program(ILogger<Program> logger, IConfiguration configuration)
+        public Program(IContainer container)
         {
-            _configuration = configuration;
-            _logger = logger;
+            _container = container;
+            _logger = container.Resolve<ILogger<Program>>();
+            _configuration = container.Resolve<IConfiguration>();
         }
+
+        public static Program Create() => new Program(ProgramContainerFactory.CreateContainer());
 
         internal static async Task<int> Main(string[] args)
         {
             try
             {
-                var loggerFactory = InitializeLogging();
-                var configuration = InitializeConfiguration();
-
-                await StartAsync(args, loggerFactory, configuration);
+                using (var program = Create())
+                {
+                    program.SayHallo();
+                    await program.RunAsync();
+                    program.SayGoodBye();
+                }
 
                 return (int)ExitCode.Success;
             }
@@ -68,100 +50,27 @@ namespace Gunter
             }
         }
 
-        public static async Task StartAsync(string[] args, ILoggerFactory loggerFactory, IConfiguration configuration)
+        private void SayHallo() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Hallo = "Let's find some glitches!" }));
+
+        private void SayGoodBye() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { GoodBye = "See you next time!" }));
+
+        public async Task RunAsync()
         {
-            var logger = loggerFactory.CreateLogger<Program>();
-            try
+            var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+            var programInfo = _container.Resolve<ProgramInfo>();
+            await RunAsync(Path.Combine(currentDirectory, programInfo.TestsDirectoryName));
+        }
+
+        public async Task RunAsync(string path)
+        {
+            using (var scope = _container.BeginLifetimeScope())
             {
-                using (var container = DependencyInjection.ProgramFactory.CreateProgram(loggerFactory, configuration))
-                using (var scope = container.BeginLifetimeScope())
-                {
-                    var program = scope.Resolve<Program>();
-
-                    logger.Log(Abstraction.Layer.Infrastructure().Variable(new { program.FullName }));
-                    logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Running());
-
-                    var testLoader = scope.Resolve<ITestLoader>();
-                    var testComposer = scope.Resolve<ITestComposer>();
-                    var testRunner = scope.Resolve<ITestRunner>();
-
-                    Directory.SetCurrentDirectory(program.CurrentDirectory);
-
-                    logger.Log(Abstraction.Layer.Infrastructure().Property(new { program.CurrentDirectory }));
-
-                    var tests = testLoader.LoadTests(program.TestsDirectoryName).ToList();
-                    var compositions = testComposer.ComposeTests(tests).ToList();
-
-                    var profiles = args.Select(SoftString.Create);
-                    var tasks = compositions.Select(testFile => testRunner.RunTestsAsync(testFile, profiles)).ToArray();
-
-                    await Task.WhenAll(tasks);
-                }
-
-                logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Completed());
-            }
-            catch (Exception ex)
-            {
-                logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(StartAsync)).Faulted(), ex);
-                throw;
+                var testRunner = scope.Resolve<ITestRunner>();
+                await testRunner.RunTestsAsync(path, Enumerable.Empty<string>());
             }
         }
 
-        #region Initialization
-
-        [NotNull]
-        private static ILoggerFactory InitializeLogging()
-        {
-            try
-            {
-                Reusable.Utilities.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
-
-                var loggerFactory =
-                    new LoggerFactory()
-                        .AttachObject("Environment", System.Configuration.ConfigurationManager.AppSettings["Program.Environment"])
-                        .AttachObject("Product", "Gunter")
-                        .AttachScope()
-                        .AttachSnapshot()
-                        .Attach<Timestamp<DateTimeUtc>>()
-                        .AttachElapsedMilliseconds()
-                        .AddObserver<NLogRx>();                       
-
-                return loggerFactory;
-            }
-            catch (Exception inner)
-            {
-                throw ExceptionHelper.InitializationException(inner);
-            }
-        }
-
-        [NotNull]
-        private static IConfiguration InitializeConfiguration()
-        {
-            try
-            {
-                var settingConverter = new JsonSettingConverter();
-
-                var configuration = new Configuration(new ISettingProvider[]
-                {
-                    new AppSettings(settingConverter),
-                    new InMemory(settingConverter)
-                    {
-                        { nameof(Program.CurrentDirectory), Path.GetDirectoryName(typeof(Program).Assembly.Location) },
-                        { nameof(Program.Product), "Gunter" },
-                        { nameof(Program.Version), "5.0.0" },
-                        { nameof(Program.ElapsedFormat), ElapsedFormat }
-                    },
-                });
-
-                return configuration;
-            }
-            catch (Exception inner)
-            {
-                throw ExceptionHelper.InitializationException(inner);
-            }
-        }
-
-        #endregion
+        public void Dispose() => _container.Dispose();
     }
 
     internal enum ExitCode

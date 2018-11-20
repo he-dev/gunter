@@ -7,6 +7,7 @@
     <RootNamespace>Gunter</RootNamespace>
     <Configurations>Debug;Release</Configurations>
     <Optimize>false</Optimize>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -16,7 +17,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Optimize>false</Optimize>
   </PropertyGroup>
@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Remove="src\Json\Converters\SoftStringConverter.cs" />
     <Compile Remove="src\Reporting\Filters\Elapsed.cs" />
+    <Compile Remove="src\Services\TestFileProvider.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,6 +75,7 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>NLog.tt</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="NLog.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

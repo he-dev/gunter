@@ -1,12 +1,12 @@
 using Autofac;
-using Gunter.DependencyInjection.Helpers;
+using Gunter.Data;
 using Gunter.Services;
 using Newtonsoft.Json.Serialization;
 using Reusable.IO;
 using Reusable.sdk.Http;
 using Reusable.sdk.Mailr;
 
-namespace Gunter.DependencyInjection.Internal
+namespace Gunter.Components
 {
     internal class Service : Module
     {
@@ -17,16 +17,27 @@ namespace Gunter.DependencyInjection.Internal
             //    .As<IRuntimeFormatterFactory>();
 
             builder
+                .RegisterType<DirectoryTree>()
+                .As<IDirectoryTree>();
+
+            builder
+                .RegisterType<PhysicalFileProvider>()
+                .As<IFileProvider>();
+
+            builder
+                .RegisterType<TestFileSerializer>()
+                .As<ITestFileSerializer>();
+
+            builder
+                .RegisterInstance(RuntimeVariable.Enumerate());
+
+            builder
                 .Register(c =>
                 {
                     var context = c.Resolve<IComponentContext>();
                     return new AutofacContractResolver(context);
                 }).SingleInstance()
                 .As<IContractResolver>();
-
-            //builder
-            //    .RegisterType<FileSystem>()
-            //    .As<IFileSystem>();
 
             builder
                 .RegisterType<VariableNameValidator>()
@@ -51,8 +62,8 @@ namespace Gunter.DependencyInjection.Internal
             builder
                 .Register(c =>
                 {
-                    var program = c.Resolve<Gunter.Program>();
-                    return MailrClient.Create(program.MailrBaseUri, headers => headers.AcceptJson().UserAgent(program.Product, program.Version));
+                    var programInfo = c.Resolve<ProgramInfo>();
+                    return MailrClient.Create(programInfo.MailrBaseUri, headers => headers.AcceptJson().UserAgent(ProgramInfo.Name, ProgramInfo.Version));
                 })
                 .InstancePerLifetimeScope();
         }

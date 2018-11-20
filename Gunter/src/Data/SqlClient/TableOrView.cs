@@ -25,12 +25,8 @@ namespace Gunter.Data.SqlClient
     [PublicAPI]
     public class TableOrView : IDataSource
     {
-        private readonly Program _program;
-
-        //[JsonConstructor]
-        public TableOrView(ILogger<TableOrView> logger, Program program)
+        public TableOrView(ILogger<TableOrView> logger)
         {
-            _program = program;
             Logger = logger;
         }
 
@@ -42,24 +38,22 @@ namespace Gunter.Data.SqlClient
 
         [NotNull]
         [Mergable(Required = true)]
-        //[JsonRequired]
         public string ConnectionString { get; set; }
 
         [NotNull]
         [Mergable(Required = true)]
-        //[JsonRequired]
         public string Query { get; set; }
 
         [CanBeNull]
         [Mergable]
         public IList<IAttachment> Attachments { get; set; }
 
-        public async Task<DataTable> GetDataAsync(IRuntimeFormatter formatter)
+        public async Task<(DataTable Data, string Query)> GetDataAsync(string path, IRuntimeFormatter formatter)
         {
-            Debug.Assert(!(formatter is null));            
+            Debug.Assert(!(formatter is null));
 
             var connectionString = ConnectionString.FormatWith(formatter);
-            var query = ToString(formatter);
+            var query = GetQuery(path, formatter);
 
             var scope = Logger.BeginScope().AttachElapsed();
             try
@@ -85,7 +79,7 @@ namespace Gunter.Data.SqlClient
                             Logger.Log(Abstraction.Layer.Database().Meta(new { DataTable = new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count } }));
                             Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
 
-                            return dataTable;
+                            return (dataTable, query);
                         }
                     }
                 }
@@ -126,34 +120,27 @@ namespace Gunter.Data.SqlClient
             }
         }
 
-        public string ToString(IRuntimeFormatter formatter)
+        [NotNull]
+        private string GetQuery(string path, IRuntimeFormatter formatter)
         {
             var query = Query.FormatWith(formatter);
 
-            try
+            if (Uri.TryCreate(query, UriKind.Absolute, out var uri))
             {
-                if (Uri.TryCreate(query, UriKind.Absolute, out var uri))
-                {
-                    var isAbsolutePath =
-                        uri.AbsolutePath.StartsWith("/") == false &&
-                        Path.IsPathRooted(uri.AbsolutePath);
+                var isAbsolutePath =
+                    uri.AbsolutePath.StartsWith("/") == false &&
+                    Path.IsPathRooted(uri.AbsolutePath);
 
-                    query =
-                        isAbsolutePath
-                            ? File.ReadAllText(uri.AbsolutePath)
-                            : File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), _program.TestsDirectoryName, uri.AbsolutePath.TrimStart('/')));
+                query =
+                    isAbsolutePath
+                        ? File.ReadAllText(uri.AbsolutePath)
+                        : File.ReadAllText(Path.Combine(path, uri.AbsolutePath.TrimStart('/')));
 
-                    return query.FormatWith(formatter);
-                }
-                else
-                {
-                    return query;
-                }
+                return query.FormatWith(formatter);
             }
-            catch (Exception ex)
+            else
             {
-                Logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(ToString)).Faulted(), ex);
-                return null;
+                return query;
             }
         }
     }

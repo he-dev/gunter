@@ -42,7 +42,7 @@ namespace Gunter.Reporting.Modules
             var table = section.Table;
 
             table.Body.Add("Type", context.DataSource.GetType().Name);
-            table.Body.Add("Query", context.DataSource.ToString(context.Formatter));
+            table.Body.Add("Query", context.Query);
             table.Body.Add("RowCount", context.Data.Rows.Count.ToString());
             table.Body.Add("Elapsed", format($"{RuntimeVariable.TestCounter.GetDataElapsed.ToString(TimespanFormat)}"));
 
