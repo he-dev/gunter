@@ -65,7 +65,8 @@ namespace Gunter.Components
                     var programInfo = c.Resolve<ProgramInfo>();
                     return MailrClient.Create(programInfo.MailrBaseUri, headers => headers.AcceptJson().UserAgent(ProgramInfo.Name, ProgramInfo.Version));
                 })
-                .InstancePerLifetimeScope();
+                .InstancePerLifetimeScope()
+               .As<IMailrClient>();
         }
     }
 }

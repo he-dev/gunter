@@ -11,6 +11,7 @@ using Gunter.Data;
 using Gunter.Data.Dtos;
 using Gunter.Extensions;
 using Gunter.Reporting.Filters;
+using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Collections;
 using Reusable.Data;
@@ -51,6 +52,8 @@ namespace Gunter.Reporting.Modules
 
         public override SectionDto CreateDto(TestContext context)
         {
+            var format = (FormatFunc)context.Formatter.Format;
+
             // Materialize it because we'll be modifying it.
             var columns = Columns.ToList();
 
@@ -67,6 +70,7 @@ namespace Gunter.Reporting.Modules
 
             var section = new SectionDto
             {
+                Heading = format(Heading),
                 Table = new TripleTableDto(columns.Select(column => ColumnDto.Create<string>(column.Name.ToString())))
             };
             var table = section.Table;

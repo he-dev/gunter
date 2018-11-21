@@ -51,7 +51,13 @@ namespace Gunter.Services
             var tests = _testLoader.LoadTests(path).ToList();
             var compositions = _testComposer.ComposeTests(tests).ToList();
             var tasks = compositions.Select(async testFile => await RunTestsAsync(testFile, profiles.Select(SoftString.Create))).ToArray();
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ContinueWith(task =>
+            {
+                if (task.IsFaulted)
+                {
+                    _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(RunTestsAsync)).Faulted(), task.Exception);
+                }
+            });
         }
 
         private async Task RunTestsAsync(TestBundle testBundle, IEnumerable<SoftString> profiles)
