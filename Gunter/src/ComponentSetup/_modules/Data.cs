@@ -1,6 +1,6 @@
 using Autofac;
 
-namespace Gunter.Components
+namespace Gunter.ComponentSetup
 {
     internal class Data : Autofac.Module
     {

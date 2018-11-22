@@ -6,7 +6,7 @@ using Reusable.IO;
 using Reusable.sdk.Http;
 using Reusable.sdk.Mailr;
 
-namespace Gunter.Components
+namespace Gunter.ComponentSetup
 {
     internal class Service : Module
     {

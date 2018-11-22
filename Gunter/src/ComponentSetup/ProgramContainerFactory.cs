@@ -8,15 +8,12 @@ using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
 
-namespace Gunter.Components
+namespace Gunter.ComponentSetup
 {
     public static class ProgramContainerFactory
     {
+        public static IContainer CreateContainer() => CreateContainer(InitializeLogging(), InitializeConfiguration(), _ => { });
 
-        public static IContainer CreateContainer()
-        {
-            return CreateContainer(InitializeLogging(), InitializeConfiguration(), _ => { });
-        }
         public static IContainer CreateContainer(ILoggerFactory loggerFactory, IConfiguration configuration, Action<ContainerBuilder> configureContainer)
         {
             try
@@ -56,7 +53,7 @@ namespace Gunter.Components
         }
 
         [NotNull]
-        private static ILoggerFactory InitializeLogging()
+        internal static ILoggerFactory InitializeLogging()
         {
             try
             {
@@ -81,7 +78,7 @@ namespace Gunter.Components
         }
 
         [NotNull]
-        private static IConfiguration InitializeConfiguration()
+        internal static IConfiguration InitializeConfiguration()
         {
             try
             {

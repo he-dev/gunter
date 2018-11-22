@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Gunter.Components;
+using Gunter.ComponentSetup;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
@@ -15,6 +15,8 @@ using Reusable.SmartConfig;
 
 namespace Gunter
 {
+    using static ProgramContainerFactory;
+
     public class Program : IDisposable
     {
         private readonly IContainer _container;
@@ -28,7 +30,12 @@ namespace Gunter
             _configuration = container.Resolve<IConfiguration>();
         }
 
-        public static Program Create() => new Program(ProgramContainerFactory.CreateContainer());
+        public static Program Create() => new Program(CreateContainer());
+
+        public static Program Create(ILoggerFactory loggerFactory, IConfiguration configuration, Action<ContainerBuilder> configureBuilder)
+        {
+            return new Program(CreateContainer(loggerFactory ?? InitializeLogging(), configuration ?? InitializeConfiguration(), configureBuilder));
+        }
 
         internal static async Task<int> Main(string[] args)
         {
@@ -58,11 +65,13 @@ namespace Gunter
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var programInfo = _container.Resolve<ProgramInfo>();
-            await RunAsync(Path.Combine(currentDirectory, programInfo.TestsDirectoryName));
+            await RunAsync(Path.Combine(currentDirectory, programInfo.DefaultTestsDirectoryName));
         }
 
         public async Task RunAsync(string path)
         {
+            path = Path.IsPathRooted(path) ? path : Path.Combine(ProgramInfo.CurrentDirectory, path);
+
             using (var scope = _container.BeginLifetimeScope())
             {
                 var testRunner = scope.Resolve<ITestRunner>();

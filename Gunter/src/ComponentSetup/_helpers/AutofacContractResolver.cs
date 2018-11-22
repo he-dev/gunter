@@ -2,7 +2,7 @@
 using Autofac;
 using Newtonsoft.Json.Serialization;
 
-namespace Gunter.Components
+namespace Gunter.ComponentSetup
 {
     public class AutofacContractResolver : DefaultContractResolver
     {
