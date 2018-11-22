@@ -27,6 +27,7 @@ namespace Gunter.Reporting.Modules
 
             var section = new SectionDto
             {
+                Heading = format(Heading),
                 Table = new TripleTableDto(new[]
                 {
                     ColumnDto.Create<string>("Property"),
