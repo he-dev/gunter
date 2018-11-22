@@ -20,7 +20,6 @@
                     "Name": "CorrelationId",
                     "JsonColumn": "Scope",
                     "JsonPath": "$.[0].CorrelationId"
-                    //"JsonPath": "$.Request.Path"
                 }
             ]
         }
@@ -30,16 +29,15 @@
         {
             "$t": "Mailr",
             "Id": "msg-1",
-            //"To": "{Services}",
             "To": "my@email.com",
-            "Theme": "Default",
+            "Theme": "default",
             "Reports": []
         }
     ],
     "Reports": [
         {
-            "Id": "rpt-1",
-            "Title": "[{TestCase.Level}] - Glitch detected in {Product}",
+            "Id": "full-report",
+            "Title": "Glitch alert [{TestCase.Level}] for {Product}",
             "Modules": [
                 {
                     "$t": "Level"
@@ -66,11 +64,8 @@
                         },
                         {
                             "Name": "Transaction",
-                            "IsKey": true
-                            //"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
+                            "IsKey": true                            
                         },
-                        //{ "Name": "_int", "Total": "Sum" },
-                        //{ "Name": "_datetime2" },
                         {
                             "Name": "Elapsed",
                             "Total": "Average",
