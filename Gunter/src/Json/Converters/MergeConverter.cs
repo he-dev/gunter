@@ -24,18 +24,5 @@ namespace Gunter.Json.Converters
         {
             throw new NotImplementedException();
         }
-    }
-    
-    internal class TripleTableDtoConverter : JsonConverter<TripleTableDto>
-    {
-        public override TripleTableDto ReadJson(JsonReader reader, Type objectType, TripleTableDto existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public override void WriteJson(JsonWriter writer, TripleTableDto value, JsonSerializer serializer)
-        {
-            writer.WriteValue(value?.Dump());
-        }
-    }
+    }       
 }

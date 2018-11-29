@@ -5,6 +5,7 @@ using System.Linq;
 using Gunter.Data;
 using Gunter.Json.Converters;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Reusable;
 using Reusable.Extensions;
@@ -19,11 +20,34 @@ namespace Gunter.Services
 
     internal class TestFileSerializer : ITestFileSerializer
     {
-        private readonly Newtonsoft.Json.JsonSerializer _jsonSerializer;
+        private readonly JsonSerializer _jsonSerializer;
+
+        private static readonly VisitJsonCallback Transform;
+
+        static TestFileSerializer()
+        {
+            Transform = JsonVisitor.Create
+            (
+                new PropertyNameTrimmer(),
+                new PrettyTypeResolver(new[]
+                {
+                    typeof(Gunter.Data.SqlClient.TableOrView),
+                    typeof(Gunter.Data.Attachements.JsonValue),
+                    typeof(Gunter.Messaging.Mailr),
+                    typeof(Gunter.Reporting.Modules.Level),
+                    typeof(Gunter.Reporting.Modules.Greeting),
+                    typeof(Gunter.Reporting.Modules.TestCase),
+                    typeof(Gunter.Reporting.Modules.DataSource),
+                    typeof(Gunter.Reporting.Modules.DataSummary),
+                    typeof(Gunter.Reporting.Formatters.TimeSpan),
+                    typeof(Gunter.Reporting.Filters.FirstLine),
+                })
+            );
+        }
 
         public TestFileSerializer(IContractResolver contractResolver)
         {
-            _jsonSerializer = new Newtonsoft.Json.JsonSerializer
+            _jsonSerializer = new JsonSerializer
             {
                 ContractResolver = contractResolver,
                 DefaultValueHandling = DefaultValueHandling.Populate,
@@ -39,33 +63,11 @@ namespace Gunter.Services
         public TestBundle Deserialize(Stream testFileStream)
         {
             using (var streamReader = new StreamReader(testFileStream))
-            using (var jsonReader = new PrettyTypeReader(streamReader, "$t", PrettyTypeResolver.Create()))
             {
-                return _jsonSerializer.Deserialize<TestBundle>(jsonReader);
+                var json = streamReader.ReadToEnd();
+                var token = JToken.Parse(json);
+                return Transform(token).ToObject<TestBundle>(_jsonSerializer);
             }
         }
-    }
-
-    public static class PrettyTypeResolver
-    {
-        private static readonly IEnumerable<Type> Types = new[]
-        {
-            typeof(Gunter.Data.SqlClient.TableOrView),
-            typeof(Gunter.Data.Attachements.JsonValue),
-            typeof(Gunter.Messaging.Mailr),
-            typeof(Gunter.Reporting.Modules.Level),
-            typeof(Gunter.Reporting.Modules.Greeting),
-            typeof(Gunter.Reporting.Modules.TestCase),
-            typeof(Gunter.Reporting.Modules.DataSource),
-            typeof(Gunter.Reporting.Modules.DataSummary),
-            typeof(Gunter.Reporting.Formatters.TimeSpan),
-            typeof(Gunter.Reporting.Filters.FirstLine),
-        };
-
-        public static Func<string, Type> Create()
-        {
-            var types = (from type in Types let prettyName = type.ToPrettyString() select (type, prettyName)).ToList();
-            return prettyName => types.SingleOrDefault(t => SoftString.Comparer.Equals(t.prettyName, prettyName)).type;
-        }
-    }
+    }   
 }

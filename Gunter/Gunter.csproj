@@ -32,18 +32,19 @@
     <EmbeddedResource Remove="src\Messaging\Emails\Internal\**" />
     <None Remove="src\Messaging\Emails\Internal\**" />
     <None Update="cfg\tests\_Gunter.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="cfg\tests\Example.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="cfg\tests\Example.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="src\Json\Converters\SoftStringConverter.cs" />
+    <Compile Remove="src\Json\JsonVisitor.cs" />
     <Compile Remove="src\Reporting\Filters\Elapsed.cs" />
     <Compile Remove="src\Services\TestFileProvider.cs" />
   </ItemGroup>
