@@ -22,11 +22,11 @@ namespace Gunter.Services
     {
         private readonly JsonSerializer _jsonSerializer;
 
-        private static readonly VisitJsonCallback Transform;
+        private static readonly JsonVisitor Transform;
 
         static TestFileSerializer()
         {
-            Transform = JsonVisitor.Create
+            Transform = JsonVisitor.CreateComposite
             (
                 new PropertyNameTrimmer(),
                 new PrettyTypeResolver(new[]
@@ -65,8 +65,7 @@ namespace Gunter.Services
             using (var streamReader = new StreamReader(testFileStream))
             {
                 var json = streamReader.ReadToEnd();
-                var token = JToken.Parse(json);
-                return Transform(token).ToObject<TestBundle>(_jsonSerializer);
+                return Transform.Visit(json).ToObject<TestBundle>(_jsonSerializer);
             }
         }
     }   
