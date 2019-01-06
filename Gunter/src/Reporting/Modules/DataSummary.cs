@@ -15,7 +15,6 @@ using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Collections;
 using Reusable.Data;
-using Reusable.Exceptionizer;
 using Reusable.Extensions;
 using Reusable.Reflection;
 

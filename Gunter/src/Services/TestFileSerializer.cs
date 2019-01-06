@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Json.Converters;
 using Newtonsoft.Json;
@@ -10,14 +9,13 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Reusable;
 using Reusable.Extensions;
-using Reusable.IOnymous;
 using Reusable.Utilities.JsonNet;
 
 namespace Gunter.Services
 {
     internal interface ITestFileSerializer
     {
-        Task<TestBundle> DeserializeAsync(Stream testFileStream);
+        TestBundle Deserialize(Stream testFileStream);
     }
 
     internal class TestFileSerializer : ITestFileSerializer
@@ -62,13 +60,13 @@ namespace Gunter.Services
             };
         }
 
-        public async Task<TestBundle> DeserializeAsync(Stream testFileStream)
+        public TestBundle Deserialize(Stream testFileStream)
         {
-            using (var streamReader = new StreamReader(testFileStream.Rewind()))
+            using (var streamReader = new StreamReader(testFileStream))
             {
-                var json = await streamReader.ReadToEndAsync();
+                var json = streamReader.ReadToEnd();
                 return Transform.Visit(json).ToObject<TestBundle>(_jsonSerializer);
             }
         }
-    }
+    }   
 }

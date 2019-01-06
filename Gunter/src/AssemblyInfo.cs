@@ -7,12 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Gunter;
 using Gunter.Reporting;
-using Reusable.IOnymous;
 using Reusable.SmartConfig;
+using Reusable.SmartConfig.Annotations;
 
 [assembly:InternalsVisibleTo("Gunter.Tests")]
 
-[assembly: SettingProvider(SettingNameStrength.Low, nameof(AppSettingProvider), Prefix = "app")]
-[assembly: SettingProvider(SettingNameStrength.Low, nameof(InMemoryResourceProvider))]
+[assembly: SettingProvider(typeof(AppSettings), Prefix = "app", SettingNameStrength = SettingNameStrength.Low, AssemblyType = typeof(Program))]
+[assembly: SettingProvider(typeof(InMemory), SettingNameStrength = SettingNameStrength.Low)]
 
 [assembly: DebuggerDisplay("{DebuggerDisplay(),nq}", Target = typeof(ColumnMetadata))]

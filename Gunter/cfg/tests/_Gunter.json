@@ -31,7 +31,7 @@
       "$t": "Mailr",
       "Id": "msg-1",
       //"To": "{Services}",
-      "To": "stringbuilder.append@gmail.com",
+      "To": "...@gmail.com",
       "Theme": "Default",
       "Reports": []
     }

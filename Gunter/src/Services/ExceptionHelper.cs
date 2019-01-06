@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using Reusable.Exceptionizer;
 using Reusable.Reflection;
 
 namespace Gunter.Services

@@ -21,18 +21,20 @@ namespace Gunter
     {
         private readonly IContainer _container;
         private readonly ILogger _logger;
+        private readonly IConfiguration _configuration;
 
         public Program(IContainer container)
         {
             _container = container;
             _logger = container.Resolve<ILogger<Program>>();
+            _configuration = container.Resolve<IConfiguration>();
         }
 
         public static Program Create() => new Program(CreateContainer());
 
-        public static Program Create(ILoggerFactory loggerFactory, Action<ContainerBuilder> configureBuilder)
+        public static Program Create(ILoggerFactory loggerFactory, IConfiguration configuration, Action<ContainerBuilder> configureBuilder)
         {
-            return new Program(CreateContainer(loggerFactory ?? InitializeLogging(), configureBuilder));
+            return new Program(CreateContainer(loggerFactory ?? InitializeLogging(), configuration ?? InitializeConfiguration(), configureBuilder));
         }
 
         internal static async Task<int> Main(string[] args)

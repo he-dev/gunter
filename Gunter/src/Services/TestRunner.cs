@@ -9,8 +9,6 @@ using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.Exceptionizer;
-using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
@@ -28,14 +26,14 @@ namespace Gunter.Services
     {
         private readonly RuntimeFormatter.Factory _createRuntimeFormatter;
         private readonly ILogger _logger;
-        private readonly IResourceProvider _resourceProvider;
+        private readonly IConfiguration _configuration;
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
-            IResourceProvider resourceProvider,
+            IConfiguration configuration,
             ITestLoader testLoader,
             ITestComposer testComposer,
             RuntimeFormatter.Factory createRuntimeFormatter
@@ -43,14 +41,14 @@ namespace Gunter.Services
         {
             _createRuntimeFormatter = createRuntimeFormatter;
             _logger = logger;
-            _resourceProvider = resourceProvider;
+            _configuration = configuration;
             _testLoader = testLoader;
             _testComposer = testComposer;
         }
 
         public async Task RunTestsAsync(string path, IEnumerable<string> profiles)
         {
-            var tests = await _testLoader.LoadTestsAsync(path);
+            var tests = _testLoader.LoadTests(path).ToList();
             var compositions = _testComposer.ComposeTests(tests).ToList();
             var tasks = compositions.Select(async testFile => await RunTestsAsync(testFile, profiles.Select(SoftString.Create))).ToArray();
             await Task.WhenAll(tasks).ContinueWith(task =>

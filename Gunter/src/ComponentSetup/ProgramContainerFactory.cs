@@ -3,7 +3,6 @@ using Autofac;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
@@ -13,9 +12,9 @@ namespace Gunter.ComponentSetup
 {
     public static class ProgramContainerFactory
     {
-        public static IContainer CreateContainer() => CreateContainer(InitializeLogging(), _ => { });
+        public static IContainer CreateContainer() => CreateContainer(InitializeLogging(), InitializeConfiguration(), _ => { });
 
-        public static IContainer CreateContainer(ILoggerFactory loggerFactory, Action<ContainerBuilder> configureContainer)
+        public static IContainer CreateContainer(ILoggerFactory loggerFactory, IConfiguration configuration, Action<ContainerBuilder> configureContainer)
         {
             try
             {
@@ -29,6 +28,10 @@ namespace Gunter.ComponentSetup
                 builder
                     .RegisterGeneric(typeof(Logger<>))
                     .As(typeof(ILogger<>));
+
+                builder
+                    .RegisterInstance(configuration)
+                    .As<IConfiguration>();
 
                 builder
                     .RegisterType<ProgramInfo>()
@@ -72,6 +75,33 @@ namespace Gunter.ComponentSetup
             {
                 throw ExceptionHelper.InitializationException(inner);
             }
-        }       
+        }
+
+        [NotNull]
+        internal static IConfiguration InitializeConfiguration()
+        {
+            try
+            {
+                var settingConverter = new JsonSettingConverter();
+
+                var configuration = new Configuration(new ISettingProvider[]
+                {
+                    new AppSettings(settingConverter),
+                    //new InMemory(settingConverter)
+                    //{
+                    //    //{ nameof(Gunter.Program.CurrentDirectory), Path.GetDirectoryName(typeof(Gunter.Program).Assembly.Location) },
+                    //    //{ nameof(Gunter.Program.Product), "Gunter" },
+                    //    //{ nameof(Gunter.Program.Version), "5.0.0" },
+                    //    //{ nameof(Gunter.Program.ElapsedFormat), ElapsedFormat }
+                    //},
+                });
+
+                return configuration;
+            }
+            catch (Exception inner)
+            {
+                throw ExceptionHelper.InitializationException(inner);
+            }
+        }
     }
 }
