@@ -12,8 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reusable;
 using Reusable.Data.Repositories;
 using Reusable.Extensions;
-using Reusable.IO;
-using Reusable.IO.Extensions;
+using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
@@ -29,7 +28,7 @@ namespace Gunter.Tests
     using static  Assert;
 
     [TestClass]
-    public class FeatureTest
+    public class UseCaseTest
     {
         private MemoryRx _memoryRx;
         private ILoggerFactory _loggerFactory;
@@ -47,7 +46,10 @@ namespace Gunter.Tests
                     .AttachElapsedMilliseconds()
                     .AddObserver(_memoryRx = new MemoryRx());
 
-            var sql = EmbeddedFileProvider<FeatureTest>.Default.GetFileInfoAsync(@"sql\populate-test-data.sql").GetAwaiter().GetResult().ReadAllText();
+            var sql = EmbeddedFileProvider<UseCaseTest>.Default.ReadTextFile(@"sql\populate-test-data.sql");
+            
+            // todo - fix this
+            //var sql = sqlFile.DeserializeAsync<string>().GetAwaiter().GetResult();
             var connectionString = ConnectionStringRepository.Default.GetConnectionString("name=TestDb");
             using (var conn = new SqlConnection(connectionString))
             {
@@ -58,16 +60,16 @@ namespace Gunter.Tests
         [TestMethod]
         public async Task CanSendAlert()
         {
-            var mailrClient = Mock.Create<IMailrClient>();
+            var mailrClient = Mock.Create<IRestClient<IMailrClient>>();
 
             mailrClient
                 .Arrange(x => x.InvokeAsync<string>(Arg.IsAny<HttpMethodContext>(), Arg.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(string.Empty))
                 .OccursOnce();
 
-            using (var program = Program.Create(_loggerFactory, InitializeConfiguration(), builder =>
+            using (var program = Program.Create(_loggerFactory, builder =>
             {
-                builder.RegisterInstance(mailrClient).As<IMailrClient>();
+                builder.RegisterInstance(mailrClient).As<IRestClient<IMailrClient>>();
             }))
             {
                 await program.RunAsync(@"cfg\tests\ok");
@@ -80,7 +82,7 @@ namespace Gunter.Tests
         }
     }
 
-    internal static class LoggerExctensions
+    internal static class LoggerExtensions
     {
         public static IEnumerable<T> Exceptions<T>(this IEnumerable<ILog> logs) where T : Exception
         {

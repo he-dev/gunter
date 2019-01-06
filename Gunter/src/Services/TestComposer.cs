@@ -14,11 +14,12 @@ using Gunter.Data;
 using Gunter.Extensions;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Exceptionizer;
 using Reusable.Extensions;
+using Reusable.Flawless;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
-using Reusable.Validation;
 
 namespace Gunter.Services
 {
@@ -29,14 +30,14 @@ namespace Gunter.Services
 
     internal class TestComposer : ITestComposer
     {
-        private static readonly IBouncer<TestBundle> TestBundleBouncer = Bouncer.For<TestBundle>(builder =>
+        private static readonly IExpressValidator<TestBundle> TestBundleBouncer = ExpressValidator.For<TestBundle>(builder =>
         {
             var comparer = EqualityComparerFactory<IMergeable>.Create((x, y) => x.Id == y.Id, obj => obj.Id.GetHashCode());
-            builder.Ensure(x => ContainsUniqueIds(x.Variables, comparer));
-            builder.Ensure(x => ContainsUniqueIds(x.DataSources, comparer));
-            builder.Ensure(x => ContainsUniqueIds(x.Tests, comparer));
-            builder.Ensure(x => ContainsUniqueIds(x.Messages, comparer));
-            builder.Ensure(x => ContainsUniqueIds(x.Reports, comparer));
+            builder.True(x => ContainsUniqueIds(x.Variables, comparer));
+            builder.True(x => ContainsUniqueIds(x.DataSources, comparer));
+            builder.True(x => ContainsUniqueIds(x.Tests, comparer));
+            builder.True(x => ContainsUniqueIds(x.Messages, comparer));
+            builder.True(x => ContainsUniqueIds(x.Reports, comparer));
         });
 
         private readonly ILogger _logger;
@@ -80,7 +81,7 @@ namespace Gunter.Services
                 composition.Messages = Merge(testBundle, partials, bundle => bundle.Messages).ToList();
                 composition.Reports = Merge(testBundle, partials, bundle => bundle.Reports).ToList();
 
-                composition.ValidateWith(TestBundleBouncer).ThrowIfInvalid();
+                composition.ValidateWith(TestBundleBouncer).Assert();
 
                 _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Completed(), testBundle.FileName.ToString());
 

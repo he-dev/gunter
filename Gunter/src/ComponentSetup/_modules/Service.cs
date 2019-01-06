@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
 using Newtonsoft.Json.Serialization;
-using Reusable.IO;
+using Reusable.IOnymous;
 using Reusable.sdk.Http;
 using Reusable.sdk.Mailr;
+using Reusable.SmartConfig;
 
 namespace Gunter.ComponentSetup
 {
@@ -17,12 +19,32 @@ namespace Gunter.ComponentSetup
             //    .As<IRuntimeFormatterFactory>();
 
             builder
-                .RegisterType<DirectoryTree>()
+                .RegisterType<PhysicalDirectoryTree>()
                 .As<IDirectoryTree>();
 
             builder
-                .RegisterType<PhysicalFileProvider>()
-                .As<IFileProvider>();
+                .RegisterInstance(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
+                .As<IResourceProvider>();
+            
+            builder
+                .RegisterInstance(new AppSettingProvider(new UriStringToSettingIdentifierConverter()).DecorateWith(SettingProvider.Factory()))
+                .As<IResourceProvider>();
+            
+//            builder
+//                .RegisterType<CompositeResourceProvider>()
+//                .As<IFirstResourceProvider>();
+
+            builder
+                .RegisterType<Configuration>()
+                .As<IConfiguration>();
+
+//            builder
+//                .RegisterInstance(new CompositeResourceProvider(new[]
+//                {
+//                    new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()),
+//                    new AppSettingProvider(new UriStringToSettingIdentifierConverter()).DecorateWith(SettingProvider.Factory())
+//                }))
+//                .As<IResourceProvider>();
 
             builder
                 .RegisterType<TestFileSerializer>()
@@ -63,10 +85,18 @@ namespace Gunter.ComponentSetup
                 .Register(c =>
                 {
                     var programInfo = c.Resolve<ProgramInfo>();
-                    return MailrClient.Create(programInfo.MailrBaseUri, headers => headers.AcceptJson().UserAgent(ProgramInfo.Name, ProgramInfo.Version));
+                    return RestClient.Create<IMailrClient>
+                    (
+                        programInfo.MailrBaseUri,
+                        headers =>
+                        {
+                            headers
+                                .AcceptJson()
+                                .UserAgent(ProgramInfo.Name, ProgramInfo.Version);
+                        });
                 })
                 .InstancePerLifetimeScope()
-               .As<IMailrClient>();
+                .As<IRestClient<IMailrClient>>();
         }
     }
 }
