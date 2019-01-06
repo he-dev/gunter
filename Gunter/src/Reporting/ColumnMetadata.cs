@@ -34,10 +34,10 @@ namespace Gunter.Reporting
 
         private string DebuggerDisplay() => this.ToDebuggerDisplayString(builder =>
         {
-            builder.Property(x => x.Name);
-            builder.Property(x => IsGroupKey);
-            builder.Property(x => Filter);
-            builder.Property(x => x.Total);
+            builder.DisplayMember(x => x.Name);
+            builder.DisplayMember(x => IsGroupKey);
+            builder.DisplayMember(x => Filter);
+            builder.DisplayMember(x => x.Total);
         });
 
         public bool Equals(ColumnMetadata other) => AutoEquality<ColumnMetadata>.Comparer.Equals(this, other);

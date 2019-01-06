@@ -11,8 +11,10 @@ using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
+using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.sdk.Http;
 using Reusable.sdk.Mailr;
 using Reusable.SmartConfig;
 
@@ -21,18 +23,17 @@ namespace Gunter.Messaging
     [PublicAPI]
     public class Mailr : Message
     {
-        private readonly IConfiguration _configuration;
-
-        private readonly IMailrClient _mailrClient;
+        private readonly IResourceProvider _resourceProvider;
+        private readonly IRestClient<IMailrClient> _mailrClient;
 
         public Mailr
         (
             ILogger<Mailr> logger,
-            IConfiguration configuration,
-            IMailrClient mailrClient
+            IResourceProvider resourceProvider,
+            IRestClient<IMailrClient> mailrClient
         ) : base(logger)
         {
-            _configuration = configuration;
+            _resourceProvider = resourceProvider;
             _mailrClient = mailrClient;
         }
 

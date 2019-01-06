@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.IO;
+using Reusable.IOnymous;
 using Reusable.SmartConfig;
 
 namespace Gunter
@@ -23,12 +24,12 @@ namespace Gunter
         public static string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
         [Required]
-        public string Environment => _configuration.GetValue(() => Environment);
+        public string Environment => _configuration.GetSetting(() => Environment);
 
         [Required]
-        public string MailrBaseUri => _configuration.GetValue(() => MailrBaseUri);
+        public string MailrBaseUri => _configuration.GetSetting(() => MailrBaseUri);
 
         [Required]
-        public string DefaultTestsDirectoryName => _configuration.GetValue(() => DefaultTestsDirectoryName);
+        public string DefaultTestsDirectoryName => _configuration.GetSetting(() => DefaultTestsDirectoryName);
     }
 }

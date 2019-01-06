@@ -5,6 +5,7 @@ using Gunter.Extensions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Reusable.Exceptionizer;
 using Reusable.Reflection;
 
 namespace Gunter.Data.Attachements
