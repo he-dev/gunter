@@ -14,9 +14,6 @@ using JetBrains.Annotations;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.sdk.Http;
-using Reusable.sdk.Mailr;
-using Reusable.SmartConfig;
 
 namespace Gunter.Messaging
 {
@@ -24,21 +21,18 @@ namespace Gunter.Messaging
     public class Mailr : Message
     {
         private readonly IResourceProvider _resourceProvider;
-        private readonly IRestClient<IMailrClient> _mailrClient;
 
         public Mailr
         (
             ILogger<Mailr> logger,
-            IResourceProvider resourceProvider,
-            IRestClient<IMailrClient> mailrClient
+            IResourceProvider resourceProvider
         ) : base(logger)
         {
             _resourceProvider = resourceProvider;
-            _mailrClient = mailrClient;
         }
 
         [Mergable]
-        public string To { get; set; }
+        public IList<string> To { get; set; }
 
         [DefaultValue("default")]
         [Mergable]
@@ -48,7 +42,7 @@ namespace Gunter.Messaging
         {
             var format = (FormatFunc)context.Formatter.Format;
 
-            var to = format(To);
+            var to = To.Select(x => format(x));
             var subject = format(report.Title);
             var body = new
             {
@@ -59,7 +53,7 @@ namespace Gunter.Messaging
 
             Logger.Log(Abstraction.Layer.Infrastructure().Variable(new { email = new { email.To, email.Subject, email.Theme } }));
 
-            await _mailrClient.Resource("Gunter", "Alerts", "TestResult").SendAsync(email);
+            await _resourceProvider.SendAsync("v2.0/Gunter/Alerts/TestResult", email, ProgramInfo.Name, ProgramInfo.Version);
         }
     }
 }

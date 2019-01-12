@@ -1,12 +1,12 @@
 using System.Collections.Generic;
+using System.Configuration;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
 using Newtonsoft.Json.Serialization;
 using Reusable.IOnymous;
-using Reusable.sdk.Http;
-using Reusable.sdk.Mailr;
 using Reusable.SmartConfig;
+using Configuration = Reusable.SmartConfig.Configuration;
 
 namespace Gunter.ComponentSetup
 {
@@ -22,29 +22,33 @@ namespace Gunter.ComponentSetup
                 .RegisterType<PhysicalDirectoryTree>()
                 .As<IDirectoryTree>();
 
-            builder
-                .RegisterInstance(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
-                .As<IResourceProvider>();
+            //builder
+            //    .RegisterInstance(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
+            //    .As<IResourceProvider>();
             
-            builder
-                .RegisterInstance(new AppSettingProvider(new UriStringToSettingIdentifierConverter()).DecorateWith(SettingProvider.Factory()))
-                .As<IResourceProvider>();
+            //builder
+            //    .RegisterInstance(new AppSettingProvider(new UriStringToSettingIdentifierConverter()))
+            //    .As<IResourceProvider>();
             
 //            builder
 //                .RegisterType<CompositeResourceProvider>()
 //                .As<IFirstResourceProvider>();
 
             builder
-                .RegisterType<Configuration>()
+                .RegisterInstance(new Configuration(new IResourceProvider[]
+                {
+                    new AppSettingProvider(new UriStringToSettingIdentifierConverter()).DecorateWith(SettingNameProvider.Factory()),
+                }))
+                //.RegisterType<Configuration>()
                 .As<IConfiguration>();
 
-//            builder
-//                .RegisterInstance(new CompositeResourceProvider(new[]
-//                {
-//                    new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()),
-//                    new AppSettingProvider(new UriStringToSettingIdentifierConverter()).DecorateWith(SettingProvider.Factory())
-//                }))
-//                .As<IResourceProvider>();
+            builder
+                .RegisterInstance(new CompositeProvider(new IResourceProvider[]
+                {
+                    new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()),
+                    new HttpProvider(ConfigurationManager.AppSettings["mailr:BaseUri"])
+                }, ResourceMetadata.Empty.AllowRelativeUri(true)))
+                .As<IResourceProvider>();
 
             builder
                 .RegisterType<TestFileSerializer>()
@@ -81,22 +85,32 @@ namespace Gunter.ComponentSetup
                 .RegisterType<RuntimeFormatter>()
                 .AsSelf();
 
-            builder
-                .Register(c =>
-                {
-                    var programInfo = c.Resolve<ProgramInfo>();
-                    return RestClient.Create<IMailrClient>
-                    (
-                        programInfo.MailrBaseUri,
-                        headers =>
-                        {
-                            headers
-                                .AcceptJson()
-                                .UserAgent(ProgramInfo.Name, ProgramInfo.Version);
-                        });
-                })
-                .InstancePerLifetimeScope()
-                .As<IRestClient<IMailrClient>>();
+            //builder
+            //    .Register(c =>
+            //    {
+            //        var programInfo = c.Resolve<ProgramInfo>();
+            //        return RestClient.Create<IMailrClient>
+            //        (
+            //            programInfo.MailrBaseUri,
+            //            headers =>
+            //            {
+            //                headers
+            //                    .AcceptJson()
+            //                    .UserAgent(ProgramInfo.Name, ProgramInfo.Version);
+            //            });
+            //    })
+            //    .InstancePerLifetimeScope()
+            //    .As<IRestClient<IMailrClient>>();
+
+            //builder
+            //    .RegisterInstance(new HttpProvider(ConfigurationManager.AppSettings["mailr:BaseUri"]))
+            //    .Keyed<IResourceProvider>(ResourceProviderKey.Http)
+            //    .As<IResourceProvider>();
         }
     }
+
+    //public enum ResourceProviderKey
+    //{
+    //    Http
+    //}
 }

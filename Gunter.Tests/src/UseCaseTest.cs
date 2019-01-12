@@ -16,7 +16,6 @@ using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.sdk.Http;
 using Reusable.sdk.Mailr;
 using Reusable.Utilities.SqlClient;
 using Telerik.JustMock;
