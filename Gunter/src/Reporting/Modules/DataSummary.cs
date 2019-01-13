@@ -72,7 +72,7 @@ namespace Gunter.Reporting.Modules
             var section = new SectionDto
             {
                 Heading = format(Heading),
-                Table = new TripleTableDto(columns.Select(column => ColumnDto.Create<string>(column.Name.ToString())))
+                Table = new TripleTableDto(columns.Select(column => ColumnDto.Create<string>((column.Display ?? column.Name).ToString())))
             };
             var table = section.Table;
 
@@ -111,7 +111,7 @@ namespace Gunter.Reporting.Modules
             try
             {
                 var aggregate = Aggregates[column.Total];
-                var values = rowGroup.Values((column.Other ?? column.Name).ToString()).NotDBNull();
+                var values = rowGroup.Values((string)column.Name).NotDBNull();
                 var value = aggregate(values);
                 if (value is null)
                 {

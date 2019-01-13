@@ -98,6 +98,10 @@
         }
     ],
     "Reports": [
+        {
+            "Id": "full-report",
+            "Merge": "_Gunter/full-report"
+        }
         // {
         //     "Id": "full-report",
         //     "Title": "Glitch alert | {ProductName} | {TestCase.Level}",

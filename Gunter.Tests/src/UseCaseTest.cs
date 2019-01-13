@@ -67,7 +67,7 @@ namespace Gunter.Tests
         {
             using (var teacup = _teapot.BeginScope())
             {
-                var testResult = teacup.Mock("/v2.0/Gunter/Alerts/TestResult").ArrangePost((request, response) =>
+                var testResult = teacup.Mock("/api/v2.0/Gunter/Alerts/TestResult").ArrangePost((request, response) =>
                 {
                     request
                         .AsUserAgent(ProgramInfo.Name, ProgramInfo.Version)
@@ -75,6 +75,7 @@ namespace Gunter.Tests
                         .WithContentTypeJson(body =>
                         {
                             body
+                                .PropertyEquals("$.Subject", "Glitch alert [Debug]")
                                 .HasProperty("$.Subject");
                         });
 

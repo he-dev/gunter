@@ -39,7 +39,7 @@
     "Reports": [
         {
             "Id": "full-report",
-            "Title": "Glitch alert [{TestCase.Level}] for {Product}",
+            "Title": "Glitch alert [{TestCase.Level}]",
             "Modules": [
                 {
                     "$t": "Level"
@@ -66,6 +66,7 @@
                         },
                         {
                             "Name": "_text",
+                            "Display": "_first-line",
                             //"IsKey": true
                             "Filter": {
                                 "$t": "FirstLine"

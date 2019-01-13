@@ -53,7 +53,7 @@ namespace Gunter.Messaging
 
             Logger.Log(Abstraction.Layer.Infrastructure().Variable(new { email = new { email.To, email.Subject, email.Theme } }));
 
-            await _resourceProvider.SendAsync("v2.0/Gunter/Alerts/TestResult", email, ProgramInfo.Name, ProgramInfo.Version);
+            await _resourceProvider.SendAsync("/v2.0/Gunter/Alerts/TestResult", email, ProgramInfo.Name, ProgramInfo.Version);
         }
     }
 }

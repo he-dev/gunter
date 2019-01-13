@@ -20,7 +20,7 @@ namespace Gunter.Reporting
         [JsonRequired]
         public SoftString Name { get; set; }
 
-        public SoftString Other { get; set; }
+        public SoftString Display { get; set; }
 
         public bool IsGroupKey { get; set; }
 
