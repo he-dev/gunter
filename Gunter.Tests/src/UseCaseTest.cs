@@ -77,7 +77,8 @@ namespace Gunter.Tests
                             body
                                 .PropertyEquals("$.Subject", "Glitch alert [Debug]")
                                 .HasProperty("$.Subject");
-                        });
+                        })
+                        .Occurs(1);
 
                     response
                         .Once(200, "OK");
@@ -86,6 +87,7 @@ namespace Gunter.Tests
                 using (var program = Program.Create(_loggerFactory, builder => { }))
                 {
                     await program.RunAsync(@"batch -tests example");
+                    //await Task.Delay(300);
 
                     var exceptions = _memoryRx.Exceptions<Exception>();
 
