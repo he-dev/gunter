@@ -4,6 +4,7 @@ using Autofac;
 using Gunter.Data;
 using Gunter.Services;
 using Newtonsoft.Json.Serialization;
+using Reusable.Commander;
 using Reusable.IOnymous;
 using Reusable.SmartConfig;
 using Configuration = Reusable.SmartConfig.Configuration;
@@ -25,14 +26,14 @@ namespace Gunter.ComponentSetup
             //builder
             //    .RegisterInstance(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
             //    .As<IResourceProvider>();
-            
+
             //builder
             //    .RegisterInstance(new AppSettingProvider(new UriStringToSettingIdentifierConverter()))
             //    .As<IResourceProvider>();
-            
-//            builder
-//                .RegisterType<CompositeResourceProvider>()
-//                .As<IFirstResourceProvider>();
+
+            //            builder
+            //                .RegisterType<CompositeResourceProvider>()
+            //                .As<IFirstResourceProvider>();
 
             builder
                 .RegisterInstance(new Configuration(new IResourceProvider[]
@@ -85,32 +86,12 @@ namespace Gunter.ComponentSetup
                 .RegisterType<RuntimeFormatter>()
                 .AsSelf();
 
-            //builder
-            //    .Register(c =>
-            //    {
-            //        var programInfo = c.Resolve<ProgramInfo>();
-            //        return RestClient.Create<IMailrClient>
-            //        (
-            //            programInfo.MailrBaseUri,
-            //            headers =>
-            //            {
-            //                headers
-            //                    .AcceptJson()
-            //                    .UserAgent(ProgramInfo.Name, ProgramInfo.Version);
-            //            });
-            //    })
-            //    .InstancePerLifetimeScope()
-            //    .As<IRestClient<IMailrClient>>();
-
-            //builder
-            //    .RegisterInstance(new HttpProvider(ConfigurationManager.AppSettings["mailr:BaseUri"]))
-            //    .Keyed<IResourceProvider>(ResourceProviderKey.Http)
-            //    .As<IResourceProvider>();
+            builder
+                .RegisterModule(new CommanderModule(commands =>
+                    commands
+                        .Add<Commands.Explicit>()
+                        .Add<Commands.Batch>())
+                );
         }
     }
-
-    //public enum ResourceProviderKey
-    //{
-    //    Http
-    //}
 }

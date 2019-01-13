@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
 using JetBrains.Annotations;
+using Reusable;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
@@ -14,7 +15,7 @@ namespace Gunter.Services
     internal interface ITestLoader
     {
         [ItemNotNull]
-        Task<IList<TestBundle>> LoadTestsAsync(string path);
+        Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName);
     }
 
     [UsedImplicitly]
@@ -39,19 +40,19 @@ namespace Gunter.Services
             _testFileSerializer = testFileSerializer;
         }
 
-        public async Task<IList<TestBundle>> LoadTestsAsync(string path)
+        public async Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName)
         {
-            _logger.Log(Abstraction.Layer.IO().Meta(new { TestDirectoryName = path }));
+            _logger.Log(Abstraction.Layer.IO().Meta(new { TestDirectoryName = testDirectoryName }));
 
             var testFiles =
                 _directoryTree
-                    .Walk(path, PhysicalDirectoryTree.MaxDepth(1), PhysicalDirectoryTree.IgnoreExceptions)
+                    .Walk(testDirectoryName, PhysicalDirectoryTree.MaxDepth(1), PhysicalDirectoryTree.IgnoreExceptions)
                     .WhereFiles(@"\.json$")
                     .SelectMany(node => node.FileNames.Select(fileName => Path.Combine(node.DirectoryName, fileName)));
 
             var testBundles = new List<TestBundle>();
 
-            foreach (var fileName in testFiles)
+            foreach (var fileName in testFiles) //.Where(fileName => tests is null || tests.Contains(Path.GetFileNameWithoutExtension(fileName), StringComparer.OrdinalIgnoreCase)))
             {
                 using (_logger.BeginScope().AttachElapsed())
                 {

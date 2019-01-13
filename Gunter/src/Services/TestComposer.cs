@@ -12,6 +12,7 @@ using Autofac.Features.Indexed;
 using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Extensions;
+using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
 using Reusable.Exceptionizer;
@@ -25,7 +26,11 @@ namespace Gunter.Services
 {
     internal interface ITestComposer
     {
-        IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> tests);
+        IEnumerable<TestBundle> ComposeTests
+        (
+            [NotNull, ItemNotNull] IEnumerable<TestBundle> bundles,
+            [CanBeNull, ItemNotNull] IEnumerable<TestFilter> filters
+        );
     }
 
     internal class TestComposer : ITestComposer
@@ -49,11 +54,34 @@ namespace Gunter.Services
             _componentContext = componentContext;
         }
 
-        public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> tests)
+        public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, IEnumerable<TestFilter> filters)
         {
-            var partials = tests.ToLookup(TestBundleExtensions.IsPartial);
+            var partials = bundles.ToLookup(TestBundleExtensions.IsPartial);
 
-            foreach (var testBundle in partials[false])
+            var filtered = partials[false];
+
+            if (!(filters is null))
+            {
+                var items =
+                    (
+                        from bundle in partials[false]
+                        join filter in filters on bundle.Name equals filter.Name
+                        select (bundle, filter)
+                    ).ToList();
+
+                foreach (var (bundle, filter) in items)
+                {
+                    bundle.Tests =
+                        bundle
+                            .Tests
+                            .Where(t => filter.Ids is null || filter.Ids.Contains(t.Id))
+                            .ToList();
+                }
+
+                filtered = items.Select(x => x.bundle);
+            }
+
+            foreach (var testBundle in filtered)
             {
                 if (TryCompose(testBundle, partials[true], out var composition))
                 {

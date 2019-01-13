@@ -1,7 +1,7 @@
 {
     "Variables": [
         {
-            "Id": "var-1",
+            "Id": "defaults",
             "Items": {
                 "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
                 "Greeting": "Hi there!"
@@ -11,15 +11,15 @@
     "DataSources": [
         {
             "$t": "TableOrView",
-            "Id": "src-1",
+            "Id": "everything",
             "ConnectionString": "{TestDb}",
             "Query": "file:///{TestBundle.FileName}.sql",
             "Attachments": [
                 {
                     "$t": "JsonValue",
-                    "Name": "CorrelationId",
-                    "JsonColumn": "Scope",
-                    "JsonPath": "$.[0].CorrelationId"
+                    "Name": "_color",
+                    "Column": "_text",
+                    "Path": "$.Color"
                 }
             ]
         }
@@ -28,8 +28,10 @@
     "Messages": [
         {
             "$t": "Mailr",
-            "Id": "msg-1",
-            "To": "my@email.com",
+            "Id": "default-email",
+            "To": [
+                "my@email.com"
+            ],
             "Theme": "default",
             "Reports": []
         }
@@ -60,33 +62,36 @@
                     "Heading": "Data snapshot",
                     "Columns": [
                         {
-                            "Name": "Product"
+                            "Name": "_text"
                         },
                         {
-                            "Name": "Transaction",
-                            "IsKey": true                            
-                        },
-                        {
-                            "Name": "Elapsed",
-                            "Total": "Average",
-                            "Formatter": {
-                                "$t": "TimeSpan"
-                            }
-                        },
-                        //{ "Name": "_bit", "Total": "Count" },
-                        //{ "Name": "_money" },
-                        {
-                            "Name": "Event"
-                        },
-                        {
-                            "Name": "Result"
-                        },
-                        {
-                            "Name": "Exception",
+                            "Name": "_text",
                             //"IsKey": true
                             "Filter": {
                                 "$t": "FirstLine"
                             }
+                        },
+                        {
+                            "Name": "_color"
+                        },
+                        {
+                            "Name": "_flag",
+                            //"IsKey": true
+                        },
+                        {
+                            "Name": "_count",
+                            "Total": "Sum"
+                            // "Formatter": {
+                            //     "$t": "TimeSpan"
+                            // }
+                        },
+                        {
+                            "Name": "_distance",
+                            "Total": "Average",
+                        },
+                        {
+                            "Name": "_price",
+                            "Total": "Min",
                         }
                     ]
                 }

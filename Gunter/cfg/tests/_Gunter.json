@@ -1,101 +1,100 @@
 {
-  "Variables": [
-    {
-      "Id": "var-1",
-      "Items": {
-        "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
-        "Greeting": "Hi there!"
-      }
-    }
-  ],
-  "DataSources": [
-    {
-      "$t": "TableOrView",
-      "Id": "src-1",
-      "ConnectionString": "{TestDb}",
-      "Query": "file:///{TestBundle.FileName}.sql",
-      "Attachments": [
+    "Variables": [
         {
-          "$t": "JsonValue",
-          "Name": "CorrelationId",
-          "JsonColumn": "Scope",
-          "JsonPath": "$.[0].CorrelationId"
-          //"JsonPath": "$.Request.Path"
-        }
-      ]
-    }
-  ],
-  "Tests": [],
-  "Messages": [
-    {
-      "$t": "Mailr",
-      "Id": "msg-1",
-      //"To": "{Services}",
-      "To": "...@gmail.com",
-      "Theme": "Default",
-      "Reports": []
-    }
-  ],
-  "Reports": [
-    {
-      "Id": "rpt-1",
-      "Title": "[{TestCase.Level}] - Glitch detected in {Product}",
-      "Modules": [
-        {
-          "$t": "Level"
-        },
-        {
-          "$t": "Greeting",
-          "Heading": "Hi, everyone.",
-          "Text": "{TestCase.Message}"
-        },
-        {
-          "$t": "TestCase",
-          "Heading": "Test case"
-        },
-        {
-          "$t": "DataSource",
-          "Heading": "Data-source"
-        },
-        {
-          "$t": "DataSummary",
-          "Heading": "Data snapshot",
-          "Columns": [
-            {
-              "Name": "Product"
-            },
-            {
-              "Name": "Transaction",
-              "IsKey": true
-              //"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
-            },
-            //{ "Name": "_int", "Total": "Sum" },
-            //{ "Name": "_datetime2" },
-            {
-              "Name": "Elapsed",
-              "Total": "Average",
-              "Formatter": {
-                "$t": "TimeSpan"
-              }
-            },
-            //{ "Name": "_bit", "Total": "Count" },
-            //{ "Name": "_money" },
-            {
-              "Name": "Event"
-            },
-            {
-              "Name": "Result"
-            },
-            {
-              "Name": "Exception",
-              //"IsKey": true
-              "Filter": {
-                "$t": "FirstLine"
-              }
+            "Id": "var-1",
+            "Items": {
+                "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
+                "Greeting": "Hi there!"
             }
-          ]
         }
-      ]
-    }
-  ]
+    ],
+    "DataSources": [
+        {
+            "$t": "TableOrView",
+            "Id": "src-1",
+            "ConnectionString": "{TestDb}",
+            "Query": "file:///{TestBundle.FileName}.sql",
+            "Attachments": [
+                {
+                    "$t": "JsonValue",
+                    "Name": "CorrelationId",
+                    "JsonColumn": "Scope",
+                    "JsonPath": "$.[0].CorrelationId"
+                    //"JsonPath": "$.Request.Path"
+                }
+            ]
+        }
+    ],
+    "Tests": [],
+    "Messages": [
+        {
+            "$t": "Mailr",
+            "Id": "msg-1",
+            "To": "...@gmail.com",
+            "Theme": "Default",
+            "Reports": []
+        }
+    ],
+    "Reports": [
+        {
+            "Id": "rpt-1",
+            "Title": "[{TestCase.Level}] - Glitch detected in {Product}",
+            "Modules": [
+                {
+                    "$t": "Level"
+                },
+                {
+                    "$t": "Greeting",
+                    "Heading": "Hi, everyone.",
+                    "Text": "{TestCase.Message}"
+                },
+                {
+                    "$t": "TestCase",
+                    "Heading": "Test case"
+                },
+                {
+                    "$t": "DataSource",
+                    "Heading": "Data-source"
+                },
+                {
+                    "$t": "DataSummary",
+                    "Heading": "Data snapshot",
+                    "Columns": [
+                        {
+                            "Name": "Product"
+                        },
+                        {
+                            "Name": "Transaction",
+                            "IsKey": true
+                            //"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
+                        },
+                        //{ "Name": "_int", "Total": "Sum" },
+                        //{ "Name": "_datetime2" },
+                        {
+                            "Name": "Elapsed",
+                            "Total": "Average",
+                            "Formatter": {
+                                "$t": "TimeSpan"
+                            }
+                        },
+                        //{ "Name": "_bit", "Total": "Count" },
+                        //{ "Name": "_money" },
+                        {
+                            "Name": "Event"
+                        },
+                        {
+                            "Name": "Result"
+                        },
+                        {
+                            "Name": "Exception",
+                            //"IsKey": true
+                            "Filter": {
+                                "$t": "FirstLine"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
 }

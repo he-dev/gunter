@@ -102,7 +102,7 @@ namespace Gunter.Data
                  select report).Distinct();
         }
 
-        public static bool CanExecute(this TestCase testCase, IEnumerable<SoftString> profiles)
+        public static bool CanExecute(this TestCase testCase, [CanBeNull] IEnumerable<SoftString> profiles)
         {
             
             // In order for a test to be runnable it has to be enabled and its profile needs to match the list or the list needs to be empty.
@@ -114,6 +114,7 @@ namespace Gunter.Data
             bool ProfileMatches()
             {
                 return
+                    profiles is null ||
                     profiles.Empty() ||
                     profiles.Any(runnableProfile => testCase.Profiles.Contains(runnableProfile));
             }

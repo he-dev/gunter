@@ -3,21 +3,22 @@
 
 BEGIN TRANSACTION
 
-if (not exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = 'dbo' and TABLE_NAME = 'Gunter_Test'))
+if (not exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA = 'dbo' and TABLE_NAME = 'Gunter_Example'))
 begin
 	
 	SET ANSI_NULLS ON;
 	SET QUOTED_IDENTIFIER ON;
 
-	CREATE TABLE [dbo].[Gunter_Test](
+	CREATE TABLE [dbo].[Gunter_Example]
+	(
 		[_id] [int] NOT NULL,
-		[_nvarchar] [nvarchar](max) NULL,
-		[_float] [float] NULL,
-		[_int] [int] NULL,
-		[_datetime] [datetime2](7) NULL,
-		[_decimal] [decimal](18, 0) NULL,
-		[_bit] [bit] NULL,
-	 CONSTRAINT [PK_Gunter_Test] PRIMARY KEY CLUSTERED 
+		[_text] [nvarchar](max) NULL,
+		[_flag] [bit] NULL,
+		[_count] [int] NULL,
+		[_distance] [float] NULL,
+		[_price] [decimal](18, 3) NULL,
+		[_timestamp] [datetime2](7) NULL,
+	 CONSTRAINT [PK_Gunter_Example] PRIMARY KEY CLUSTERED 
 	 (
 		[_id] ASC
 	 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
@@ -26,24 +27,25 @@ begin
 end
 
 --- Clear settings.
-DELETE FROM [dbo].[Gunter_Test];
+DELETE FROM [dbo].[Gunter_Example];
 
 --- Update settings
-INSERT INTO [dbo].[Gunter_Test]([_id], [_nvarchar], [_datetime], [_float], [_int], [_decimal], [_bit])
-SELECT [_id], [_nvarchar], [_datetime], [_float], [_int], [_decimal], [_bit]
+INSERT INTO [dbo].[Gunter_Example]([_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp])
+SELECT [_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp]
 FROM (
 	VALUES		
 		
-		(1, 'foo', '2018-05-01', 3.1, 7, 5.5, 'true'),
+		(1, 'blub', 'true', 123, 1.2345, 1.2345, '2018-05-01'),
+		(2, '{"Color":"Blue"}', 'true', 123, 1.2345, 1.2345, '2018-05-01'),
 		
 
 		-- It's here so we don't have to think about the last comma.
-		(1000, null, null, null, null, null, null)
-)sub ([_id], [_nvarchar], [_datetime], [_float], [_int], [_decimal], [_bit]);
+		(1000, NULL, NULL, NULL, NULL, NULL, NULL)
+)sub ([_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp]);
 
 COMMIT;
 
-SELECT [_id], [_nvarchar], [_datetime], [_float], [_int], [_decimal], [_bit]
-FROM [dbo].[Gunter_Test] 
+SELECT [_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp]
+FROM [dbo].[Gunter_Example] 
 
 

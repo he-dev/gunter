@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Http;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Dapper;
 using Gunter.ComponentSetup;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using JetBrains.Annotations;
 using Reusable;
 using Reusable.Data.Repositories;
 using Reusable.Extensions;
@@ -16,39 +18,43 @@ using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.sdk.Mailr;
+using Reusable.Teapot;
 using Reusable.Utilities.SqlClient;
 using Telerik.JustMock;
 using Telerik.JustMock.Helpers;
+using Xunit;
 
 namespace Gunter.Tests
 {
     using static ProgramContainerFactory;
-    using static  Assert;
+    using static Assert;
 
-    [TestClass]
-    public class UseCaseTest
+    public class UseCaseTest : IAsyncLifetime, IClassFixture<TeapotFactoryFixture>
     {
-        private MemoryRx _memoryRx;
-        private ILoggerFactory _loggerFactory;
+        private const string Url = "http://localhost:50123";
 
-        [TestInitialize]
-        public async Task TestInitialize()
+        private readonly TeapotServer _teapot;
+        private readonly MemoryRx _memoryRx;
+        private readonly ILoggerFactory _loggerFactory;
+
+        public UseCaseTest(TeapotFactoryFixture teapotFactory)
         {
+            _teapot = teapotFactory.CreateTeapotServer(Url);
+
             _loggerFactory =
                 new LoggerFactory()
-                    .AttachObject("Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"])
+                    .AttachObject("Environment", ConfigurationManager.AppSettings["app:Environment"])
                     .AttachObject("Product", ProgramInfo.FullName)
                     .AttachScope()
                     .AttachSnapshot()
                     .Attach<Timestamp<DateTimeUtc>>()
                     .AttachElapsedMilliseconds()
                     .AddObserver(_memoryRx = new MemoryRx());
+        }
 
+        public async Task InitializeAsync()
+        {
             var sql = EmbeddedFileProvider<UseCaseTest>.Default.ReadTextFile(@"sql\populate-test-data.sql");
-            
-            // todo - fix this
-            //var sql = sqlFile.DeserializeAsync<string>().GetAwaiter().GetResult();
             var connectionString = ConnectionStringRepository.Default.GetConnectionString("name=TestDb");
             using (var conn = new SqlConnection(connectionString))
             {
@@ -56,28 +62,43 @@ namespace Gunter.Tests
             }
         }
 
-        [TestMethod]
-        public async Task CanSendAlert()
+        [Fact]
+        public async Task Sends_alert_when_test_fails()
         {
-            var mailrClient = Mock.Create<IRestClient<IMailrClient>>();
-
-            mailrClient
-                .Arrange(x => x.InvokeAsync<string>(Arg.IsAny<HttpMethodContext>(), Arg.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(string.Empty))
-                .OccursOnce();
-
-            using (var program = Program.Create(_loggerFactory, builder =>
+            using (var teacup = _teapot.BeginScope())
             {
-                builder.RegisterInstance(mailrClient).As<IRestClient<IMailrClient>>();
-            }))
-            {
-                await program.RunAsync(@"cfg\tests\ok");
+                var testResult = teacup.Mock("/v2.0/Gunter/Alerts/TestResult").ArrangePost((request, response) =>
+                {
+                    request
+                        .AsUserAgent(ProgramInfo.Name, ProgramInfo.Version)
+                        .AcceptsHtml()
+                        .WithContentTypeJson(body =>
+                        {
+                            body
+                                .HasProperty("$.Subject");
+                        });
 
-                var exceptions = _memoryRx.Exceptions<Exception>();
+                    response
+                        .Once(200, "OK");
+                });
 
-                IsFalse(exceptions.Any());
-                mailrClient.Assert();
+                using (var program = Program.Create(_loggerFactory, builder => { }))
+                {
+                    await program.RunAsync(@"batch -tests example");
+
+                    var exceptions = _memoryRx.Exceptions<Exception>();
+
+                    False(exceptions.Any());
+
+                    testResult.Assert();
+                }
             }
+        }
+
+
+        public Task DisposeAsync()
+        {
+            return Task.CompletedTask;
         }
     }
 
@@ -85,7 +106,7 @@ namespace Gunter.Tests
     {
         public static IEnumerable<T> Exceptions<T>(this IEnumerable<ILog> logs) where T : Exception
         {
-            return 
+            return
                 logs
                     .Select(log => log.Exception<T>())
                     .Where(Conditional.IsNotNull);
@@ -97,5 +118,31 @@ namespace Gunter.Tests
         public static T Exception<T>(this ILog log) where T : Exception => log.Property<T>();
 
         //public static T PropertyOrDefault<T>(this ILog log, string name) => log.TryGetValue(name, out var value) && value is T actual ? actual : default;
+    }
+
+    [UsedImplicitly]
+    public class TeapotFactoryFixture : IDisposable
+    {
+        private readonly ConcurrentDictionary<string, TeapotServer> _servers;
+
+        public TeapotFactoryFixture()
+        {
+            _servers = new ConcurrentDictionary<string, TeapotServer>();
+        }
+
+        public TeapotServer CreateTeapotServer([NotNull] string url)
+        {
+            if (url == null) throw new ArgumentNullException(nameof(url));
+
+            return _servers.GetOrAdd(url, u => new TeapotServer(u));
+        }
+
+        public void Dispose()
+        {
+            foreach (var teapotServer in _servers.Values)
+            {
+                teapotServer.Dispose();
+            }
+        }
     }
 }

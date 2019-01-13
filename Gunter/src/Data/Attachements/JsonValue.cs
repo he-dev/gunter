@@ -17,24 +17,24 @@ namespace Gunter.Data.Attachements
         public string Name { get; set; }
 
         [JsonProperty(Required = Required.Always)]
-        public string JsonColumn { get; set; }
+        public string Column { get; set; }
 
         [JsonProperty(Required = Required.Always)]
-        public string JsonPath { get; set; }
+        public string Path { get; set; }
 
         [DefaultValue(true)]
         public bool Strict { get; set; }
 
         public object Compute(DataRow source)
         {
-            var value = source.Field<string>(JsonColumn);
+            var value = source.Field<string>(Column);
 
             if (string.IsNullOrWhiteSpace(value) || !value.IsJson())
             {
                 return default;
             }
 
-            var jToken = JToken.Parse(value).SelectToken(JsonPath);
+            var jToken = JToken.Parse(value).SelectToken(Path);
             switch (jToken)
             {
                 case null: return default;
@@ -44,7 +44,7 @@ namespace Gunter.Data.Attachements
                     {
                         throw DynamicException.Create(
                             $"{Name}JsonPath",
-                            $"Expected {nameof(JValue)} but found {jToken.GetType().Name}. {nameof(JsonPath)} must select a single value from {JsonColumn}. "
+                            $"Expected {nameof(JValue)} but found {jToken.GetType().Name}. {nameof(Path)} must select a single value from {Column}. "
                         );
                     }
                     return default;

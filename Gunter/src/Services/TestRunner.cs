@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -13,14 +12,17 @@ using Reusable.Exceptionizer;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.Reflection;
-using Reusable.SmartConfig;
 
 namespace Gunter.Services
 {
     public interface ITestRunner
     {
-        Task RunTestsAsync(string path, IEnumerable<string> profiles);
+        Task RunTestsAsync
+        (
+            [NotNull] string testsPath,
+            [CanBeNull] IEnumerable<TestFilter> filters,
+            [CanBeNull] IEnumerable<SoftString> profiles
+        );
     }
 
     [UsedImplicitly]
@@ -28,7 +30,6 @@ namespace Gunter.Services
     {
         private readonly RuntimeFormatter.Factory _createRuntimeFormatter;
         private readonly ILogger _logger;
-        private readonly IResourceProvider _resourceProvider;
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
 
@@ -43,16 +44,15 @@ namespace Gunter.Services
         {
             _createRuntimeFormatter = createRuntimeFormatter;
             _logger = logger;
-            _resourceProvider = resourceProvider;
             _testLoader = testLoader;
             _testComposer = testComposer;
         }
 
-        public async Task RunTestsAsync(string path, IEnumerable<string> profiles)
+        public async Task RunTestsAsync(string testsPath, IEnumerable<TestFilter> filters, IEnumerable<SoftString> profiles)
         {
-            var tests = await _testLoader.LoadTestsAsync(path);
-            var compositions = _testComposer.ComposeTests(tests).ToList();
-            var tasks = compositions.Select(async testFile => await RunTestsAsync(testFile, profiles.Select(SoftString.Create))).ToArray();
+            var bundles = await _testLoader.LoadTestsAsync(testsPath);
+            var compositions = _testComposer.ComposeTests(bundles, filters).ToList();
+            var tasks = compositions.Select(async testFile => await RunTestsAsync(testFile, profiles)).ToArray();
             await Task.WhenAll(tasks).ContinueWith(task =>
             {
                 if (task.IsFaulted)
@@ -201,5 +201,19 @@ namespace Gunter.Services
         public static bool Halt(this TestRunnerActions actions) => actions.HasFlag(TestRunnerActions.Halt);
 
         public static bool Alert(this TestRunnerActions actions) => actions.HasFlag(TestRunnerActions.Alert);
+    }
+
+    public class TestFilter
+    {
+        public TestFilter(string name)
+        {
+            Name = name;
+        }
+
+        [NotNull]
+        public SoftString Name { get; }
+
+        [CanBeNull, ItemNotNull]
+        public IEnumerable<SoftString> Ids { get; set; }
     }
 }

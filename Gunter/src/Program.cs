@@ -2,12 +2,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Linq.Custom;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.ComponentSetup;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Commander;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
@@ -21,11 +23,13 @@ namespace Gunter
     {
         private readonly IContainer _container;
         private readonly ILogger _logger;
+        private readonly ICommandLineExecutor _executor;
 
         public Program(IContainer container)
         {
             _container = container;
             _logger = container.Resolve<ILogger<Program>>();
+            _executor = container.Resolve<ICommandLineExecutor>();
         }
 
         public static Program Create() => new Program(CreateContainer());
@@ -63,18 +67,12 @@ namespace Gunter
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var programInfo = _container.Resolve<ProgramInfo>();
-            await RunAsync(Path.Combine(currentDirectory, programInfo.DefaultTestsDirectoryName));
+            await RunAsync($"batch -path \"{Path.Combine(currentDirectory, programInfo.DefaultTestsDirectoryName)}\"");
         }
 
-        public async Task RunAsync(string path)
+        public async Task RunAsync(params string[] args)
         {
-            path = Path.IsPathRooted(path) ? path : Path.Combine(ProgramInfo.CurrentDirectory, path);
-
-            using (var scope = _container.BeginLifetimeScope())
-            {
-                var testRunner = scope.Resolve<ITestRunner>();
-                await testRunner.RunTestsAsync(path, Enumerable.Empty<string>());
-            }
+            await _executor.ExecuteAsync(args.Join(" "));           
         }
 
         public void Dispose() => _container.Dispose();
