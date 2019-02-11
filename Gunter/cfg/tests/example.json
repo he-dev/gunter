@@ -26,8 +26,7 @@
                 "src-1"
             ],
             "Filter": "[Level] = 'trace'",
-            "Expression": "Count([Id]) = 0",
-            "Assert": true,
+            "Assert": "Count([Id]) = 0",
             "OnPassed": "None",
             "OnFailed": "Alert, Halt",
             "Messages": [
@@ -46,8 +45,7 @@
                 "src-1"
             ],
             "Filter": "[Level] = 'Error'",
-            "Expression": "Count([Id]) = 0",
-            "Assert": true,
+            "Assert": "Count([Id]) = 0",
             "OnPassed": "None",
             "OnFailed": "Alert, Halt",
             "Messages": [
@@ -66,8 +64,7 @@
                 "src-1"
             ],
             "Filter": "[Level] = 'Fatal'",
-            "Expression": "Count([Id]) = 0",
-            "Assert": true,
+            "Assert": "Count([Id]) = 0",
             "OnPassed": "None",
             "OnFailed": "Alert, Halt",
             "Messages": [

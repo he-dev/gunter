@@ -25,8 +25,7 @@
             "DataSources": [
                 "everything"
             ],
-            "Expression": "Count([_id]) > 0",
-            "Assert": true,
+            "Assert": "Count([_id]) > 0",
             "OnPassed": "None",
             "OnFailed": "Alert, Halt",
             "Messages": [
@@ -42,8 +41,7 @@
             "DataSources": [
                 "everything"
             ],
-            "Expression": "Count([_id]) = 0",
-            "Assert": true,
+            "Assert": "Count([_id]) = 0",
             "OnPassed": "None",
             "OnFailed": "Alert, Halt",
             "Messages": [
@@ -59,8 +57,7 @@
             "DataSources": [
                 "everything"
             ],
-            "Expression": "Count([_id]) < 100",
-            "Assert": true,
+            "Assert": "Count([_id]) < 100",
             "OnPassed": "Alert, Halt",
             "OnFailed": "Alert, Halt",
             "Messages": [
@@ -77,8 +74,7 @@
                 "everything"
             ],
             "Filter": "[Level] = 'Fatal'",
-            "Expression": "Count([Id]) = 0",
-            "Assert": true,
+            "Assert": "Count([Id]) = 0",
             "OnPassed": "None",
             "OnFailed": "Alert, Halt",
             "Messages": [

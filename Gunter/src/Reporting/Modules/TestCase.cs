@@ -8,6 +8,7 @@ using Gunter.Data.Dtos;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Data;
+using Reusable.IOnymous.Models;
 
 namespace Gunter.Reporting.Modules
 {
@@ -21,30 +22,50 @@ namespace Gunter.Reporting.Modules
         [DefaultValue(@"mm\:ss\.fff")]
         public string TimespanFormat { get; set; }
 
-        public override SectionDto CreateDto(TestContext context)
+        public override ModuleDto CreateDto(TestContext context)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
-            var section = new SectionDto
+            var section = new ModuleDto
             {
                 Heading = format(Heading),
-                Table = new TripleTableDto(new[]
-                {
-                    ColumnDto.Create<string>("Property"),
-                    ColumnDto.Create<string>("Value")
-                })
+                Data = new HtmlTable(HtmlTableColumn.Create
+                (
+                    ("Property", typeof(string)),
+                    ("Value", typeof(string))
+                ))
             };
-            var table = section.Table;
-
-            table.Body.Add(nameof(Gunter.Data.TestCase.Filter), context.TestCase.Filter);
-            table.Body.Add(nameof(Gunter.Data.TestCase.Expression), context.TestCase.Expression);
-            table.Body.Add(nameof(Gunter.Data.TestCase.Assert), context.TestCase.Assert.ToString());
-            table.Body.Add(nameof(Gunter.Data.TestCase.OnPassed), context.TestCase.OnPassed.ToString());
-            table.Body.Add(nameof(Gunter.Data.TestCase.OnFailed), context.TestCase.OnFailed.ToString());
-            table.Body.Add(nameof(Gunter.Data.TestCounter.RunTestElapsed), format($"{RuntimeVariable.TestCounter.AssertElapsed.ToString(TimespanFormat)}"));
-            table.Body.Add(nameof(Gunter.Data.TestCase.Profiles), $"[{string.Join(", ", context.TestCase.Profiles.Select(p => $"'{p}'"))}]");
+            
+            section.Data.Body.NewRow()
+                   .Update(Columns.Property, nameof(Gunter.Data.TestCase.Filter))
+                   .Update(Columns.Value, context.TestCase.Filter);
+            section.Data.Body.NewRow()
+                   .Update(Columns.Property, nameof(Gunter.Data.TestCase.Assert))
+                   .Update(Columns.Value, context.TestCase.Assert);
+            section.Data.Body.NewRow()
+                   .Update(Columns.Property, nameof(Gunter.Data.TestContext.Result))
+                   .Update(Columns.Value, context.Result.ToString(), context.Result.ToString().ToLower());
+            section.Data.Body.NewRow()
+                   .Update(Columns.Property, nameof(Gunter.Data.TestCase.OnPassed))
+                   .Update(Columns.Value, context.TestCase.OnPassed.ToString());
+            section.Data.Body.NewRow()
+                   .Update(Columns.Property, nameof(Gunter.Data.TestCase.OnFailed))
+                   .Update(Columns.Value, context.TestCase.OnFailed.ToString());
+            section.Data.Body.NewRow()
+                   .Update(Columns.Property, nameof(Gunter.Data.TestCounter.RunTestElapsed))
+                   .Update(Columns.Value, format($"{RuntimeVariable.TestCounter.AssertElapsed.ToString(TimespanFormat)}"));
+            section.Data.Body.NewRow()
+                   .Update(Columns.Property, nameof(Gunter.Data.TestCase.Profiles))
+                   .Update(Columns.Value, $"[{string.Join(", ", context.TestCase.Profiles.Select(p => $"'{p}'"))}]");
 
             return section;
+        }
+
+        private static class Columns
+        {
+            public const string Property = nameof(Property);
+
+            public const string Value = nameof(Value);
         }
     }
 }

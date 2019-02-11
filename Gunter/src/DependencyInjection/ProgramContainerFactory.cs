@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using Reusable;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
-using Reusable.OmniLog.Attachements;
+using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
 

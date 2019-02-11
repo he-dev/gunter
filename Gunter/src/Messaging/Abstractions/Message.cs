@@ -69,6 +69,6 @@ namespace Gunter.Messaging.Abstractions
             }
         }
 
-        protected abstract Task PublishReportAsync(TestContext context, IReport report, IEnumerable<(string Name, SectionDto Section)> sections);
+        protected abstract Task PublishReportAsync(TestContext context, IReport report, IEnumerable<(string Name, ModuleDto Section)> sections);
     }
 }

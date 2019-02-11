@@ -11,9 +11,7 @@ using JetBrains.Annotations;
 using Reusable;
 using Reusable.Commander;
 using Reusable.OmniLog;
-using Reusable.OmniLog.Attachements;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.SmartConfig;
 
 namespace Gunter
 {
@@ -45,9 +43,9 @@ namespace Gunter
             {
                 using (var program = Create())
                 {
-                    program.SayHallo();
+                    program.LogHallo();
                     await program.RunAsync();
-                    program.SayGoodBye();
+                    program.LogGoodBye();
                 }
 
                 return (int)ExitCode.Success;
@@ -59,9 +57,9 @@ namespace Gunter
             }
         }
 
-        private void SayHallo() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Hallo = "Let's find some glitches!" }));
+        private void LogHallo() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Hallo = "Let's find some glitches!" }));
 
-        private void SayGoodBye() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { GoodBye = "See you next time!" }));
+        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { GoodBye = "See you next time!" }));
 
         public async Task RunAsync()
         {

@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Reusable\Reusable.Teapot\Reusable.Teapot.csproj" />
+    <ProjectReference Include="..\..\Reusable\Reusable.Utilities.XUnit\Reusable.Utilities.XUnit.csproj" />
     <ProjectReference Include="..\Gunter\Gunter.csproj" />
   </ItemGroup>
 
@@ -46,10 +47,6 @@
     <None Update="cfg\tests\_Gunter.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="src\Services\" />
   </ItemGroup>
 
 </Project>

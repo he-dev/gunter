@@ -9,6 +9,7 @@ using Gunter.Data.Dtos;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Data;
+using Reusable.IOnymous.Models;
 
 namespace Gunter.Reporting.Modules
 {
@@ -26,24 +27,24 @@ namespace Gunter.Reporting.Modules
         [DefaultValue(@"mm\:ss\.fff")]
         public string TimespanFormat { get; set; }
 
-        public override SectionDto CreateDto(TestContext context)
+        public override ModuleDto CreateDto(TestContext context)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
             // Initialize the data-table;
-            var section = new SectionDto
+            var section = new ModuleDto
             {
                 Heading = format(Heading),
-                Table = new TripleTableDto(new[]
-                {
-                    ColumnDto.Create<string>("Property"),
-                    ColumnDto.Create<string>("Value")
-                })
+                Data = new HtmlTable(HtmlTableColumn.Create
+                (
+                    ("Property", typeof(string)),
+                    ("Value", typeof(string))
+                ))
             };
-            var table = section.Table;
+            var table = section.Data;
 
             table.Body.Add("Type", context.DataSource.GetType().Name);
-            table.Body.Add("Query", context.Query);
+            table.Body.NewRow().Update(Columns.Property, "Query").Update(Columns.Value, context.Query, "query");
             table.Body.Add("RowCount", context.Data.Rows.Count.ToString());
             table.Body.Add("Elapsed", format($"{RuntimeVariable.TestCounter.GetDataElapsed.ToString(TimespanFormat)}"));
 
@@ -63,6 +64,13 @@ namespace Gunter.Reporting.Modules
             }
 
             return section;
+        }
+        
+        private static class Columns
+        {
+            public const string Property = nameof(Property);
+
+            public const string Value = nameof(Value);
         }
     }
 }

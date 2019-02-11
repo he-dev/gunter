@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
@@ -10,16 +9,17 @@ using System.Threading.Tasks;
 using Autofac;
 using Dapper;
 using Gunter.ComponentSetup;
+using Gunter.Tests.Helpers;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Data.Repositories;
-using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
-using Reusable.OmniLog.Attachements;
+using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Teapot;
 using Reusable.Utilities.SqlClient;
+using Reusable.Utilities.XUnit.Fixtures;
 using Telerik.JustMock;
 using Telerik.JustMock.Helpers;
 using Xunit;
@@ -67,7 +67,7 @@ namespace Gunter.Tests
         {
             using (var teacup = _teapot.BeginScope())
             {
-                var testResult = teacup.Mock("/api/v2.0/Gunter/Alerts/TestResult").ArrangePost((request, response) =>
+                var testResult = teacup.Mock("/api/v1.0/Gunter/Alerts/TestResult").ArrangePost((request, response) =>
                 {
                     request
                         .AsUserAgent(ProgramInfo.Name, ProgramInfo.Version)
@@ -91,61 +91,16 @@ namespace Gunter.Tests
 
                     var exceptions = _memoryRx.Exceptions<Exception>();
 
-                    False(exceptions.Any());
+                    False(exceptions.Any(), "There must not occur any exceptions.");
 
                     testResult.Assert();
                 }
             }
         }
 
-
         public Task DisposeAsync()
         {
             return Task.CompletedTask;
-        }
-    }
-
-    internal static class LoggerExtensions
-    {
-        public static IEnumerable<T> Exceptions<T>(this IEnumerable<ILog> logs) where T : Exception
-        {
-            return
-                logs
-                    .Select(log => log.Exception<T>())
-                    .Where(Conditional.IsNotNull);
-        }
-    }
-
-    internal static class LogExtensions
-    {
-        public static T Exception<T>(this ILog log) where T : Exception => log.Property<T>();
-
-        //public static T PropertyOrDefault<T>(this ILog log, string name) => log.TryGetValue(name, out var value) && value is T actual ? actual : default;
-    }
-
-    [UsedImplicitly]
-    public class TeapotFactoryFixture : IDisposable
-    {
-        private readonly ConcurrentDictionary<string, TeapotServer> _servers;
-
-        public TeapotFactoryFixture()
-        {
-            _servers = new ConcurrentDictionary<string, TeapotServer>();
-        }
-
-        public TeapotServer CreateTeapotServer([NotNull] string url)
-        {
-            if (url == null) throw new ArgumentNullException(nameof(url));
-
-            return _servers.GetOrAdd(url, u => new TeapotServer(u));
-        }
-
-        public void Dispose()
-        {
-            foreach (var teapotServer in _servers.Values)
-            {
-                teapotServer.Dispose();
-            }
         }
     }
 }

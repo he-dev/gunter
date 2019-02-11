@@ -18,7 +18,7 @@ namespace Gunter.Reporting
 
         int Ordinal { get; set; }
 
-        SectionDto CreateDto(TestContext context);
+        ModuleDto CreateDto(TestContext context);
     }
 
     public abstract class Module : IModule
@@ -29,7 +29,7 @@ namespace Gunter.Reporting
 
         public int Ordinal { get; set; }
 
-        public abstract SectionDto CreateDto(TestContext context);
+        public abstract ModuleDto CreateDto(TestContext context);
     }
 
     public interface ITabular

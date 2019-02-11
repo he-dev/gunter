@@ -17,6 +17,7 @@ using Reusable.Collections;
 using Reusable.Data;
 using Reusable.Exceptionizer;
 using Reusable.Extensions;
+using Reusable.IOnymous.Models;
 using Reusable.Reflection;
 
 namespace Gunter.Reporting.Modules
@@ -51,7 +52,7 @@ namespace Gunter.Reporting.Modules
         [ItemCanBeNull]
         public List<ColumnMetadata> Columns { get; set; } = new List<ColumnMetadata>();
 
-        public override SectionDto CreateDto(TestContext context)
+        public override ModuleDto CreateDto(TestContext context)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
@@ -62,19 +63,19 @@ namespace Gunter.Reporting.Modules
             if (!Columns.Any())
             {
                 columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnMetadata
-                {
-                    Name = c.ColumnName,
-                    Total = ColumnTotal.Last
-                })
-                .ToList();
+                                 {
+                                     Name = c.ColumnName,
+                                     Total = ColumnTotal.Last
+                                 })
+                                 .ToList();
             }
 
-            var section = new SectionDto
+            var section = new ModuleDto
             {
                 Heading = format(Heading),
-                Table = new TripleTableDto(columns.Select(column => ColumnDto.Create<string>((column.Display ?? column.Name).ToString())))
+                Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Name).ToString(), typeof(string))).ToArray()))
             };
-            var table = section.Table;
+            //var table = section.Data;
 
             // Filter rows before processing them.
             var filteredRows = context.Data.Select(context.TestCase.Filter);
@@ -85,16 +86,16 @@ namespace Gunter.Reporting.Modules
 
             // Create aggregated rows and add them to the final data-table.            
             var aggregatedRows =
-                from rowGroup in rowGroups                
+                from rowGroup in rowGroups
                 select (from column in columns select Aggregate(column, rowGroup));
 
             foreach (var row in aggregatedRows)
             {
-                table.Body.Add(row);
+                section.Data.Body.Add(row);
             }
 
             // Add the footer row with column options.
-            table.Foot.Add(columns.Select(column => string.Join(", ", StringifyColumnOption(column))).ToList());
+            section.Data.Foot.Add(columns.Select(column => string.Join(", ", StringifyColumnOption(column))).ToList());
 
             return section;
 

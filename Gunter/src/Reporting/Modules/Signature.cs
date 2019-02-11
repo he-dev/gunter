@@ -6,11 +6,11 @@ namespace Gunter.Reporting.Modules
 {
     public class Signature : Module
     {
-        public override SectionDto CreateDto(TestContext context)
+        public override ModuleDto CreateDto(TestContext context)
         {
             var format = (FormatFunc)context.Formatter.Format;
 
-            return new SectionDto
+            return new ModuleDto
             {
                 Text = format($"{RuntimeVariable.Program.FullName}"),
                 Ordinal = Ordinal

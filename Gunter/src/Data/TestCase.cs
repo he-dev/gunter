@@ -53,11 +53,7 @@ namespace Gunter.Data
         public string Filter { get; set; }
 
         [Mergable]
-        public string Expression { get; set; }
-
-        [DefaultValue(true)]
-        [Mergable]
-        public bool Assert { get; set; }
+        public string Assert { get; set; }
 
         [DefaultValue(TestRunnerActions.None)]
         [Mergable]

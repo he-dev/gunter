@@ -75,13 +75,18 @@ namespace Gunter.Services
 
             var cache = new Dictionary<SoftString, (DataTable Data, string Query, TimeSpan Elapsed)>();
 
-            using (_logger.BeginScope().WithCorrelationContext(new { TestBundle = testBundle.FileName }).AttachElapsed())
-            using (Disposable.Create(() => { foreach (var (data, _, _) in cache.Values) { data.Dispose(); } }))
+            using (_logger.BeginScope().WithCorrelationHandle("TestBundle").AttachElapsed())
+            using (Disposable.Create(() =>
             {
+                foreach (var (data, _, _) in cache.Values) { data.Dispose(); }
+            }))
+            {
+                _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { TestBundleFileName = testBundle.FileName }));
                 foreach (var current in tests)
                 {
-                    using (_logger.BeginScope().WithCorrelationContext(new { TestCase = current.testCase.Id }).AttachElapsed())
+                    using (_logger.BeginScope().WithCorrelationHandle("TestCase").AttachElapsed())
                     {
+                        _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { TestCaseId = current.testCase.Id }));
                         try
                         {
                             if (!cache.TryGetValue(current.dataSource.Id, out var cacheItem))
@@ -91,18 +96,9 @@ namespace Gunter.Services
                                 cache[current.dataSource.Id] = cacheItem = (data, query, getDataStopwatch.Elapsed);
                             }
 
-                            var (result, elapsed, actions) = RunTest(current.testCase, cacheItem.Data);
-
-                            _logger.Log(Abstraction.Layer.Infrastructure().Meta(new
-                            {
-                                Test = new
-                                {
-                                    current.testCase.Id,
-                                    Result = result,
-                                    Elapsed = elapsed.ToString(@"mm\:ss\.fff"),
-                                    Actions = actions
-                                }
-                            }));
+                            var assertStopwatch = Stopwatch.StartNew();
+                            var (result, actions) = RunTest(current.testCase, cacheItem.Data);
+                            var assertElapsed = assertStopwatch.Elapsed;                            
 
                             if (actions.Alert())
                             {
@@ -117,7 +113,7 @@ namespace Gunter.Services
                                             new TestCounter
                                             {
                                                 GetDataElapsed = cacheItem.Elapsed,
-                                                RunTestElapsed = elapsed
+                                                RunTestElapsed = assertElapsed
                                             },
                                         }
                                     );
@@ -129,7 +125,8 @@ namespace Gunter.Services
                                     DataSource = current.dataSource,
                                     Data = cacheItem.Data,
                                     Formatter = testCaseFormatter,
-                                    Query = cacheItem.Query
+                                    Query = cacheItem.Query,
+                                    Result = result
                                 });
                             }
 
@@ -154,15 +151,16 @@ namespace Gunter.Services
             }
         }
 
-        private static (TestResult Result, TimeSpan Elapsed, TestRunnerActions Actions) RunTest(TestCase testCase, DataTable data)
+        private (TestResult Result, TestRunnerActions Actions) RunTest(TestCase testCase, DataTable data)
         {
-            var assertStopwatch = Stopwatch.StartNew();
-            if (!(data.Compute(testCase.Expression, testCase.Filter) is bool result))
+            if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
             {
-                throw new InvalidOperationException($"Expression must evaluate to {nameof(Boolean)}.");
+                throw new InvalidOperationException($"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
             }
 
-            var testResult = result == testCase.Assert ? TestResult.Passed : TestResult.Failed;
+            var testResult = result ? TestResult.Passed : TestResult.Failed;
+            
+            _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Result = testResult }));
 
             var alert =
                 (testResult.Passed() && testCase.OnPassed.Alert()) ||
@@ -177,7 +175,7 @@ namespace Gunter.Services
             if (alert) actions |= TestRunnerActions.Alert;
             if (halt) actions |= TestRunnerActions.Halt;
 
-            return (testResult, assertStopwatch.Elapsed, actions);
+            return (testResult, actions);
         }
 
         private static async Task AlertAsync(TestContext context)

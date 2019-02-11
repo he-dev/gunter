@@ -31,6 +31,7 @@
     <Compile Remove="src\Messaging\Emails\Internal\**" />
     <EmbeddedResource Remove="src\Messaging\Emails\Internal\**" />
     <None Remove="src\Messaging\Emails\Internal\**" />
+    <Compile Remove="src\Data\Dtos\TableDto.cs" />
   </ItemGroup>
 
   <ItemGroup>
