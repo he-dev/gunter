@@ -27,18 +27,17 @@ namespace Gunter.Services
     [UsedImplicitly]
     internal class TestRunner : ITestRunner
     {
-        private readonly RuntimeVariableDictionaryFactory _runtimeVariableDictionaryFactory;
         private readonly ILogger _logger;
+        private readonly RuntimeVariableDictionaryFactory _runtimeVariableDictionaryFactory;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
-            IResourceProvider resourceProvider,
             RuntimeVariableDictionaryFactory runtimeVariableDictionaryFactory
         )
         {
-            _runtimeVariableDictionaryFactory = runtimeVariableDictionaryFactory;
             _logger = logger;
+            _runtimeVariableDictionaryFactory = runtimeVariableDictionaryFactory;
         }
 
         public async Task RunAsync(IEnumerable<TestBundle> testBundles)
@@ -63,11 +62,10 @@ namespace Gunter.Services
 
         private async Task RunAsync(TestBundle testBundle)
         {
-            var testIndex = 0;
             var tests =
                 from testCase in testBundle.Tests
                 from dataSource in testCase.DataSources(testBundle)
-                select (testCase, dataSource, testIndex: testIndex++);
+                select (testCase, dataSource);
 
             var runtimeVariables = _runtimeVariableDictionaryFactory.Create(new object[] { testBundle }, testBundle.Variables.Flatten());
 
@@ -97,42 +95,43 @@ namespace Gunter.Services
                                 cache[current.dataSource.Id] = cacheItem = (data, query, getDataStopwatch.Elapsed);
                             }
 
-                            var assertStopwatch = Stopwatch.StartNew();
-                            var (result, actions) = RunTest(current.testCase, cacheItem.Data);
-                            var assertElapsed = assertStopwatch.Elapsed;
+                            var (result, runElapsed, when) = RunTest(current.testCase, cacheItem.Data);
 
-                            if (actions.Alert())
+                            var context = new TestContext
                             {
-                                var testCaseFormatter =
-                                    _runtimeVariableDictionaryFactory.Create
-                                    (
-                                        new object[]
+                                TestBundle = testBundle,
+                                TestCase = current.testCase,
+                                TestWhen = when,
+                                DataSource = current.dataSource,
+                                Data = cacheItem.Data,
+                                RuntimeVariables = _runtimeVariableDictionaryFactory.Create
+                                (
+                                    new object[]
+                                    {
+                                        testBundle,
+                                        current.testCase,
+                                        //current.dataSource, // todo - not used - should be query
+                                        new TestCounter
                                         {
-                                            testBundle,
-                                            current.testCase,
-                                            current.dataSource, // todo - not used - should be query
-                                            new TestCounter
-                                            {
-                                                GetDataElapsed = cacheItem.Elapsed,
-                                                RunTestElapsed = assertElapsed
-                                            },
+                                            GetDataElapsed = cacheItem.Elapsed,
+                                            RunTestElapsed = runElapsed
                                         },
-                                        testBundle.Variables.Flatten()
-                                    );
+                                    },
+                                    testBundle.Variables.Flatten()
+                                ),
+                                Query = cacheItem.Query,
+                                Result = result
+                            };
 
-                                await AlertAsync(new TestContext
-                                {
-                                    TestBundle = testBundle,
-                                    TestCase = current.testCase,
-                                    DataSource = current.dataSource,
-                                    Data = cacheItem.Data,
-                                    RuntimeVariables = testCaseFormatter,
-                                    Query = cacheItem.Query,
-                                    Result = result
-                                });
-                            }
+                            var messengers =
+                                context
+                                    .TestWhen
+                                    .Messengers(context.TestBundle)
+                                    .Select(messenger => messenger.SendAsync(context));
+                            
+                            await Task.WhenAll(messengers);
 
-                            if (actions.Halt())
+                            if (when.Halt)
                             {
                                 break;
                             }
@@ -142,6 +141,7 @@ namespace Gunter.Services
                         catch (DynamicException ex) when (ex.NameMatches("^DataSource"))
                         {
                             _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Faulted(), ex);
+                            // It'd be pointless to continue when there is no data.
                             break;
                         }
                         catch (Exception ex)
@@ -153,53 +153,24 @@ namespace Gunter.Services
             }
         }
 
-        private (TestResult Result, TestRunnerActions Actions) RunTest(TestCase testCase, DataTable data)
+        private (TestResult Result, TimeSpan Elapsed, TestWhen When) RunTest(TestCase testCase, DataTable data)
         {
+            var assertStopwatch = Stopwatch.StartNew();
             if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
             {
-                throw new InvalidOperationException($"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
+                throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
             }
+
+            var assertElapsed = assertStopwatch.Elapsed;
 
             var testResult = result ? TestResult.Passed : TestResult.Failed;
 
             _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Result = testResult }));
 
-            var alert =
-                (testResult.Passed() && testCase.OnPassed.Alert()) ||
-                (testResult.Failed() && testCase.OnFailed.Alert());
-
-            var halt =
-                (testResult.Passed() && testCase.OnPassed.Halt()) ||
-                (testResult.Failed() && testCase.OnFailed.Halt());
-
-            var actions = TestRunnerActions.None;
-
-            if (alert) actions |= TestRunnerActions.Alert;
-            if (halt) actions |= TestRunnerActions.Halt;
-
-            return (testResult, actions);
+            return
+                testCase.When.TryGetValue(testResult, out var when)
+                    ? (testResult, assertElapsed, when)
+                    : (testResult, assertElapsed, default);
         }
-
-        private static async Task AlertAsync(TestContext context)
-        {
-            foreach (var message in context.TestCase.Messages(context.TestBundle))
-            {
-                await message.PublishAsync(context);
-            }
-        }
-    }
-
-    public static class TestResultExtensions
-    {
-        public static bool Passed(this TestResult result) => result == TestResult.Passed;
-
-        public static bool Failed(this TestResult result) => result == TestResult.Failed;
-    }
-
-    public static class TestRunnerActionExtensions
-    {
-        public static bool Halt(this TestRunnerActions actions) => actions.HasFlag(TestRunnerActions.Halt);
-
-        public static bool Alert(this TestRunnerActions actions) => actions.HasFlag(TestRunnerActions.Alert);
     }
 }

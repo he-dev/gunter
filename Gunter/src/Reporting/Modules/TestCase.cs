@@ -45,11 +45,8 @@ namespace Gunter.Reporting.Modules
                 .Update(Columns.Property, nameof(Gunter.Data.TestContext.Result))
                 .Update(Columns.Value, context.Result.ToString(), context.Result.ToString().ToLower());
             section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestCase.OnPassed))
-                .Update(Columns.Value, context.TestCase.OnPassed.ToString());
-            section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestCase.OnFailed))
-                .Update(Columns.Value, context.TestCase.OnFailed.ToString());
+                .Update(Columns.Property, nameof(Gunter.Data.TestCase.When))
+                .Update(Columns.Value, context.TestCase.When);
             section.Data.Body.NewRow()
                 .Update(Columns.Property, nameof(Gunter.Data.TestCounter.RunTestElapsed))
                 .Update(Columns.Value, $"{RuntimeValue.TestCounter.AssertElapsed.ToString(TimespanFormat)}".Format(context.RuntimeVariables));

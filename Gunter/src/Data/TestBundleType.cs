@@ -1,4 +1,5 @@
-namespace Gunter.Data {
+namespace Gunter.Data
+{
     public enum TestBundleType
     {
         Unknown,

@@ -62,7 +62,8 @@ namespace Gunter.DependencyInjection
                 {
                     var context = c.Resolve<IComponentContext>();
                     return new AutofacContractResolver(context);
-                }).SingleInstance()
+                })
+                .SingleInstance()
                 .As<IContractResolver>();
 
             builder

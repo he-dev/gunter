@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Custom;
 using Gunter.Annotations;
-using Gunter.Messaging;
-using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
@@ -36,39 +34,35 @@ namespace Gunter.Data
         public Merge Merge { get; set; }
 
         [DefaultValue(true)]
-        [Mergable]
+        [Mergeable]
         public bool Enabled { get; set; }
 
-        [Mergable]
+        [Mergeable]
         public LogLevel Level { get; set; } = LogLevel.Warning;
 
-        [Mergable]
+        [Mergeable]
         public string Message { get; set; }
-        
+
         [JsonProperty("DataSources", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [Mergable]
+        [Mergeable]
         public IList<SoftString> DataSourceIds { get; set; } = new List<SoftString>();
 
-        [Mergable]
+        [Mergeable]
         public string Filter { get; set; }
 
-        [Mergable]
+        [Mergeable]
         public string Assert { get; set; }
 
-        [DefaultValue(TestRunnerActions.None)]
-        [Mergable]
-        public TestRunnerActions OnPassed { get; set; }
+        //[Mergeable]
+        //public IDictionary<TestResult, TestRunnerActions> When { get; set; }
+        public IDictionary<TestResult, TestWhen> When { get; set; }
 
-        [DefaultValue(TestRunnerActions.Alert | TestRunnerActions.Halt)]
-        [Mergable]
-        public TestRunnerActions OnFailed { get; set; }
-
-        [JsonProperty("Messages", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [Mergable]
-        public IList<SoftString> MessageIds { get; set; } = new List<SoftString>();
+        //[JsonProperty("Publishers", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        //[Mergeable]
+        //public IList<SoftString> PublisherIds { get; set; } = new List<SoftString>();
 
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [Mergable]
+        [Mergeable]
         public IList<SoftString> Tags { get; set; } = new List<SoftString>();
     }
 
@@ -78,31 +72,42 @@ namespace Gunter.Data
         {
             return
                 (from id in testCase.DataSourceIds
-                 join ds in testBundle.DataSources on id equals ds.Id
-                 select ds).Distinct();
+                    join ds in testBundle.DataSources on id equals ds.Id
+                    select ds).Distinct();
         }
 
-        public static IEnumerable<IMessage> Messages(this TestCase testCase, TestBundle testBundle)
+        public static IEnumerable<IMessenger> Messengers(this TestWhen testWhen, TestBundle testBundle)
         {
             return
-                (from id in testCase.MessageIds
-                 join alert in testBundle.Messages on id equals alert.Id
-                 select alert).Distinct();
+            (
+                from id in testWhen.MessengerIds ?? Enumerable.Empty<SoftString>()
+                join messenger in testBundle.Messengers on id equals messenger.Id
+                select messenger
+            ).Distinct();
         }
 
-        public static IEnumerable<IReport> Reports(this TestCase testCase, TestBundle testBundle)
+        public static IEnumerable<IReport> Reports(this TestWhen testWhen, TestBundle testBundle)
         {
             return
-                (from id in testCase.Messages(testBundle).SelectMany(alert => alert.ReportIds)
-                 join report in testBundle.Reports on id equals report.Id
-                 select report).Distinct();
+            (
+                from id in testWhen.Messengers(testBundle).SelectMany(alert => alert.ReportIds)
+                join report in testBundle.Reports on id equals report.Id
+                select report
+            ).Distinct();
         }
-        
+
 
         public static bool IsNullOr<T>(this IEnumerable<T> source, Predicate<IEnumerable<T>> predicate)
         {
             return source is null || predicate(source);
         }
     }
-}
 
+    public class TestWhen
+    {
+        public bool Halt { get; set; }
+
+        [JsonProperty("Send", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public IEnumerable<SoftString> MessengerIds { get; set; }
+    }
+}

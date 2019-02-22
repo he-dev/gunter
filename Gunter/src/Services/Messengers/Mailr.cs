@@ -1,27 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Data.Dtos;
-using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
-using Reusable.Extensions;
 
-namespace Gunter.Messaging
+namespace Gunter.Services.Messengers
 {
     [PublicAPI]
-    public class Mailr : Message
+    public class Mailr : Messenger
     {
         private readonly IConfiguration _configuration;
         private readonly IResourceProvider _resourceProvider;
@@ -37,11 +33,14 @@ namespace Gunter.Messaging
             _resourceProvider = resourceProvider;
         }
 
-        [Mergable]
+        [Mergeable]
         public IList<string> To { get; set; }
+        
+        [Mergeable]
+        public IList<string> CC { get; set; }
 
         [DefaultValue("default")]
-        [Mergable]
+        [Mergeable]
         public string Theme { get; set; }
 
         [JsonIgnore]
@@ -59,7 +58,7 @@ namespace Gunter.Messaging
 
             var email = Email.CreateHtml(to, subject, body, e => e.Theme = Theme);
 
-            Logger.Log(Abstraction.Layer.Infrastructure().Variable(new { email = new { email.To, email.Subject, email.Theme } }));
+            Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Email = new { email.To, email.Subject, email.Theme, Modules = body.Modules.Select(m => m.Key) } }));
 
             await _resourceProvider.SendAsync(TestResultPath, email, ProgramInfo.Name, ProgramInfo.Version);
         }

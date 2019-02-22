@@ -29,10 +29,10 @@ namespace Gunter.Reporting
 
         public Merge Merge { get; set; }
 
-        [Mergable]
+        [Mergeable]
         public string Title { get; set; }
 
-        [Mergable]
+        [Mergeable]
         public List<IModule> Modules { get; set; } = new List<IModule>();
 
         public IEnumerator<IModule> GetEnumerator() => Modules.GetEnumerator();

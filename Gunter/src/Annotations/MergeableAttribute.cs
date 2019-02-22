@@ -3,7 +3,7 @@
 namespace Gunter.Annotations
 {
     [AttributeUsage(AttributeTargets.Property)]
-    internal class MergableAttribute : Attribute
+    internal class MergeableAttribute : Attribute
     {
         public bool Required { get; set; }
     }

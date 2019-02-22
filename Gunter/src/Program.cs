@@ -58,16 +58,16 @@ namespace Gunter
             }
         }
 
-        private void LogHallo() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Hallo = "Let's find some glitches!" }));
+        private void LogHallo() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Hallo = "G’day!" }));
 
-        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { GoodBye = "See you next time!" }));
+        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { GoodBye = "See ya!" }));
 
         public async Task RunAsync()
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var programInfo = _container.Resolve<ProgramInfo>();
             var defaultPath = Path.Combine(currentDirectory, programInfo.DefaultTestsDirectoryName);
-            await RunAsync($"run -path \"{defaultPath}\"");
+            await RunAsync("run -path \"{defaultPath}\"");
         }
 
         public async Task RunAsync(params string[] args)
@@ -82,18 +82,5 @@ namespace Gunter
     {
         Success = 0,
         Error = 1,
-    }
-
-    public class RuntimeString
-    {
-        public RuntimeString()
-        {
-            
-        }
-        
-        public string Format(IDictionary<SoftString, object> values)
-        {
-            return default;
-        }
     }
 }

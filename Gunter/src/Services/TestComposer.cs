@@ -41,7 +41,7 @@ namespace Gunter.Services
             builder.True(x => ContainsUniqueIds(x.Variables, comparer));
             builder.True(x => ContainsUniqueIds(x.DataSources, comparer));
             builder.True(x => ContainsUniqueIds(x.Tests, comparer));
-            builder.True(x => ContainsUniqueIds(x.Messages, comparer));
+            builder.True(x => ContainsUniqueIds(x.Messengers, comparer));
             builder.True(x => ContainsUniqueIds(x.Reports, comparer));
         });
 
@@ -90,7 +90,7 @@ namespace Gunter.Services
         //[SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
         private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partials, out TestBundle composition)
         {
-            var scope = _logger.BeginScope().AttachElapsed();
+            var scope = _logger.BeginScope().WithCorrelationHandle("Merge").AttachElapsed();
             try
             {
                 composition = _componentContext.Resolve<TestBundle>();
@@ -98,7 +98,7 @@ namespace Gunter.Services
                 composition.Variables = Merge(testBundle, partials, bundle => bundle.Variables).ToList();
                 composition.DataSources = Merge(testBundle, partials, bundle => bundle.DataSources).ToList();
                 composition.Tests = Merge(testBundle, partials, bundle => bundle.Tests).ToList();
-                composition.Messages = Merge(testBundle, partials, bundle => bundle.Messages).ToList();
+                composition.Messengers = Merge(testBundle, partials, bundle => bundle.Messengers).ToList();
                 composition.Reports = Merge(testBundle, partials, bundle => bundle.Reports).ToList();
 
                 composition.ValidateWith(TestBundleBouncer).Assert();
@@ -140,7 +140,7 @@ namespace Gunter.Services
                 merged.Id = mergeable.Id;
                 merged.Merge = mergeable.Merge;
 
-                var mergeableProperties = merged.GetType().GetProperties().Where(p => p.IsDefined(typeof(MergableAttribute)));
+                var mergeableProperties = merged.GetType().GetProperties().Where(p => p.IsDefined(typeof(MergeableAttribute)));
 
                 foreach (var property in mergeableProperties)
                 {
@@ -157,7 +157,7 @@ namespace Gunter.Services
                             break;
                     }
 
-                    if (property.GetCustomAttribute<MergableAttribute>().Required && newValue is null)
+                    if (property.GetCustomAttribute<MergeableAttribute>().Required && newValue is null)
                     {
                         throw DynamicException.Create(
                             "MissingValue",

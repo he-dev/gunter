@@ -8,8 +8,6 @@ using System.ComponentModel;
 using System.Data;
 using System.IO;
 using Gunter.Annotations;
-using Gunter.Messaging;
-using Gunter.Messaging.Abstractions;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
@@ -34,7 +32,7 @@ namespace Gunter.Data
         public List<TestCase> Tests { get; set; } = new List<TestCase>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<IMessage> Messages { get; set; } = new List<IMessage>();
+        public List<IMessenger> Messengers { get; set; } = new List<IMessenger>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IReport> Reports { get; set; } = new List<IReport>();
@@ -63,7 +61,7 @@ namespace Gunter.Data
             yield return Variables;
             yield return DataSources;
             yield return Tests;
-            yield return Messages;
+            yield return Messengers;
             yield return Reports;
         }
 
@@ -103,7 +101,7 @@ namespace Gunter.Data
 
         public Merge Merge { get; set; }
 
-        [Mergable]
+        [Mergeable]
         public IDictionary<SoftString, object> Items { get; set; }
 
         public IEnumerator<TestBundleVariable> GetEnumerator() => Items.Select(x => (TestBundleVariable)x).GetEnumerator();

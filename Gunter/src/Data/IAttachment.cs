@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace Gunter.Data.Attachements.Abstractions
+namespace Gunter.Data
 {
     public interface IAttachment
     {

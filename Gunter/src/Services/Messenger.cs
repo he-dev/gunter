@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
@@ -13,19 +12,19 @@ using Reusable;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 
-namespace Gunter.Messaging.Abstractions
+namespace Gunter.Services
 {
-    public interface IMessage : IMergeable
+    public interface IMessenger : IMergeable
     {
         [JsonProperty("Reports")]
         IList<SoftString> ReportIds { get; set; }
 
-        Task PublishAsync(TestContext context);
+        Task SendAsync(TestContext context);
     }
 
-    public abstract class Message : IMessage
+    public abstract class Messenger : IMessenger
     {
-        protected Message([NotNull] ILogger logger)
+        protected Messenger([NotNull] ILogger logger)
         {
             Logger = logger;
         }
@@ -37,10 +36,10 @@ namespace Gunter.Messaging.Abstractions
 
         public Merge Merge { get; set; }
 
-        [Mergable]
+        [Mergeable]
         public IList<SoftString> ReportIds { get; set; } = new List<SoftString>();
 
-        public async Task PublishAsync(TestContext context)
+        public async Task SendAsync(TestContext context)
         {
             var reports =
                 from id in ReportIds
@@ -49,21 +48,22 @@ namespace Gunter.Messaging.Abstractions
 
             foreach (var report in reports)
             {
-                using (Logger.BeginScope().WithCorrelationContext(new { Report = report.Id }).AttachElapsed())
+                using (Logger.BeginScope().WithCorrelationHandle("Report").AttachElapsed())
                 {
+                    Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { ReportId = report.Id }));
                     try
                     {
-                        var dtos =
+                        var sections =
                             from module in report.Modules
                             let dto = module.CreateDto(context)
                             select (module.GetType().Name, dto);
-                        
-                        await PublishReportAsync(context, report, dtos);
-                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(PublishAsync)).Completed());
+
+                        await PublishReportAsync(context, report, sections);
+                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(SendAsync)).Completed());
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(PublishAsync)).Faulted(), ex);
+                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(SendAsync)).Faulted(), ex);
                     }
                 }
             }

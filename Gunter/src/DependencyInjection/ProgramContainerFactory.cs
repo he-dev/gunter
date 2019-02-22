@@ -3,6 +3,7 @@ using Autofac;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Exceptionizer;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
@@ -43,7 +44,7 @@ namespace Gunter.DependencyInjection
             }
             catch (Exception inner)
             {
-                throw ExceptionHelper.InitializationException(inner);
+                throw DynamicException.Create("ContainerInitialization", "Could not initialize program container.", inner);
             }
         }
 
@@ -68,7 +69,7 @@ namespace Gunter.DependencyInjection
             }
             catch (Exception inner)
             {
-                throw ExceptionHelper.InitializationException(inner);
+                throw DynamicException.Create("LoggerInitialization", "Could not initialize logger.", inner);
             }
         }
     }

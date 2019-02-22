@@ -1,14 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Data;
-using Gunter.Data.Attachements.Abstractions;
 using Gunter.Extensions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reusable.Exceptionizer;
-using Reusable.Reflection;
 
-namespace Gunter.Data.Attachements
+namespace Gunter.Data.Attachments
 {
     [UsedImplicitly]
     public class JsonValue : IAttachment

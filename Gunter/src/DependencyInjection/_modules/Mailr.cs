@@ -7,7 +7,7 @@ namespace Gunter.DependencyInjection
         protected override void Load(ContainerBuilder builder)
         {
             builder
-                .RegisterType<Messaging.Mailr>();
+                .RegisterType<Services.Messengers.Mailr>();
         }
     }
 }

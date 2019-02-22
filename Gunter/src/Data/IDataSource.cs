@@ -13,8 +13,5 @@ namespace Gunter.Data
     {
         [ItemNotNull]
         Task<(DataTable Data, string Query)> GetDataAsync(string path, RuntimeVariableDictionary runtimeVariableDictionary);
-
-        //[CanBeNull]
-        //string ToString(IRuntimeFormatter formatter);
     }
 }

@@ -23,14 +23,14 @@ namespace Gunter.Data
 
         public static Merge Parse(string merge)
         {
-            // _Global/301?base
+            // other-file-name#other-id
 
             //var joinTypes = Enum.GetNames(typeof(JoinType)).Join("|");
             //var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z]+)\\/(?<otherId>\\d+)\\?(?<type>{joinTypes})", RegexOptions.IgnoreCase);
-            var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z0-9-]+)\\/(?<otherId>[_a-z0-9-]+)", RegexOptions.IgnoreCase);
+            var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z0-9-]+)#(?<otherId>[_a-z0-9-]+)", RegexOptions.IgnoreCase);
             if (!mergeMatch.Success)
             {
-                throw DynamicException.Create($"InvalidMergeExpression", $"{merge.QuoteWith("'")} is not a valid merge expression. Expected: 'Name/Id'.");
+                throw DynamicException.Create($"InvalidMergeExpression", $"{merge.QuoteWith("'")} is not a valid merge expression. Expected: 'Name#Id'.");
             }
 
             return new Merge
@@ -41,6 +41,6 @@ namespace Gunter.Data
             );
         }
 
-        public override string ToString() => $"{OtherFileName}/{OtherId}";
+        public override string ToString() => $"{OtherFileName}#{OtherId}";
     }
 }

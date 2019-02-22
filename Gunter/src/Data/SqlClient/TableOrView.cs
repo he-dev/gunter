@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
-using Gunter.Data.Attachements.Abstractions;
 using Gunter.Extensions;
 using Gunter.Services;
 using JetBrains.Annotations;
@@ -33,40 +32,39 @@ namespace Gunter.Data.SqlClient
 
         private ILogger Logger { get; }
 
+        [JsonRequired]
         public SoftString Id { get; set; }
 
         public Merge Merge { get; set; }
 
         [NotNull]
-        [Mergable(Required = true)]
+        [Mergeable(Required = true)]
         public string ConnectionString { get; set; }
 
         [NotNull]
-        [Mergable(Required = true)]
+        [Mergeable(Required = true)]
         public string Query { get; set; }
 
         [CanBeNull]
-        [Mergable]
+        [Mergeable]
         public IList<IAttachment> Attachments { get; set; }
 
         public async Task<(DataTable Data, string Query)> GetDataAsync(string path, RuntimeVariableDictionary runtimeVariableDictionary)
         {
-            var connectionString = ConnectionString.Format(runtimeVariableDictionary);
-            var query = GetQuery(path, runtimeVariableDictionary);
-
-            var scope = Logger.BeginScope().AttachElapsed();
             try
             {
-                Logger.Log(Abstraction.Layer.Database().Composite(new { properties = new { connectionString, query } }));
-
-                using (var conn = new SqlConnection(connectionString))
+                using (Logger.BeginScope().WithCorrelationHandle("DataSource").AttachElapsed())
+                using (var conn = new SqlConnection(ConnectionString.Format(runtimeVariableDictionary) ?? throw DynamicException.Create("ConnectionStringNull", "You need to specify a connection-string.")))
                 {
+                    Logger.Log(Abstraction.Layer.Database().Meta(new { conn.ConnectionString }));
                     conn.Open();
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = query;
+                        cmd.CommandText = GetQuery(path, runtimeVariableDictionary);
                         cmd.CommandType = CommandType.Text;
+
+                        Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See: [Message]" }), cmd.CommandText);
 
                         using (var dataReader = await cmd.ExecuteReaderAsync())
                         {
@@ -75,21 +73,17 @@ namespace Gunter.Data.SqlClient
 
                             EvaluateAttachments(dataTable);
 
-                            Logger.Log(Abstraction.Layer.Database().Meta(new { DataTable = new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count } }));
+                            Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count }));
                             Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
 
-                            return (dataTable, query);
+                            return (dataTable, cmd.CommandText);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                throw DynamicException.Create("DataSource", $"Unable to get data for {Id}.", ex);
-            }
-            finally
-            {
-                scope.Dispose();
+                throw DynamicException.Create(nameof(TableOrView), $"Error getting or processing data for data-source '{Id}'.", ex);
             }
         }
 
@@ -113,7 +107,7 @@ namespace Gunter.Data.SqlClient
                     }
                     catch (Exception inner)
                     {
-                        throw DynamicException.Create("AttachementCompute", $"Could not compute the '{attachment.Name}' attachement.", inner);
+                        throw DynamicException.Create("AttachmentCompute", $"Could not compute the '{attachment.Name}' attachment.", inner);
                     }
                 }
             }
@@ -122,7 +116,7 @@ namespace Gunter.Data.SqlClient
         [NotNull]
         private string GetQuery(string path, RuntimeVariableDictionary runtimeVariableDictionary)
         {
-            var query = Query.Format(runtimeVariableDictionary);
+            var query = Query.Format(runtimeVariableDictionary) ?? throw DynamicException.Create("QueryNull", "You need to specify a connection-string.");
 
             if (Uri.TryCreate(query, UriKind.Absolute, out var uri))
             {
