@@ -1,6 +1,6 @@
 ﻿using Autofac;
 
-namespace Gunter.ComponentSetup
+namespace Gunter.DependencyInjection
 {
     internal class Mailr : Module
     {

@@ -32,6 +32,8 @@
     <EmbeddedResource Remove="src\Messaging\Emails\Internal\**" />
     <None Remove="src\Messaging\Emails\Internal\**" />
     <Compile Remove="src\Data\Dtos\TableDto.cs" />
+    <Compile Remove="src\Commands\Explicit.cs" />
+    <Compile Remove="src\Commands\Batch.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,7 +44,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="'False'">
-    <PackageReference Include="Autofac" Version="4.8.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="Reusable.Core" Version="8.2.0" />
     <PackageReference Include="Reusable.Commander" Version="8.2.0" />
@@ -103,6 +104,12 @@
 
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.9.1" />
+    <PackageReference Include="Dapper" Version="1.50.7" />
+    <PackageReference Include="JetBrains.Annotations" Version="2018.3.0" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

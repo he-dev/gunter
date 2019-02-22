@@ -9,7 +9,7 @@ using Reusable.Reflection;
 
 namespace Gunter.Data
 {
-    public interface IRuntimeVariable : IEquatable<IRuntimeVariable>//, IFormattable
+    public interface IRuntimeValue : IEquatable<IRuntimeValue>
     {
         [AutoEqualityProperty]
         Type DeclaringType { get; }
@@ -17,31 +17,31 @@ namespace Gunter.Data
         [AutoEqualityProperty]
         SoftString Name { get; }
 
-        object GetValue<T>(T obj);
+        object Get<T>(T obj);
 
         bool Matches(Type type);
 
         string ToString(string format);
     }
 
-    internal partial class RuntimeVariable : IRuntimeVariable
+    internal partial class RuntimeValue : IRuntimeValue
     {
-        private readonly Func<object, object> _getValue;
+        private readonly Func<object, object> _get;
 
-        public RuntimeVariable(Type declaringType, [NotNull] string name, [NotNull] Func<object, object> getValue)
+        public RuntimeValue(Type declaringType, [NotNull] string name, [NotNull] Func<object, object> get)
         {
             Name = name;
             DeclaringType = declaringType;
-            _getValue = getValue;
+            _get = get;
         }
 
         public Type DeclaringType { get; }
 
         public SoftString Name { get; }
 
-        public object GetValue<T>(T obj)
+        public object Get<T>(T obj)
         {
-            return _getValue(obj);
+            return _get(obj);
         }
 
         public bool Matches(Type type)
@@ -51,11 +51,11 @@ namespace Gunter.Data
 
         #region IEquatable
 
-        public bool Equals(IRuntimeVariable other) => AutoEquality<IRuntimeVariable>.Comparer.Equals(this, other);
+        public bool Equals(IRuntimeValue other) => AutoEquality<IRuntimeValue>.Comparer.Equals(this, other);
 
-        public override bool Equals(object other) => other is IRuntimeVariable runtimeVariable && Equals(runtimeVariable);
+        public override bool Equals(object other) => other is IRuntimeValue runtimeVariable && Equals(runtimeVariable);
 
-        public override int GetHashCode() => AutoEquality<IRuntimeVariable>.Comparer.GetHashCode(this);
+        public override int GetHashCode() => AutoEquality<IRuntimeValue>.Comparer.GetHashCode(this);
 
         //public string ToString(string format, IFormatProvider formatProvider)
         //{
@@ -74,6 +74,4 @@ namespace Gunter.Data
             return $"{{{Name.ToString()}:{format}}}";
         }
     }
-
-    
 }

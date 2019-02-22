@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
@@ -17,68 +18,68 @@ namespace Gunter.Services
 {
     public interface ITestRunner
     {
-        Task RunTestsAsync
+        Task RunAsync
         (
-            [NotNull] string testsPath,
-            [CanBeNull] IEnumerable<TestFilter> filters,
-            [CanBeNull] IEnumerable<SoftString> profiles
+            [NotNull, ItemNotNull] IEnumerable<TestBundle> testBundles
         );
     }
 
     [UsedImplicitly]
     internal class TestRunner : ITestRunner
     {
-        private readonly RuntimeFormatter.Factory _createRuntimeFormatter;
+        private readonly RuntimeVariableDictionaryFactory _runtimeVariableDictionaryFactory;
         private readonly ILogger _logger;
-        private readonly ITestLoader _testLoader;
-        private readonly ITestComposer _testComposer;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
             IResourceProvider resourceProvider,
-            ITestLoader testLoader,
-            ITestComposer testComposer,
-            RuntimeFormatter.Factory createRuntimeFormatter
+            RuntimeVariableDictionaryFactory runtimeVariableDictionaryFactory
         )
         {
-            _createRuntimeFormatter = createRuntimeFormatter;
+            _runtimeVariableDictionaryFactory = runtimeVariableDictionaryFactory;
             _logger = logger;
-            _testLoader = testLoader;
-            _testComposer = testComposer;
         }
 
-        public async Task RunTestsAsync(string testsPath, IEnumerable<TestFilter> filters, IEnumerable<SoftString> profiles)
+        public async Task RunAsync(IEnumerable<TestBundle> testBundles)
         {
-            var bundles = await _testLoader.LoadTestsAsync(testsPath);
-            var compositions = _testComposer.ComposeTests(bundles, filters).ToList();
-            var tasks = compositions.Select(async testFile => await RunTestsAsync(testFile, profiles)).ToArray();
-            await Task.WhenAll(tasks).ContinueWith(task =>
-            {
-                if (task.IsFaulted)
+            var actions = new ActionBlock<TestBundle>
+            (
+                RunAsync,
+                new ExecutionDataflowBlockOptions
                 {
-                    _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(RunTestsAsync)).Faulted(), task.Exception);
+                    MaxDegreeOfParallelism = Environment.ProcessorCount * 2
                 }
-            });
+            );
+
+            foreach (var testBundle in testBundles)
+            {
+                await actions.SendAsync(testBundle);
+            }
+
+            actions.Complete();
+            await actions.Completion;
         }
 
-        private async Task RunTestsAsync(TestBundle testBundle, IEnumerable<SoftString> profiles)
+        private async Task RunAsync(TestBundle testBundle)
         {
             var testIndex = 0;
             var tests =
                 from testCase in testBundle.Tests
-                where testCase.CanExecute(profiles)
                 from dataSource in testCase.DataSources(testBundle)
                 select (testCase, dataSource, testIndex: testIndex++);
 
-            var testBundleFormatter = _createRuntimeFormatter(testBundle.AllVariables(), new object[] { testBundle });
+            var runtimeVariables = _runtimeVariableDictionaryFactory.Create(new object[] { testBundle }, testBundle.Variables.Flatten());
 
             var cache = new Dictionary<SoftString, (DataTable Data, string Query, TimeSpan Elapsed)>();
 
             using (_logger.BeginScope().WithCorrelationHandle("TestBundle").AttachElapsed())
             using (Disposable.Create(() =>
             {
-                foreach (var (data, _, _) in cache.Values) { data.Dispose(); }
+                foreach (var (data, _, _) in cache.Values)
+                {
+                    data.Dispose();
+                }
             }))
             {
                 _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { TestBundleFileName = testBundle.FileName }));
@@ -92,30 +93,31 @@ namespace Gunter.Services
                             if (!cache.TryGetValue(current.dataSource.Id, out var cacheItem))
                             {
                                 var getDataStopwatch = Stopwatch.StartNew();
-                                var (data, query) = await current.dataSource.GetDataAsync(testBundle.Directoryname, testBundleFormatter);
+                                var (data, query) = await current.dataSource.GetDataAsync(testBundle.DirectoryName, runtimeVariables);
                                 cache[current.dataSource.Id] = cacheItem = (data, query, getDataStopwatch.Elapsed);
                             }
 
                             var assertStopwatch = Stopwatch.StartNew();
                             var (result, actions) = RunTest(current.testCase, cacheItem.Data);
-                            var assertElapsed = assertStopwatch.Elapsed;                            
+                            var assertElapsed = assertStopwatch.Elapsed;
 
                             if (actions.Alert())
                             {
                                 var testCaseFormatter =
-                                    _createRuntimeFormatter(
-                                        variables: testBundle.AllVariables(),
-                                        runtimeObjects: new object[]
+                                    _runtimeVariableDictionaryFactory.Create
+                                    (
+                                        new object[]
                                         {
                                             testBundle,
                                             current.testCase,
-                                            current.dataSource,
+                                            current.dataSource, // todo - not used - should be query
                                             new TestCounter
                                             {
                                                 GetDataElapsed = cacheItem.Elapsed,
                                                 RunTestElapsed = assertElapsed
                                             },
-                                        }
+                                        },
+                                        testBundle.Variables.Flatten()
                                     );
 
                                 await AlertAsync(new TestContext
@@ -124,7 +126,7 @@ namespace Gunter.Services
                                     TestCase = current.testCase,
                                     DataSource = current.dataSource,
                                     Data = cacheItem.Data,
-                                    Formatter = testCaseFormatter,
+                                    RuntimeVariables = testCaseFormatter,
                                     Query = cacheItem.Query,
                                     Result = result
                                 });
@@ -135,16 +137,16 @@ namespace Gunter.Services
                                 break;
                             }
 
-                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunTestsAsync)).Completed());
+                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Completed());
                         }
                         catch (DynamicException ex) when (ex.NameMatches("^DataSource"))
                         {
-                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunTestsAsync)).Faulted(), ex);
+                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Faulted(), ex);
                             break;
                         }
                         catch (Exception ex)
                         {
-                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunTestsAsync)).Faulted(), ex);
+                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Faulted(), ex);
                         }
                     }
                 }
@@ -159,7 +161,7 @@ namespace Gunter.Services
             }
 
             var testResult = result ? TestResult.Passed : TestResult.Failed;
-            
+
             _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Result = testResult }));
 
             var alert =
@@ -199,19 +201,5 @@ namespace Gunter.Services
         public static bool Halt(this TestRunnerActions actions) => actions.HasFlag(TestRunnerActions.Halt);
 
         public static bool Alert(this TestRunnerActions actions) => actions.HasFlag(TestRunnerActions.Alert);
-    }
-
-    public class TestFilter
-    {
-        public TestFilter(string name)
-        {
-            Name = name;
-        }
-
-        [NotNull]
-        public SoftString Name { get; }
-
-        [CanBeNull, ItemNotNull]
-        public IEnumerable<SoftString> Ids { get; set; }
     }
 }

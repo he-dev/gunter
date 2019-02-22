@@ -16,6 +16,7 @@ using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
+using Reusable.Extensions;
 
 namespace Gunter.Messaging
 {
@@ -49,10 +50,8 @@ namespace Gunter.Messaging
 
         protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<(string Name, ModuleDto Section)> sections)
         {
-            var format = (FormatFunc)context.Formatter.Format;
-
-            var to = To.Select(x => format(x));
-            var subject = format(report.Title);
+            var to = To.Select(x => x.Format(context.RuntimeVariables));
+            var subject = report.Title.Format(context.RuntimeVariables);
             var body = new
             {
                 Modules = sections.ToDictionary(t => t.Name, t => t.Section)

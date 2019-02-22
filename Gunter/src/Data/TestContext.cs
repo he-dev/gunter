@@ -9,7 +9,7 @@ namespace Gunter.Data
         public TestCase TestCase { get; set; }
         public DataTable Data { get; set; }
         public IDataSource DataSource { get; set; }
-        public IRuntimeFormatter Formatter { get; set; }
+        public RuntimeVariableDictionary RuntimeVariables { get; set; }
         public string Query { get; set; }
         public TestResult Result { get; set; }
     }

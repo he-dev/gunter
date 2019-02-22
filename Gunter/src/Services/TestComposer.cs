@@ -29,7 +29,7 @@ namespace Gunter.Services
         IEnumerable<TestBundle> ComposeTests
         (
             [NotNull, ItemNotNull] IEnumerable<TestBundle> bundles,
-            [CanBeNull, ItemNotNull] IEnumerable<TestFilter> filters
+            [NotNull] ITestFilter testFilter
         );
     }
 
@@ -54,36 +54,28 @@ namespace Gunter.Services
             _componentContext = componentContext;
         }
 
-        public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, IEnumerable<TestFilter> filters)
+        public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, ITestFilter testFilter)
         {
-            var partials = bundles.ToLookup(TestBundleExtensions.IsPartial);
+            var bundleGroups = bundles.ToLookup(b => b.Type);
 
-            var filtered = partials[false];
-
-            if (!(filters is null))
+            foreach (var bundle in bundleGroups[TestBundleType.Regular])
             {
-                var items =
-                    (
-                        from bundle in partials[false]
-                        join filter in filters on bundle.Name equals filter.Name
-                        select (bundle, filter)
-                    ).ToList();
-
-                foreach (var (bundle, filter) in items)
+                if (!testFilter.Files.IsNullOr(names => names.Select(SoftString.Create).Contains(bundle.Name)))
                 {
-                    bundle.Tests =
-                        bundle
-                            .Tests
-                            .Where(t => filter.Ids is null || filter.Ids.Contains(t.Id))
-                            .ToList();
+                    continue;
                 }
+                
+                var executableTests =
+                    from test in bundle.Tests
+                    where
+                        test.Enabled &&
+                        testFilter.Tests.IsNullOr(ids => ids.Select(SoftString.Create).Contains(test.Id)) &&
+                        testFilter.Tags.IsNullOr(tags => tags.Select(SoftString.Create).Intersect(test.Tags).Any())
+                    select test;
 
-                filtered = items.Select(x => x.bundle);
-            }
+                bundle.Tests = executableTests.ToList();
 
-            foreach (var testBundle in filtered)
-            {
-                if (TryCompose(testBundle, partials[true], out var composition))
+                if (TryCompose(bundle, bundleGroups[TestBundleType.Partial], out var composition))
                 {
                     yield return composition;
                 }
@@ -95,7 +87,7 @@ namespace Gunter.Services
             return mergeables.GroupBy(y => y, comparer).All(g => g.Count() == 1);
         }
 
-        [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+        //[SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
         private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partials, out TestBundle composition)
         {
             var scope = _logger.BeginScope().AttachElapsed();

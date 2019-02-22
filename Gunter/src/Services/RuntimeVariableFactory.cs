@@ -3,22 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 
-namespace Gunter.Data
+namespace Gunter.Services
 {
-    public class RuntimeVariableFactory
+    public static class RuntimeVariableFactory
     {
         [NotNull]
-        public static IRuntimeVariable Create<T>(Expression<Func<T, object>> expression)
+        public static IRuntimeValue Create<T>(Expression<Func<T, object>> expression)
         {
             var parameter = Expression.Parameter(typeof(object), "obj");
             var converted = ParameterConverter<T>.Convert(expression.Body, parameter);
-            // ((T)obj).Property
             var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
 
-            return new RuntimeVariable(
+            return new RuntimeValue
+            (
                 typeof(T),
                 CreateName(expression),
                 getValueFunc
@@ -26,11 +27,12 @@ namespace Gunter.Data
         }
 
         [NotNull]
-        public static IRuntimeVariable Create(Expression<Func<object>> expression)
+        public static IRuntimeValue Create(Expression<Func<object>> expression)
         {
             var memberExpression = (MemberExpression)expression.Body;
 
-            return new RuntimeVariable(
+            return new RuntimeValue
+            (
                 memberExpression.Member.DeclaringType,
                 CreateName(expression),
                 _ => expression.Compile()()
@@ -54,6 +56,7 @@ namespace Gunter.Data
                             // Remove the leading "I" from an interface name.
                             typeName = Regex.Replace(typeName, "^I", string.Empty);
                         }
+
                         return $"{typeName}.{memberExpression.Member.Name}";
 
                     // Value types are wrapped by Convert(x) which is an unary-expression.
@@ -71,13 +74,13 @@ namespace Gunter.Data
 
     internal static class RuntimeVariableExtensions
     {
-        public static IEnumerable<KeyValuePair<SoftString, object>> GetValues(this IEnumerable<IRuntimeVariable> variables, object obj)
+        public static IEnumerable<KeyValuePair<SoftString, object>> GetValues(this IEnumerable<IRuntimeValue> variables, object obj)
         {
             // Static variables are resolved by the declaring type.
             return
                 variables
                     .Where(variable => variable.Matches(obj is Type type ? type : obj.GetType()))
-                    .Select(x => new KeyValuePair<SoftString, object>(x.Name, x.GetValue(obj)));
+                    .Select(x => new KeyValuePair<SoftString, object>(x.Name, x.Get(obj)));
         }
     }
 

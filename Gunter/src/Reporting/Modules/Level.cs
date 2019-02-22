@@ -8,15 +8,13 @@ namespace Gunter.Reporting.Modules
     {
         public override ModuleDto CreateDto(TestContext context)
         {
-            var format = (FormatFunc)context.Formatter.Format;
-
             var level = context.TestCase.Level.ToString();
 
             return new ModuleDto
             {
                 Text = level,
                 Ordinal = Ordinal
-            };            
+            };
         }
     }
 }

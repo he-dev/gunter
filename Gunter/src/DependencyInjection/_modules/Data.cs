@@ -1,6 +1,6 @@
 using Autofac;
 
-namespace Gunter.ComponentSetup
+namespace Gunter.DependencyInjection
 {
     internal class Data : Autofac.Module
     {
@@ -16,7 +16,7 @@ namespace Gunter.ComponentSetup
                 .RegisterType<Gunter.Data.TestCase>();
             
             builder
-                .RegisterType<Gunter.Data.VariableCollection>();
+                .RegisterType<Gunter.Data.TestBundleVariableCollection>();
         }
     }
 }

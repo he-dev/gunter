@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Gunter.Services;
+using Reusable.Extensions;
 
 namespace Gunter.Extensions
 {
@@ -12,11 +13,6 @@ namespace Gunter.Extensions
         public static string FormatPartialName(this string input)
         {
             return $"_{input.TrimStart('_')}";
-        }
-
-        public static string FormatWith(this string input, IRuntimeFormatter formatter)
-        {
-            return formatter.Format(input);
-        }
+        }        
     }
 }

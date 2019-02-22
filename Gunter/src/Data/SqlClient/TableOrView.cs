@@ -49,12 +49,10 @@ namespace Gunter.Data.SqlClient
         [Mergable]
         public IList<IAttachment> Attachments { get; set; }
 
-        public async Task<(DataTable Data, string Query)> GetDataAsync(string path, IRuntimeFormatter formatter)
+        public async Task<(DataTable Data, string Query)> GetDataAsync(string path, RuntimeVariableDictionary runtimeVariableDictionary)
         {
-            Debug.Assert(!(formatter is null));
-
-            var connectionString = ConnectionString.FormatWith(formatter);
-            var query = GetQuery(path, formatter);
+            var connectionString = ConnectionString.Format(runtimeVariableDictionary);
+            var query = GetQuery(path, runtimeVariableDictionary);
 
             var scope = Logger.BeginScope().AttachElapsed();
             try
@@ -122,9 +120,9 @@ namespace Gunter.Data.SqlClient
         }
 
         [NotNull]
-        private string GetQuery(string path, IRuntimeFormatter formatter)
+        private string GetQuery(string path, RuntimeVariableDictionary runtimeVariableDictionary)
         {
-            var query = Query.FormatWith(formatter);
+            var query = Query.Format(runtimeVariableDictionary);
 
             if (Uri.TryCreate(query, UriKind.Absolute, out var uri))
             {
@@ -137,7 +135,7 @@ namespace Gunter.Data.SqlClient
                         ? File.ReadAllText(uri.AbsolutePath)
                         : File.ReadAllText(Path.Combine(path, uri.AbsolutePath.TrimStart('/')));
 
-                return query.FormatWith(formatter);
+                return query.Format(runtimeVariableDictionary);
             }
             else
             {

@@ -10,6 +10,7 @@ using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Data;
 using Reusable.IOnymous.Models;
+using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
 {
@@ -29,12 +30,10 @@ namespace Gunter.Reporting.Modules
 
         public override ModuleDto CreateDto(TestContext context)
         {
-            var format = (FormatFunc)context.Formatter.Format;
-
             // Initialize the data-table;
             var section = new ModuleDto
             {
-                Heading = format(Heading),
+                Heading = Heading.Format(context.RuntimeVariables),
                 Data = new HtmlTable(HtmlTableColumn.Create
                 (
                     ("Property", typeof(string)),
@@ -46,7 +45,7 @@ namespace Gunter.Reporting.Modules
             table.Body.Add("Type", context.DataSource.GetType().Name);
             table.Body.NewRow().Update(Columns.Property, "Query").Update(Columns.Value, context.Query, "query");
             table.Body.Add("RowCount", context.Data.Rows.Count.ToString());
-            table.Body.Add("Elapsed", format($"{RuntimeVariable.TestCounter.GetDataElapsed.ToString(TimespanFormat)}"));
+            table.Body.Add("Elapsed", $"{RuntimeValue.TestCounter.GetDataElapsed.ToString(TimespanFormat)}".Format(context.RuntimeVariables));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
@@ -65,7 +64,7 @@ namespace Gunter.Reporting.Modules
 
             return section;
         }
-        
+
         private static class Columns
         {
             public const string Property = nameof(Property);

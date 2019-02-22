@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Linq.Custom;
 using System.Threading.Tasks;
 using Autofac;
-using Gunter.ComponentSetup;
+using Gunter.DependencyInjection;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
@@ -65,7 +66,8 @@ namespace Gunter
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var programInfo = _container.Resolve<ProgramInfo>();
-            await RunAsync($"batch -path \"{Path.Combine(currentDirectory, programInfo.DefaultTestsDirectoryName)}\"");
+            var defaultPath = Path.Combine(currentDirectory, programInfo.DefaultTestsDirectoryName);
+            await RunAsync($"run -path \"{defaultPath}\"");
         }
 
         public async Task RunAsync(params string[] args)
@@ -80,5 +82,18 @@ namespace Gunter
     {
         Success = 0,
         Error = 1,
+    }
+
+    public class RuntimeString
+    {
+        public RuntimeString()
+        {
+            
+        }
+        
+        public string Format(IDictionary<SoftString, object> values)
+        {
+            return default;
+        }
     }
 }

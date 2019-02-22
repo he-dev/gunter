@@ -1,102 +1,102 @@
 {
-    "Variables": [
+  "Variables": [
+    {
+      "Id": "defaults",
+      "Items": {
+        "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
+        "Greeting": "Hi there!"
+      }
+    }
+  ],
+  "DataSources": [
+    {
+      "$t": "TableOrView",
+      "Id": "everything",
+      "ConnectionString": "{TestDb}",
+      "Query": "file:///{TestBundle.FileName}.sql",
+      "Attachments": [
         {
-            "Id": "defaults",
-            "Items": {
-                "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
-                "Greeting": "Hi there!"
+          "$t": "JsonValue",
+          "Name": "_color",
+          "Column": "_text",
+          "Path": "$.Color"
+        }
+      ]
+    }
+  ],
+  "Tests": [],
+  "Messages": [
+    {
+      "$t": "Mailr",
+      "Id": "default-email",
+      "To": [
+        "my@email.com"
+      ],
+      "Theme": "default",
+      "Reports": []
+    }
+  ],
+  "Reports": [
+    {
+      "Id": "full-report",
+      "Title": "Glitch alert [{TestCase.Level}]",
+      "Modules": [
+        {
+          "$t": "Level"
+        },
+        {
+          "$t": "Greeting",
+          "Heading": "Hi, everyone.",
+          "Text": "{TestCase.Message}"
+        },
+        {
+          "$t": "TestCase",
+          "Heading": "Test case"
+        },
+        {
+          "$t": "DataSource",
+          "Heading": "Data-source"
+        },
+        {
+          "$t": "DataSummary",
+          "Heading": "Data snapshot",
+          "Columns": [
+            {
+              "Name": "_text"
+            },
+            {
+              "Name": "_text",
+              "Display": "_first-line",
+              //"IsKey": true
+              "Filter": {
+                "$t": "FirstLine"
+              }
+            },
+            {
+              "Name": "_color"
+            },
+            {
+              "Name": "_flag"
+              //"IsKey": true
+            },
+            {
+              "Name": "_count",
+              "Total": "Sum"
+              // "Formatter": {
+              //     "$t": "TimeSpan"
+              // }
+            },
+            {
+              "Name": "_distance",
+              "Total": "Average"
+            },
+            {
+              "Name": "_price",
+              "Total": "Min"
             }
+          ]
         }
-    ],
-    "DataSources": [
-        {
-            "$t": "TableOrView",
-            "Id": "everything",
-            "ConnectionString": "{TestDb}",
-            "Query": "file:///{TestBundle.FileName}.sql",
-            "Attachments": [
-                {
-                    "$t": "JsonValue",
-                    "Name": "_color",
-                    "Column": "_text",
-                    "Path": "$.Color"
-                }
-            ]
-        }
-    ],
-    "Tests": [],
-    "Messages": [
-        {
-            "$t": "Mailr",
-            "Id": "default-email",
-            "To": [
-                "my@email.com"
-            ],
-            "Theme": "default",
-            "Reports": []
-        }
-    ],
-    "Reports": [
-        {
-            "Id": "full-report",
-            "Title": "Glitch alert [{TestCase.Level}]",
-            "Modules": [
-                {
-                    "$t": "Level"
-                },
-                {
-                    "$t": "Greeting",
-                    "Heading": "Hi, everyone.",
-                    "Text": "{TestCase.Message}"
-                },
-                {
-                    "$t": "TestCase",
-                    "Heading": "Test case"
-                },
-                {
-                    "$t": "DataSource",
-                    "Heading": "Data-source"
-                },
-                {
-                    "$t": "DataSummary",
-                    "Heading": "Data snapshot",
-                    "Columns": [
-                        {
-                            "Name": "_text"
-                        },
-                        {
-                            "Name": "_text",
-                            "Display": "_first-line",
-                            //"IsKey": true
-                            "Filter": {
-                                "$t": "FirstLine"
-                            }
-                        },
-                        {
-                            "Name": "_color"
-                        },
-                        {
-                            "Name": "_flag",
-                            //"IsKey": true
-                        },
-                        {
-                            "Name": "_count",
-                            "Total": "Sum"
-                            // "Formatter": {
-                            //     "$t": "TimeSpan"
-                            // }
-                        },
-                        {
-                            "Name": "_distance",
-                            "Total": "Average",
-                        },
-                        {
-                            "Name": "_price",
-                            "Total": "Min",
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
+      ]
+    }
+  ]
 }

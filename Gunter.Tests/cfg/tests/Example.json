@@ -1,181 +1,181 @@
 {
-    "Variables": [
-        {
-            "Id": "locals",
-            "Merge": "_Gunter/defaults",
-            "Items": {
-                "ProductName": "Gunter",
-                "Greeting-1": "Hi there!"
-            }
-        }
-    ],
-    "DataSources": [
-        {
-            "$t": "TableOrView",
-            "Id": "everything",
-            "Merge": "_Gunter/everything"
-        }
-    ],
-    "Tests": [
-        {
-            "Id": "any",
-            "Enabled": true,
-            "Level": "Fatal",
-            "Message": "There is no test data.",
-            "DataSources": [
-                "everything"
-            ],
-            "Assert": "Count([_id]) > 0",
-            "OnPassed": "None",
-            "OnFailed": "Alert, Halt",
-            "Messages": [
-                "default-email"
-            ],
-            "Profiles": []
-        },
-        {
-            "Id": "must-not-run",
-            "Enabled": false,
-            "Level": "Error",
-            "Message": "This test must not run.",
-            "DataSources": [
-                "everything"
-            ],
-            "Assert": "Count([_id]) = 0",
-            "OnPassed": "None",
-            "OnFailed": "Alert, Halt",
-            "Messages": [
-                "default-email"
-            ],
-            "Profiles": []
-        },
-        {
-            "Id": "last-one",
-            "Enabled": true,
-            "Level": "Debug",
-            "Message": "There are less than 100 items.",
-            "DataSources": [
-                "everything"
-            ],
-            "Assert": "Count([_id]) < 100",
-            "OnPassed": "Alert, Halt",
-            "OnFailed": "Alert, Halt",
-            "Messages": [
-                "default-email"
-            ],
-            "Profiles": []
-        },
-        {
-            "Id": "tst-3",
-            "Enabled": true,
-            "Level": "Fatal",
-            "Message": "Some commands did not complete successfully and this for very long time!",
-            "DataSources": [
-                "everything"
-            ],
-            "Filter": "[Level] = 'Fatal'",
-            "Assert": "Count([Id]) = 0",
-            "OnPassed": "None",
-            "OnFailed": "Alert, Halt",
-            "Messages": [
-                "default-email"
-            ],
-            "Profiles": []
-        }
-    ],
-    "Messages": [
-        {
-            "$t": "Mailr",
-            "Id": "default-email",
-            "Merge": "_Gunter/default-email",
-            "Reports": [
-                "full-report"
-            ]
-        }
-    ],
-    "Reports": [
-        {
-            "Id": "full-report",
-            "Merge": "_Gunter/full-report"
-        }
-        // {
-        //     "Id": "full-report",
-        //     "Title": "Glitch alert | {ProductName} | {TestCase.Level}",
-        //     "Modules": [
-        //         {
-        //             "$t": "Level"
-        //         },
-        //         {
-        //             "$t": "Greeting",
-        //             "Heading": "{Greeting-1}",
-        //             "Text": "{TestCase.Message}"
-        //         },
-        //         {
-        //             "$t": "TestCase",
-        //             "Heading": "Test case"
-        //         },
-        //         {
-        //             "$t": "DataSource",
-        //             "Heading": "Data-source"
-        //         },
-        //         {
-        //             "$t": "DataSummary",
-        //             "Heading": "Data summary",
-        //             "Columns": [
-        //                 {
-        //                     "Name": "Timestamp"
-        //                 },
-        //                 {
-        //                     "Name": "Product",
-        //                     "IsGroupKey": true
-        //                 },
-        //                 {
-        //                     "Name": "Logger"
-        //                 },
-        //                 {
-        //                     //"Name": "Scope"
-        //                     "Name": "CorrelationId"
-        //                 },
-        //                 {
-        //                     "Name": "Layer"
-        //                 },
-        //                 {
-        //                     "Name": "Level"
-        //                 },
-        //                 {
-        //                     "Name": "Category"
-        //                 },
-        //                 {
-        //                     "Name": "Identifier"
-        //                 },
-        //                 {
-        //                     "Name": "Snapshot"
-        //                 },
-        //                 {
-        //                     "Name": "Elapsed",
-        //                     "Total": "Average",
-        //                     "Formatter": {
-        //                         "$t": "TimeSpan"
-        //                     }
-        //                 },
-        //                 {
-        //                     "Name": "Message"
-        //                 },
-        //                 {
-        //                     "Name": "Exception",
-        //                     "IsGroupKey": true,
-        //                     "Filter": {
-        //                         "$t": "FirstLine"
-        //                     }
-        //                 },
-        //                 {
-        //                     "Name": "GroupCount",
-        //                     "Other": "Id",
-        //                     "Total": "Count"
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        // }
-    ]
+  "Variables": [
+    {
+      "Id": "locals",
+      "Merge": "_Gunter/defaults",
+      "Items": {
+        "ProductName": "Gunter",
+        "Greeting-1": "Hi there!"
+      }
+    }
+  ],
+  "DataSources": [
+    {
+      "$t": "TableOrView",
+      "Id": "everything",
+      "Merge": "_Gunter/everything"
+    }
+  ],
+  "Tests": [
+    {
+      "Id": "any",
+      "Enabled": true,
+      "Level": "Fatal",
+      "Message": "There is no test data.",
+      "DataSources": [
+        "everything"
+      ],
+      "Assert": "Count([_id]) > 0",
+      "OnPassed": "Alert, Halt",
+      "OnFailed": "Alert, Halt",
+      "Messages": [
+        "default-email"
+      ],
+      "Tags": []
+    },
+    {
+      "Id": "must-not-run",
+      "Enabled": false,
+      "Level": "Error",
+      "Message": "This test must not run.",
+      "DataSources": [
+        "everything"
+      ],
+      "Assert": "Count([_id]) = 0",
+      "OnPassed": "None",
+      "OnFailed": "Alert, Halt",
+      "Messages": [
+        "default-email"
+      ],
+      "Tags": []
+    },
+    {
+      "Id": "last-one",
+      "Enabled": true,
+      "Level": "Debug",
+      "Message": "There are less than 100 items.",
+      "DataSources": [
+        "everything"
+      ],
+      "Assert": "Count([_id]) < 100",
+      "OnPassed": "Alert, Halt",
+      "OnFailed": "Alert, Halt",
+      "Messages": [
+        "default-email"
+      ],
+      "Tags": []
+    },
+    {
+      "Id": "tst-3",
+      "Enabled": true,
+      "Level": "Fatal",
+      "Message": "Some commands did not complete successfully and this for very long time!",
+      "DataSources": [
+        "everything"
+      ],
+      "Filter": "[Level] = 'Fatal'",
+      "Assert": "Count([Id]) = 0",
+      "OnPassed": "None",
+      "OnFailed": "Alert, Halt",
+      "Messages": [
+        "default-email"
+      ],
+      "Tags": []
+    }
+  ],
+  "Messages": [
+    {
+      "$t": "Mailr",
+      "Id": "default-email",
+      "Merge": "_Gunter/default-email",
+      "Reports": [
+        "full-report"
+      ]
+    }
+  ],
+  "Reports": [
+    {
+      "Id": "full-report",
+      "Merge": "_Gunter/full-report"
+    }
+    // {
+    //     "Id": "full-report",
+    //     "Title": "Glitch alert | {ProductName} | {TestCase.Level}",
+    //     "Modules": [
+    //         {
+    //             "$t": "Level"
+    //         },
+    //         {
+    //             "$t": "Greeting",
+    //             "Heading": "{Greeting-1}",
+    //             "Text": "{TestCase.Message}"
+    //         },
+    //         {
+    //             "$t": "TestCase",
+    //             "Heading": "Test case"
+    //         },
+    //         {
+    //             "$t": "DataSource",
+    //             "Heading": "Data-source"
+    //         },
+    //         {
+    //             "$t": "DataSummary",
+    //             "Heading": "Data summary",
+    //             "Columns": [
+    //                 {
+    //                     "Name": "Timestamp"
+    //                 },
+    //                 {
+    //                     "Name": "Product",
+    //                     "IsGroupKey": true
+    //                 },
+    //                 {
+    //                     "Name": "Logger"
+    //                 },
+    //                 {
+    //                     //"Name": "Scope"
+    //                     "Name": "CorrelationId"
+    //                 },
+    //                 {
+    //                     "Name": "Layer"
+    //                 },
+    //                 {
+    //                     "Name": "Level"
+    //                 },
+    //                 {
+    //                     "Name": "Category"
+    //                 },
+    //                 {
+    //                     "Name": "Identifier"
+    //                 },
+    //                 {
+    //                     "Name": "Snapshot"
+    //                 },
+    //                 {
+    //                     "Name": "Elapsed",
+    //                     "Total": "Average",
+    //                     "Formatter": {
+    //                         "$t": "TimeSpan"
+    //                     }
+    //                 },
+    //                 {
+    //                     "Name": "Message"
+    //                 },
+    //                 {
+    //                     "Name": "Exception",
+    //                     "IsGroupKey": true,
+    //                     "Filter": {
+    //                         "$t": "FirstLine"
+    //                     }
+    //                 },
+    //                 {
+    //                     "Name": "GroupCount",
+    //                     "Other": "Id",
+    //                     "Total": "Count"
+    //                 }
+    //             ]
+    //         }
+    //     ]
+    // }
+  ]
 }

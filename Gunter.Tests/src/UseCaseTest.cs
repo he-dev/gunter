@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Dapper;
-using Gunter.ComponentSetup;
+using Gunter.DependencyInjection;
 using Gunter.Tests.Helpers;
 using JetBrains.Annotations;
 using Reusable;
@@ -33,6 +33,8 @@ namespace Gunter.Tests
     {
         private const string Url = "http://localhost:50123";
 
+        private static readonly IResourceProvider Sql = EmbeddedFileProvider<UseCaseTest>.Default.DecorateWith(RelativeProvider.Factory("sql"));
+
         private readonly TeapotServer _teapot;
         private readonly MemoryRx _memoryRx;
         private readonly ILoggerFactory _loggerFactory;
@@ -54,11 +56,10 @@ namespace Gunter.Tests
 
         public async Task InitializeAsync()
         {
-            var sql = EmbeddedFileProvider<UseCaseTest>.Default.ReadTextFile(@"sql\populate-test-data.sql");
             var connectionString = ConnectionStringRepository.Default.GetConnectionString("name=TestDb");
             using (var conn = new SqlConnection(connectionString))
             {
-                await conn.ExecuteAsync(sql);
+                await conn.ExecuteAsync(Sql.ReadTextFile("seed-test-data.sql"));
             }
         }
 
@@ -75,7 +76,7 @@ namespace Gunter.Tests
                         .WithContentTypeJson(body =>
                         {
                             body
-                                .PropertyEquals("$.Subject", "Glitch alert [Debug]")
+                                .PropertyEquals("$.Subject", "Glitch alert [Fatal]")
                                 .HasProperty("$.Subject");
                         })
                         .Occurs(1);
@@ -86,7 +87,7 @@ namespace Gunter.Tests
 
                 using (var program = Program.Create(_loggerFactory, builder => { }))
                 {
-                    await program.RunAsync(@"batch -tests example");
+                    await program.RunAsync(@"run -files example -tests any");
                     //await Task.Delay(300);
 
                     var exceptions = _memoryRx.Exceptions<Exception>();

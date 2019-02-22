@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Gunter.Data;
 using Newtonsoft.Json;
 using System.Linq;
@@ -22,9 +23,9 @@ namespace Gunter.Data
     {
         [DefaultValue(true)]
         public bool Enabled { get; set; }
-        
+
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<VariableCollection> Variables { get; set; } = new List<VariableCollection>();
+        public List<TestBundleVariableCollection> Variables { get; set; } = new List<TestBundleVariableCollection>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
@@ -42,13 +43,20 @@ namespace Gunter.Data
         public string FullName { get; set; }
 
         [NotNull, JsonIgnore]
-        public string Directoryname => Path.GetDirectoryName(FullName);
+        public string DirectoryName => Path.GetDirectoryName(FullName);
 
         [NotNull, JsonIgnore]
         public SoftString FileName => Path.GetFileNameWithoutExtension(FullName);
 
         [JsonIgnore]
         public SoftString Name => Path.GetFileNameWithoutExtension(FileName.ToString());
+
+        public TestBundleType Type =>
+            FullName is null
+                ? TestBundleType.Unknown
+                : Path.GetFileName(FullName).StartsWith("_")
+                    ? TestBundleType.Partial
+                    : TestBundleType.Regular;
 
         public IEnumerator<IEnumerable<IMergeable>> GetEnumerator()
         {
@@ -62,34 +70,43 @@ namespace Gunter.Data
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
+    public interface IAssignment<out TName, out TValue>
+    {
+        TName Name { get; }
+
+        TValue Value { get; }
+    }
+
+    public readonly struct TestBundleVariable : IAssignment<SoftString, object>
+    {
+        public TestBundleVariable(SoftString name, object value)
+        {
+            Name = name;
+            Value = value;
+        }
+
+        public SoftString Name { get; }
+
+        public object Value { get; }
+
+        public static implicit operator TestBundleVariable(KeyValuePair<SoftString, object> kvp) => new TestBundleVariable(kvp.Key, kvp.Value);
+
+        public static implicit operator KeyValuePair<SoftString, object>(TestBundleVariable tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
+    }
+
     [JsonObject]
-    public class VariableCollection : IEnumerable<KeyValuePair<SoftString, object>>, IMergeable
+    public class TestBundleVariableCollection : IEnumerable<TestBundleVariable>, IMergeable
     {
         private Dictionary<SoftString, object> _variables = new Dictionary<SoftString, object>();
 
         public SoftString Id { get; set; }
 
-        //public string Prefix { get; set; }
-
         public Merge Merge { get; set; }
 
         [Mergable]
         public IDictionary<SoftString, object> Items { get; set; }
-        //{
-        //    get => _variables;
-        //    set
-        //    {
-        //        _variableNameValidator.ValidateNamesNotReserved(this.Select(x => x.Key));
-        //        _variables = value;
-        //    }
-        //}
 
-        public IEnumerator<KeyValuePair<SoftString, object>> GetEnumerator() => Items.GetEnumerator();
-        //{
-        //var prefix = Prefix is null ? default : $"{Prefix}.";
-        //return Items.Select(x => new KeyValuePair<SoftString, object>($"{prefix}{x.ToString()}", x.Value)).GetEnumerator();
-        //return Items.GetEnumerator();
-        //}
+        public IEnumerator<TestBundleVariable> GetEnumerator() => Items.Select(x => (TestBundleVariable)x).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

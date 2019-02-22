@@ -69,7 +69,7 @@ namespace Gunter.Data
 
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergable]
-        public IList<SoftString> Profiles { get; set; } = new List<SoftString>();
+        public IList<SoftString> Tags { get; set; } = new List<SoftString>();
     }
 
     public static class TestCaseExtensions
@@ -97,23 +97,11 @@ namespace Gunter.Data
                  join report in testBundle.Reports on id equals report.Id
                  select report).Distinct();
         }
+        
 
-        public static bool CanExecute(this TestCase testCase, [CanBeNull] IEnumerable<SoftString> profiles)
+        public static bool IsNullOr<T>(this IEnumerable<T> source, Predicate<IEnumerable<T>> predicate)
         {
-            
-            // In order for a test to be runnable it has to be enabled and its profile needs to match the list or the list needs to be empty.
-
-            return
-                testCase.Enabled &&
-                ProfileMatches();
-
-            bool ProfileMatches()
-            {
-                return
-                    profiles is null ||
-                    profiles.Empty() ||
-                    profiles.Any(runnableProfile => testCase.Profiles.Contains(runnableProfile));
-            }
+            return source is null || predicate(source);
         }
     }
 }

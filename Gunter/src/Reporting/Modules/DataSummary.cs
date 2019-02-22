@@ -54,8 +54,6 @@ namespace Gunter.Reporting.Modules
 
         public override ModuleDto CreateDto(TestContext context)
         {
-            var format = (FormatFunc)context.Formatter.Format;
-
             // Materialize it because we'll be modifying it.
             var columns = Columns.ToList();
 
@@ -63,16 +61,16 @@ namespace Gunter.Reporting.Modules
             if (!Columns.Any())
             {
                 columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnMetadata
-                                 {
-                                     Name = c.ColumnName,
-                                     Total = ColumnTotal.Last
-                                 })
-                                 .ToList();
+                    {
+                        Name = c.ColumnName,
+                        Total = ColumnTotal.Last
+                    })
+                    .ToList();
             }
 
             var section = new ModuleDto
             {
-                Heading = format(Heading),
+                Heading = Heading.Format(context.RuntimeVariables),
                 Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Name).ToString(), typeof(string))).ToArray()))
             };
             //var table = section.Data;

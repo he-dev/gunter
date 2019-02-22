@@ -1,6 +1,7 @@
 using Gunter.Data;
 using Gunter.Data.Dtos;
 using Gunter.Services;
+using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
 {
@@ -8,11 +9,9 @@ namespace Gunter.Reporting.Modules
     {
         public override ModuleDto CreateDto(TestContext context)
         {
-            var format = (FormatFunc)context.Formatter.Format;
-
             return new ModuleDto
             {
-                Text = format($"{RuntimeVariable.Program.FullName}"),
+                Text = $"{RuntimeValue.Program.FullName}".Format(context.RuntimeVariables),
                 Ordinal = Ordinal
             };
         }

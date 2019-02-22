@@ -12,7 +12,7 @@ namespace Gunter.Data
     public interface IDataSource : IMergeable
     {
         [ItemNotNull]
-        Task<(DataTable Data, string Query)> GetDataAsync(string path, IRuntimeFormatter formatter);
+        Task<(DataTable Data, string Query)> GetDataAsync(string path, RuntimeVariableDictionary runtimeVariableDictionary);
 
         //[CanBeNull]
         //string ToString(IRuntimeFormatter formatter);

@@ -17,17 +17,12 @@
     <None Remove="cfg\Example.json" />
     <None Remove="cfg\Example.sql" />
     <None Remove="cfg\_Gunter.json" />
-    <None Remove="sql\populate-test-data.sql" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="sql\populate-test-data.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Dapper" Version="1.50.5" />
-    <PackageReference Include="JustMock" Version="2018.3.912.1" />
+    <PackageReference Include="Autofac" Version="4.9.1" />
+    <PackageReference Include="Dapper" Version="1.50.7" />
+    <PackageReference Include="JustMock" Version="2019.1.207.1" />
     <PackageReference Include="XUnit" Version="2.4.1" />
   </ItemGroup>
 
@@ -47,6 +42,11 @@
     <None Update="cfg\tests\_Gunter.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="sql\seed-test-data.sql" />
+    <EmbeddedResource Include="sql\seed-test-data.sql" />
   </ItemGroup>
 
 </Project>

@@ -3,13 +3,11 @@ using Autofac;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.SmartConfig;
 
-namespace Gunter.ComponentSetup
+namespace Gunter.DependencyInjection
 {
     public static class ProgramContainerFactory
     {
@@ -72,6 +70,6 @@ namespace Gunter.ComponentSetup
             {
                 throw ExceptionHelper.InitializationException(inner);
             }
-        }       
+        }
     }
 }

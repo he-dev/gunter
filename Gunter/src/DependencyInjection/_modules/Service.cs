@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Configuration;
 using Autofac;
 using Gunter.Data;
@@ -9,7 +8,7 @@ using Reusable.IOnymous;
 using Reusable.SmartConfig;
 using Configuration = Reusable.SmartConfig.Configuration;
 
-namespace Gunter.ComponentSetup
+namespace Gunter.DependencyInjection
 {
     internal class Service : Module
     {
@@ -36,10 +35,10 @@ namespace Gunter.ComponentSetup
             //                .As<IFirstResourceProvider>();
 
             builder
-                .RegisterInstance(new Configuration(new IResourceProvider[]
+                .RegisterInstance(new Configuration(new CompositeProvider(new IResourceProvider[]
                 {
                     new AppSettingProvider(new UriStringToSettingIdentifierConverter()).DecorateWith(SettingNameProvider.Factory()),
-                }))
+                })))
                 //.RegisterType<Configuration>()
                 .As<IConfiguration>();
 
@@ -56,7 +55,7 @@ namespace Gunter.ComponentSetup
                 .As<ITestFileSerializer>();
 
             builder
-                .RegisterInstance(RuntimeVariable.Enumerate());
+                .RegisterInstance(RuntimeValue.Enumerate());
 
             builder
                 .Register(c =>
@@ -83,14 +82,15 @@ namespace Gunter.ComponentSetup
                 .As<ITestRunner>();
 
             builder
-                .RegisterType<RuntimeFormatter>()
+                .RegisterType<RuntimeVariableDictionaryFactory>()
                 .AsSelf();
 
             builder
-                .RegisterModule(new CommanderModule(commands =>
-                    commands
-                        .Add<Commands.Explicit>()
-                        .Add<Commands.Batch>())
+                .RegisterModule(
+                    new CommanderModule(commands =>
+                        commands
+                            .Add<Commands.Run>()
+                    )
                 );
         }
     }
