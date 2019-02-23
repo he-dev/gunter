@@ -27,6 +27,7 @@ namespace Gunter.Services
 {
     internal interface ITestComposer
     {
+        [NotNull, ItemNotNull]
         IEnumerable<TestBundle> ComposeTests
         (
             [NotNull, ItemNotNull] IEnumerable<TestBundle> bundles,
