@@ -53,7 +53,9 @@ namespace Gunter.Data
         public string Assert { get; set; }
 
         //[Mergeable]
-        public IDictionary<TestResult, TestWhen> When { get; set; }
+        //public IDictionary<TestResult, TestWhen> When { get; set; }
+        
+        public IDictionary<TestResult, IList<string>> When { get; set; }
 
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergeable]
@@ -70,25 +72,25 @@ namespace Gunter.Data
                     select ds).Distinct();
         }
 
-        public static IEnumerable<IMessenger> Messengers([CanBeNull] this TestWhen testWhen, TestBundle testBundle)
-        {
-            return
-            (
-                from id in testWhen?.MessengerIds ?? Enumerable.Empty<SoftString>()
-                join messenger in testBundle.Messengers on id equals messenger.Id
-                select messenger
-            ).Distinct();
-        }
+//        public static IEnumerable<IMessenger> Messengers([CanBeNull] this TestWhen testWhen, TestBundle testBundle)
+//        {
+//            return
+//            (
+//                from id in testWhen?.MessengerIds ?? Enumerable.Empty<SoftString>()
+//                join messenger in testBundle.Messengers on id equals messenger.Id
+//                select messenger
+//            ).Distinct();
+//        }
 
-        public static IEnumerable<IReport> Reports(this TestWhen testWhen, TestBundle testBundle)
-        {
-            return
-            (
-                from id in testWhen.Messengers(testBundle).SelectMany(alert => alert.ReportIds)
-                join report in testBundle.Reports on id equals report.Id
-                select report
-            ).Distinct();
-        }
+//        public static IEnumerable<IReport> Reports(this TestWhen testWhen, TestBundle testBundle)
+//        {
+//            return
+//            (
+//                from id in testWhen.Messengers(testBundle).SelectMany(alert => alert.ReportIds)
+//                join report in testBundle.Reports on id equals report.Id
+//                select report
+//            ).Distinct();
+//        }
 
 
         public static bool IsNullOr<T>(this IEnumerable<T> source, Predicate<IEnumerable<T>> predicate)

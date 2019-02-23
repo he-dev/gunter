@@ -72,7 +72,7 @@ namespace Gunter
 
         public async Task RunAsync(params string[] args)
         {
-            await _executor.ExecuteAsync(args.Join(" "));           
+            await _executor.ExecuteAsync<object>(args.Join(" "), default);           
         }
 
         public void Dispose() => _container.Dispose();

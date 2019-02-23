@@ -27,12 +27,10 @@
       ],
       "Assert": "Count([_id]) > 0",
       "When": {
-        "Passed": {
-          "Halt": true,
-          "Send": [
-            "default-email"
-          ]
-        }
+        "Passed": [
+          "send -report full -use default-email",
+          "halt"
+        ]
       },
       "Tags": []
     },
@@ -46,12 +44,10 @@
       ],
       "Assert": "Count([_id]) = 0",
       "When": {
-        "Failed": {
-          "Halt": true,
-          "Send": [
-            "default-email"
-          ]
-        }
+        "Failed": [
+          "send -report full -use default-email",
+          "halt"
+        ]
       },
       "Tags": []
     },
@@ -65,12 +61,10 @@
       ],
       "Assert": "Count([_id]) < 100",
       "When": {
-        "Failed": {
-          "Halt": true,
-          "Send": [
-            "default-email"
-          ]
-        }
+        "Failed": [
+          "send -report full -use default-email",
+          "halt"
+        ]
       },
       "Tags": []
     }
@@ -79,15 +73,12 @@
     {
       "$t": "Mailr",
       "Id": "default-email",
-      "Merge": "_Gunter#default-email",
-      "Reports": [
-        "full-report"
-      ]
+      "Merge": "_Gunter#default-email"
     }
   ],
   "Reports": [
     {
-      "Id": "full-report",
+      "Id": "full",
       "Merge": "_Gunter#full-report"
     }
   ]

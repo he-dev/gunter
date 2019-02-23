@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using System.Windows.Forms;
 using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Commander;
 using Reusable.Exceptionizer;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
@@ -28,15 +31,18 @@ namespace Gunter.Services
     internal class TestRunner : ITestRunner
     {
         private readonly ILogger _logger;
+        private readonly ICommandLineExecutor _commandLineExecutor;
         private readonly RuntimeVariableDictionaryFactory _runtimeVariableDictionaryFactory;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
+            ICommandLineExecutor commandLineExecutor,
             RuntimeVariableDictionaryFactory runtimeVariableDictionaryFactory
         )
         {
             _logger = logger;
+            _commandLineExecutor = commandLineExecutor;
             _runtimeVariableDictionaryFactory = runtimeVariableDictionaryFactory;
         }
 
@@ -101,9 +107,11 @@ namespace Gunter.Services
                             {
                                 TestBundle = testBundle,
                                 TestCase = current.testCase,
-                                TestWhen = when,
+                                //TestWhen = when,
                                 DataSource = current.dataSource,
+                                Query = cacheItem.Query,
                                 Data = cacheItem.Data,
+                                Result = result,
                                 RuntimeVariables = _runtimeVariableDictionaryFactory.Create
                                 (
                                     new object[]
@@ -118,20 +126,19 @@ namespace Gunter.Services
                                         },
                                     },
                                     testBundle.Variables.Flatten()
-                                ),
-                                Query = cacheItem.Query,
-                                Result = result
+                                )
                             };
-
-                            var messengers = when.Messengers(context.TestBundle).Select(messenger => messenger.SendAsync(context));
-                            await Task.WhenAll(messengers);
-
-                            if (when.Halt)
+                            
+                            foreach (var cmd in when)
                             {
-                                break;
-                            }
+                                await _commandLineExecutor.ExecuteAsync(cmd, context);
+                            }                            
 
                             _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Completed());
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            break;
                         }
                         catch (DynamicException ex) when (ex.NameMatches("^DataSource"))
                         {
@@ -148,7 +155,7 @@ namespace Gunter.Services
             }
         }
 
-        private (TestResult Result, TimeSpan Elapsed, TestWhen When) RunTest(TestCase testCase, DataTable data)
+        private (TestResult Result, TimeSpan Elapsed, IList<string> When) RunTest(TestCase testCase, DataTable data)
         {
             var assertStopwatch = Stopwatch.StartNew();
             if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))

@@ -91,6 +91,8 @@ namespace Gunter.DependencyInjection
                     new CommanderModule(commands =>
                         commands
                             .Add<Commands.Run>()
+                            .Add<Commands.Send>()
+                            .Add<Commands.Halt>()
                     )
                 );
         }
