@@ -2,6 +2,7 @@
 using System.Linq.Custom;
 using System.Text.RegularExpressions;
 using Gunter.Services;
+using JetBrains.Annotations;
 using Reusable;
 using Reusable.Exceptionizer;
 using Reusable.Extensions;
@@ -9,15 +10,18 @@ using Reusable.Reflection;
 
 namespace Gunter.Data
 {
+    [UsedImplicitly]
     public class Merge
     {
-        public Merge(string otherFileName, SoftString otherId)
+        private const string IdPrefix = "#";
+        
+        public Merge(string otherName, SoftString otherId)
         {
-            OtherFileName = otherFileName;
+            OtherName = otherName;
             OtherId = otherId;
         }
 
-        public SoftString OtherFileName { get; }
+        public SoftString OtherName { get; }
 
         public SoftString OtherId { get; }
 
@@ -41,6 +45,6 @@ namespace Gunter.Data
             );
         }
 
-        public override string ToString() => $"{OtherFileName}#{OtherId}";
+        public override string ToString() => $"{OtherName}#{OtherId}";
     }
 }

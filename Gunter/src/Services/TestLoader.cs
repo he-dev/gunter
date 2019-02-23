@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Collections;
+using Reusable.Flawless;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
@@ -25,6 +27,13 @@ namespace Gunter.Services
         private readonly IDirectoryTree _directoryTree;
         private readonly IResourceProvider _resourceProvider;
         private readonly ITestFileSerializer _testFileSerializer;
+
+        private static readonly IExpressValidator<TestBundle> UniqueMergeableIdsValidator = ExpressValidator.For<TestBundle>(builder =>
+        {
+            builder.True(
+                testBundle => testBundle.All(
+                    mereables => mereables.GroupBy(m => m.Id).All(g => g.Count() == 1)));
+        });
 
         public TestLoader
         (
@@ -61,6 +70,9 @@ namespace Gunter.Services
                     {
                         continue;
                     }
+
+
+                    UniqueMergeableIdsValidator.Validate(testBundle).Assert();
 
                     testBundles.Add(testBundle);
                 }

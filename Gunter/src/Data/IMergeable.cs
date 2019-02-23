@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Reusable;
 
 namespace Gunter.Data
@@ -8,6 +9,7 @@ namespace Gunter.Data
         [JsonRequired]
         SoftString Id { get; set; }
         
+        [CanBeNull]
         Merge Merge { get; set; }
     }
 }

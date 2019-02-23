@@ -34,6 +34,7 @@
     <Compile Remove="src\Data\Dtos\TableDto.cs" />
     <Compile Remove="src\Commands\Explicit.cs" />
     <Compile Remove="src\Commands\Batch.cs" />
+    <Compile Remove="src\Data\TestRunnerActions.cs" />
   </ItemGroup>
 
   <ItemGroup>

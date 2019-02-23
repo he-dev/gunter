@@ -36,8 +36,8 @@ namespace Gunter.Services
                 new PrettyTypeResolver(new[]
                 {
                     typeof(Gunter.Data.SqlClient.TableOrView),
-                    typeof(JsonValue),
-                    typeof(Mailr),
+                    typeof(Gunter.Data.Attachments.JsonValue),
+                    typeof(Gunter.Services.Messengers.Mailr),
                     typeof(Gunter.Reporting.Modules.Level),
                     typeof(Gunter.Reporting.Modules.Greeting),
                     typeof(Gunter.Reporting.Modules.TestCase),

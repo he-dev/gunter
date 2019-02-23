@@ -56,9 +56,13 @@ namespace Gunter.Services.Messengers
                 Modules = sections.ToDictionary(t => t.Name, t => t.Section)
             };
 
-            var email = Email.CreateHtml(to, subject, body, e => e.Theme = Theme);
+            var email = Email.CreateHtml(to, subject, body, e =>
+            {
+                e.Theme = Theme;
+                e.CC = CC;
+            });
 
-            Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Email = new { email.To, email.Subject, email.Theme, Modules = body.Modules.Select(m => m.Key) } }));
+            Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Email = new { email.To, email.CC, email.Subject, email.Theme, Modules = body.Modules.Select(m => m.Key) } }));
 
             await _resourceProvider.SendAsync(TestResultPath, email, ProgramInfo.Name, ProgramInfo.Version);
         }

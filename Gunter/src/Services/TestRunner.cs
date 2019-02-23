@@ -123,12 +123,7 @@ namespace Gunter.Services
                                 Result = result
                             };
 
-                            var messengers =
-                                context
-                                    .TestWhen
-                                    .Messengers(context.TestBundle)
-                                    .Select(messenger => messenger.SendAsync(context));
-                            
+                            var messengers = when.Messengers(context.TestBundle).Select(messenger => messenger.SendAsync(context));
                             await Task.WhenAll(messengers);
 
                             if (when.Halt)
@@ -162,8 +157,10 @@ namespace Gunter.Services
             }
 
             var assertElapsed = assertStopwatch.Elapsed;
-
-            var testResult = result ? TestResult.Passed : TestResult.Failed;
+            var testResult =
+                result
+                    ? TestResult.Passed
+                    : TestResult.Failed;
 
             _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Result = testResult }));
 

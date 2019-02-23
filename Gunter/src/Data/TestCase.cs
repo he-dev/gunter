@@ -34,7 +34,6 @@ namespace Gunter.Data
         public Merge Merge { get; set; }
 
         [DefaultValue(true)]
-        [Mergeable]
         public bool Enabled { get; set; }
 
         [Mergeable]
@@ -54,12 +53,7 @@ namespace Gunter.Data
         public string Assert { get; set; }
 
         //[Mergeable]
-        //public IDictionary<TestResult, TestRunnerActions> When { get; set; }
         public IDictionary<TestResult, TestWhen> When { get; set; }
-
-        //[JsonProperty("Publishers", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        //[Mergeable]
-        //public IList<SoftString> PublisherIds { get; set; } = new List<SoftString>();
 
         [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergeable]
@@ -76,11 +70,11 @@ namespace Gunter.Data
                     select ds).Distinct();
         }
 
-        public static IEnumerable<IMessenger> Messengers(this TestWhen testWhen, TestBundle testBundle)
+        public static IEnumerable<IMessenger> Messengers([CanBeNull] this TestWhen testWhen, TestBundle testBundle)
         {
             return
             (
-                from id in testWhen.MessengerIds ?? Enumerable.Empty<SoftString>()
+                from id in testWhen?.MessengerIds ?? Enumerable.Empty<SoftString>()
                 join messenger in testBundle.Messengers on id equals messenger.Id
                 select messenger
             ).Distinct();
@@ -104,10 +98,11 @@ namespace Gunter.Data
     }
 
     public class TestWhen
-    {
+    {        
         public bool Halt { get; set; }
 
         [JsonProperty("Send", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [CanBeNull]
         public IEnumerable<SoftString> MessengerIds { get; set; }
     }
 }
