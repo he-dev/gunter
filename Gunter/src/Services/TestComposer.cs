@@ -161,8 +161,12 @@ namespace Gunter.Services
                                     newValue = x.Union(y).ToDictionary(p => p.Key, p => p.Value);
                                     break;
                                 
+                                case null:
+                                    newValue = otherValue;
+                                    break;
+                                
                                 default:
-                                    newValue = currentValue ?? otherValue;
+                                    newValue = currentValue;
                                     break;
                             }
 
