@@ -25,6 +25,15 @@
               "Default": "\"255, 255, 255\""
             }
           ]
+        },
+        {
+          "$t": "FirstLine",
+          "Columns": [
+            {
+              "From": "_text",
+              "Attach": "_text-first-line"
+            }
+          ]
         }
       ]
     }
@@ -66,37 +75,33 @@
           "Heading": "Data snapshot",
           "Columns": [
             {
-              "Name": "_text"
+              "Select": "_text",
+              "Display": "_text-renamed"
             },
             {
-              "Name": "_text",
-              "Display": "_first-line",
-              //"IsKey": true
-              "Filter": {
-                "$t": "FirstLine"
-              }
+              "Select": "_text-first-line",
+              "IsKey": true
             },
             {
-              "Name": "_color"
+              "Select": "_color"
             },
             {
-              "Name": "_flag"
-              //"IsKey": true
+              "Select": "_flag"
             },
             {
-              "Name": "_count",
-              "Total": "Sum"
+              "Select": "_count",
+              "Aggregate": "Sum"
               // "Formatter": {
               //     "$t": "TimeSpan"
               // }
             },
             {
-              "Name": "_distance",
-              "Total": "Average"
+              "Select": "_distance",
+              "Aggregate": "Average"
             },
             {
-              "Name": "_price",
-              "Total": "Min"
+              "Select": "_price",
+              "Aggregate": "Min"
             }
           ]
         }

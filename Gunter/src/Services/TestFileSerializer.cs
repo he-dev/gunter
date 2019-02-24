@@ -36,6 +36,7 @@ namespace Gunter.Services
                 {
                     typeof(Gunter.Data.SqlClient.TableOrView),
                     typeof(Gunter.Services.DataPostProcessors.ExtractJsonValue),
+                    typeof(Gunter.Services.DataPostProcessors.FirstLine),
                     typeof(Gunter.Services.Messengers.Mailr),
                     typeof(Gunter.Reporting.Modules.Level),
                     typeof(Gunter.Reporting.Modules.Greeting),
@@ -43,7 +44,6 @@ namespace Gunter.Services
                     typeof(Gunter.Reporting.Modules.DataSource),
                     typeof(Gunter.Reporting.Modules.DataSummary),
                     typeof(Gunter.Reporting.Formatters.TimeSpan),
-                    typeof(Gunter.Reporting.Filters.FirstLine),
                 })
             );
         }

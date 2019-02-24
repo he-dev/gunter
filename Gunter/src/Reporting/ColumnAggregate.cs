@@ -1,6 +1,6 @@
 ﻿namespace Gunter.Reporting
 {
-    public enum ColumnTotal
+    public enum ColumnAggregate
     {
         First,
         Last,

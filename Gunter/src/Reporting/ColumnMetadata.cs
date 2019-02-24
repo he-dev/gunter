@@ -18,26 +18,26 @@ namespace Gunter.Reporting
     {
         [AutoEqualityProperty]
         [JsonRequired]
-        public SoftString Name { get; set; }
+        public SoftString Select { get; set; }
 
         public SoftString Display { get; set; }
 
-        public bool IsGroupKey { get; set; }
+        public bool IsKey { get; set; }
 
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public IFilter Filter { get; set; } = new Unchanged();
+        //[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        //public IFilter Filter { get; set; } = new Unchanged();
 
-        [DefaultValue(ColumnTotal.Last)]
-        public ColumnTotal Total { get; set; }
+        [DefaultValue(ColumnAggregate.Last)]
+        public ColumnAggregate Aggregate { get; set; }
 
         public IFormatter Formatter { get; set; }
 
         private string DebuggerDisplay() => this.ToDebuggerDisplayString(builder =>
         {
-            builder.DisplayMember(x => x.Name);
-            builder.DisplayMember(x => IsGroupKey);
-            builder.DisplayMember(x => Filter);
-            builder.DisplayMember(x => x.Total);
+            builder.DisplayMember(x => x.Select);
+            builder.DisplayMember(x => IsKey);
+            //builder.DisplayMember(x => Filter);
+            builder.DisplayMember(x => x.Aggregate);
         });
 
         public bool Equals(ColumnMetadata other) => AutoEquality<ColumnMetadata>.Comparer.Equals(this, other);

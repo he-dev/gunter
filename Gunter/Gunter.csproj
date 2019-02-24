@@ -35,6 +35,9 @@
     <Compile Remove="src\Commands\Explicit.cs" />
     <Compile Remove="src\Commands\Batch.cs" />
     <Compile Remove="src\Data\TestRunnerActions.cs" />
+    <Compile Remove="src\Reporting\Filters\**" />
+    <EmbeddedResource Remove="src\Reporting\Filters\**" />
+    <None Remove="src\Reporting\Filters\**" />
   </ItemGroup>
 
   <ItemGroup>

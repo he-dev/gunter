@@ -26,12 +26,7 @@ namespace Gunter.Data.SqlClient
     [UsedImplicitly]
     public class TableOrView : DataSource
     {
-        public TableOrView(ILogger<TableOrView> logger)
-        {
-            Logger = logger;
-        }
-
-        private ILogger Logger { get; }
+        public TableOrView(ILogger<TableOrView> logger) : base(logger) { }
 
         [NotNull]
         [Mergeable(Required = true)]
@@ -39,54 +34,39 @@ namespace Gunter.Data.SqlClient
 
         [NotNull]
         [Mergeable(Required = true)]
-        public string Query { get; set; }        
+        public string Query { get; set; }
 
-        protected override async Task<GetDataResult> GetDataAsyncInternal(string path, RuntimeVariableDictionary runtimeVariables)
+        protected override async Task<(DataTable Data, string Query)> GetDataAsyncInternal(string path, RuntimeVariableDictionary runtimeVariables)
         {
-            try
+            if (ConnectionString is null) throw DynamicException.Create("ConnectionStringNull", "You need to specify a connection-string.");
+            using (var conn = new SqlConnection(ConnectionString.Format(runtimeVariables)))
             {
-                using (Logger.BeginScope().WithCorrelationHandle("DataSource").AttachElapsed())
-                using (var conn = new SqlConnection(ConnectionString.Format(runtimeVariables) ?? throw DynamicException.Create("ConnectionStringNull", "You need to specify a connection-string.")))
+                Logger.Log(Abstraction.Layer.Database().Meta(new { conn.ConnectionString }));
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
                 {
-                    Logger.Log(Abstraction.Layer.Database().Meta(new { conn.ConnectionString }));
-                    conn.Open();
+                    cmd.CommandText = GetQuery(path, runtimeVariables);
+                    cmd.CommandType = CommandType.Text;
+                    Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See [Message]" }), cmd.CommandText);
 
-                    using (var cmd = conn.CreateCommand())
+                    using (var dataReader = await cmd.ExecuteReaderAsync())
                     {
-                        cmd.CommandText = GetQuery(path, runtimeVariables);
-                        cmd.CommandType = CommandType.Text;
+                        var dataTable = new DataTable();
+                        dataTable.Load(dataReader);
 
-                        Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See [Message]" }), cmd.CommandText);
+                        Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count }));
+                        Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
 
-                        var getDataStopwatch = Stopwatch.StartNew();
-                        using (var dataReader = await cmd.ExecuteReaderAsync())
-                        {
-                            var dataTable = new DataTable();
-                            dataTable.Load(dataReader);
-
-                            Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count }));
-                            Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
-
-                            return new GetDataResult
-                            {
-                                Value = dataTable,
-                                Query = cmd.CommandText,
-                                ElapsedQuery = getDataStopwatch.Elapsed
-                            };
-                        }
+                        return (dataTable, cmd.CommandText);
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                throw DynamicException.Create(nameof(TableOrView), $"Error getting or processing data for data-source '{Id}'.", ex);
-            }
-        }        
+        }
 
         [NotNull]
         private string GetQuery(string path, RuntimeVariableDictionary runtimeVariables)
         {
-            var query = Query.Format(runtimeVariables) ?? throw DynamicException.Create("QueryNull", "You need to specify a connection-string.");
+            var query = Query.Format(runtimeVariables);
 
             if (Uri.TryCreate(query, UriKind.Absolute, out var uri))
             {

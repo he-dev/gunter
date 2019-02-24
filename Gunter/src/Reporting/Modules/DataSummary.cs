@@ -33,15 +33,15 @@ namespace Gunter.Reporting.Modules
 
         private delegate object AggregateCallback([NotNull, ItemCanBeNull] IEnumerable<object> values);
 
-        private static readonly Dictionary<ColumnTotal, AggregateCallback> Aggregates = new Dictionary<ColumnTotal, AggregateCallback>
+        private static readonly Dictionary<ColumnAggregate, AggregateCallback> Aggregates = new Dictionary<ColumnAggregate, AggregateCallback>
         {
-            [ColumnTotal.First] = values => values.FirstOrDefault(),
-            [ColumnTotal.Last] = values => values.LastOrDefault(),
-            [ColumnTotal.Min] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Min, double.NaN),
-            [ColumnTotal.Max] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Max, double.NaN),
-            [ColumnTotal.Count] = values => values.Count(),
-            [ColumnTotal.Sum] = values => values.Select(Convert.ToDouble).Sum(),
-            [ColumnTotal.Average] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
+            [ColumnAggregate.First] = values => values.FirstOrDefault(),
+            [ColumnAggregate.Last] = values => values.LastOrDefault(),
+            [ColumnAggregate.Min] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Min, double.NaN),
+            [ColumnAggregate.Max] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Max, double.NaN),
+            [ColumnAggregate.Count] = values => values.Count(),
+            [ColumnAggregate.Sum] = values => values.Select(Convert.ToDouble).Sum(),
+            [ColumnAggregate.Average] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
         };
 
         public TableOrientation Orientation => TableOrientation.Horizontal;
@@ -62,8 +62,8 @@ namespace Gunter.Reporting.Modules
             {
                 columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnMetadata
                     {
-                        Name = c.ColumnName,
-                        Total = ColumnTotal.Last
+                        Select = c.ColumnName,
+                        Aggregate = ColumnAggregate.Last
                     })
                     .ToList();
             }
@@ -71,7 +71,7 @@ namespace Gunter.Reporting.Modules
             var section = new ModuleDto
             {
                 Heading = Heading.Format(context.RuntimeVariables),
-                Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Name).ToString(), typeof(string))).ToArray()))
+                Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))).ToArray()))
             };
             //var table = section.Data;
 
@@ -79,7 +79,7 @@ namespace Gunter.Reporting.Modules
             var filteredRows = context.Data.Select(context.TestCase.Filter);
 
             // We'll use it a lot so materialize it.
-            var groupColumns = columns.Where(x => x.IsGroupKey).ToList();
+            var groupColumns = columns.Where(x => x.IsKey).ToList();
             var rowGroups = filteredRows.GroupBy(row => row.GroupKey(groupColumns), GroupKeyEqualityComparer);
 
             // Create aggregated rows and add them to the final data-table.            
@@ -99,9 +99,9 @@ namespace Gunter.Reporting.Modules
 
             IEnumerable<string> StringifyColumnOption(ColumnMetadata column)
             {
-                if (column.IsGroupKey) yield return "Key";
-                if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
-                yield return column.Total.ToString();
+                if (column.IsKey) yield return "Key";
+                //if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
+                yield return column.Aggregate.ToString();
             }
         }
 
@@ -109,8 +109,8 @@ namespace Gunter.Reporting.Modules
         {
             try
             {
-                var aggregate = Aggregates[column.Total];
-                var values = rowGroup.Values((string)column.Name).NotDBNull();
+                var aggregate = Aggregates[column.Aggregate];
+                var values = rowGroup.Values((string)column.Select).NotDBNull();
                 var value = aggregate(values);
                 if (value is null)
                 {
@@ -118,14 +118,14 @@ namespace Gunter.Reporting.Modules
                 }
                 else
                 {
-                    value = column.Filter is null ? value : column.Filter.Apply(value);
+                    //value = column.Filter is null ? value : column.Filter.Apply(value);
                     value = column.Formatter is null ? value : column.Formatter.Apply(value);
                     return value.ToString();
                 }
             }
             catch (Exception inner)
             {
-                throw DynamicException.Create("Aggregate", $"Could not aggegate '{column.Name.ToString()}'.", inner);
+                throw DynamicException.Create("Aggregate", $"Could not aggregate '{column.Select.ToString()}'.", inner);
             }
         }
     }
@@ -133,12 +133,13 @@ namespace Gunter.Reporting.Modules
     internal static class DataRowExtensions
     {
         /// <summary>
-        /// Creates a gorup-key for the specified row.
+        /// Creates a group-key for the specified row.
         /// </summary>
         public static IEnumerable<object> GroupKey(this DataRow dataRow, IEnumerable<ColumnMetadata> keyColumns)
         {
             // Get key values and apply their filters.
-            return keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]));
+            //return keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]));
+            return keyColumns.Select(column => dataRow[column.Select.ToString()]);
         }
     }
 }

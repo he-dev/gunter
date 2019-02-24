@@ -116,7 +116,7 @@ namespace Gunter.Services
                                         //current.dataSource, // todo - not used - should be query
                                         new TestCounter
                                         {
-                                            GetDataElapsed = cacheItem.ElapsedQuery,
+                                            GetDataElapsed = cacheItem.GetDataElapsed,
                                             RunTestElapsed = runElapsed
                                         },
                                     },
