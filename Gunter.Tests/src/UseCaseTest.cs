@@ -12,6 +12,7 @@ using Gunter.DependencyInjection;
 using Gunter.Tests.Helpers;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Commander;
 using Reusable.Data.Repositories;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
@@ -85,7 +86,11 @@ namespace Gunter.Tests
                         .Once(200, "OK");
                 });
 
-                using (var program = Program.Create(_loggerFactory, builder => { }))
+                using (var program = Program.Create(_loggerFactory, builder =>
+                {
+                    builder
+                        .RegisterInstance((ExecuteExceptionCallback) (ex => throw ex));
+                }))
                 {
                     await program.RunAsync(@"run -files example -tests any");
                     //await Task.Delay(300);

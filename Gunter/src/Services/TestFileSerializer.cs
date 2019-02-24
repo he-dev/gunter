@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
-using Gunter.Data.Attachments;
 using Gunter.Json.Converters;
 using Gunter.Services.Messengers;
 using Newtonsoft.Json;
@@ -36,7 +35,7 @@ namespace Gunter.Services
                 new PrettyTypeResolver(new[]
                 {
                     typeof(Gunter.Data.SqlClient.TableOrView),
-                    typeof(Gunter.Data.Attachments.JsonValue),
+                    typeof(Gunter.Services.DataPostProcessors.ExtractJsonValue),
                     typeof(Gunter.Services.Messengers.Mailr),
                     typeof(Gunter.Reporting.Modules.Level),
                     typeof(Gunter.Reporting.Modules.Greeting),

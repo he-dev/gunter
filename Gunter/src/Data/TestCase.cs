@@ -42,7 +42,7 @@ namespace Gunter.Data
         [Mergeable]
         public string Message { get; set; }
 
-        [JsonProperty("DataSources", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty("Check", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergeable]
         public IList<SoftString> DataSourceIds { get; set; } = new List<SoftString>();
 

@@ -22,7 +22,7 @@
       "Enabled": true,
       "Level": "Fatal",
       "Message": "There is no test data.",
-      "DataSources": [
+      "Check": [
         "everything"
       ],
       "Assert": "Count([_id]) > 0",
@@ -39,7 +39,7 @@
       "Enabled": false,
       "Level": "Error",
       "Message": "This test must not run.",
-      "DataSources": [
+      "Check": [
         "everything"
       ],
       "Assert": "Count([_id]) = 0",
@@ -56,7 +56,7 @@
       "Enabled": true,
       "Level": "Debug",
       "Message": "There are less than 100 items.",
-      "DataSources": [
+      "Check": [
         "everything"
       ],
       "Assert": "Count([_id]) < 100",

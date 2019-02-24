@@ -14,12 +14,17 @@
       "Id": "everything",
       "ConnectionString": "{TestDb}",
       "Query": "file:///{TestBundle.FileName}.sql",
-      "Attachments": [
+      "Then": [
         {
-          "$t": "JsonValue",
-          "Name": "_color",
-          "Column": "_text",
-          "Path": "$.Color"
+          "$t": "ExtractJsonValue",
+          "Columns": [
+            {
+              "From": "_text",
+              "Select": "$.Color",
+              "Attach": "_color",
+              "Default": "\"255, 255, 255\""
+            }
+          ]
         }
       ]
     }

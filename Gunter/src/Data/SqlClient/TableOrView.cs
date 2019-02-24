@@ -23,7 +23,8 @@ using Reusable.Reflection;
 namespace Gunter.Data.SqlClient
 {
     [PublicAPI]
-    public class TableOrView : IDataSource
+    [UsedImplicitly]
+    public class TableOrView : DataSource
     {
         public TableOrView(ILogger<TableOrView> logger)
         {
@@ -32,51 +33,46 @@ namespace Gunter.Data.SqlClient
 
         private ILogger Logger { get; }
 
-        [JsonRequired]
-        public SoftString Id { get; set; }
-
-        public Merge Merge { get; set; }
-
         [NotNull]
         [Mergeable(Required = true)]
         public string ConnectionString { get; set; }
 
         [NotNull]
         [Mergeable(Required = true)]
-        public string Query { get; set; }
+        public string Query { get; set; }        
 
-        [CanBeNull]
-        [Mergeable]
-        public IList<IAttachment> Attachments { get; set; }
-
-        public async Task<(DataTable Data, string Query)> GetDataAsync(string path, RuntimeVariableDictionary runtimeVariableDictionary)
+        protected override async Task<GetDataResult> GetDataAsyncInternal(string path, RuntimeVariableDictionary runtimeVariables)
         {
             try
             {
                 using (Logger.BeginScope().WithCorrelationHandle("DataSource").AttachElapsed())
-                using (var conn = new SqlConnection(ConnectionString.Format(runtimeVariableDictionary) ?? throw DynamicException.Create("ConnectionStringNull", "You need to specify a connection-string.")))
+                using (var conn = new SqlConnection(ConnectionString.Format(runtimeVariables) ?? throw DynamicException.Create("ConnectionStringNull", "You need to specify a connection-string.")))
                 {
                     Logger.Log(Abstraction.Layer.Database().Meta(new { conn.ConnectionString }));
                     conn.Open();
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = GetQuery(path, runtimeVariableDictionary);
+                        cmd.CommandText = GetQuery(path, runtimeVariables);
                         cmd.CommandType = CommandType.Text;
 
-                        Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See: [Message]" }), cmd.CommandText);
+                        Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See [Message]" }), cmd.CommandText);
 
+                        var getDataStopwatch = Stopwatch.StartNew();
                         using (var dataReader = await cmd.ExecuteReaderAsync())
                         {
                             var dataTable = new DataTable();
                             dataTable.Load(dataReader);
 
-                            EvaluateAttachments(dataTable);
-
                             Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count }));
                             Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
 
-                            return (dataTable, cmd.CommandText);
+                            return new GetDataResult
+                            {
+                                Value = dataTable,
+                                Query = cmd.CommandText,
+                                ElapsedQuery = getDataStopwatch.Elapsed
+                            };
                         }
                     }
                 }
@@ -85,38 +81,12 @@ namespace Gunter.Data.SqlClient
             {
                 throw DynamicException.Create(nameof(TableOrView), $"Error getting or processing data for data-source '{Id}'.", ex);
             }
-        }
-
-        private void EvaluateAttachments(DataTable dataTable)
-        {
-            foreach (var attachment in Attachments ?? Enumerable.Empty<IAttachment>())
-            {
-                if (dataTable.Columns.Contains(attachment.Name))
-                {
-                    throw DynamicException.Create("ColumnAlreadyExists", $"The data-table already contains a column with the name '{attachment.Name}'.");
-                }
-
-                dataTable.Columns.Add(new DataColumn(attachment.Name, typeof(string)));
-
-                foreach (var dataRow in dataTable.AsEnumerable())
-                {
-                    try
-                    {
-                        var value = attachment.Compute(dataRow);
-                        dataRow[attachment.Name] = value;
-                    }
-                    catch (Exception inner)
-                    {
-                        throw DynamicException.Create("AttachmentCompute", $"Could not compute the '{attachment.Name}' attachment.", inner);
-                    }
-                }
-            }
-        }
+        }        
 
         [NotNull]
-        private string GetQuery(string path, RuntimeVariableDictionary runtimeVariableDictionary)
+        private string GetQuery(string path, RuntimeVariableDictionary runtimeVariables)
         {
-            var query = Query.Format(runtimeVariableDictionary) ?? throw DynamicException.Create("QueryNull", "You need to specify a connection-string.");
+            var query = Query.Format(runtimeVariables) ?? throw DynamicException.Create("QueryNull", "You need to specify a connection-string.");
 
             if (Uri.TryCreate(query, UriKind.Absolute, out var uri))
             {
@@ -129,7 +99,7 @@ namespace Gunter.Data.SqlClient
                         ? File.ReadAllText(uri.AbsolutePath)
                         : File.ReadAllText(Path.Combine(path, uri.AbsolutePath.TrimStart('/')));
 
-                return query.Format(runtimeVariableDictionary);
+                return query.Format(runtimeVariables);
             }
             else
             {
