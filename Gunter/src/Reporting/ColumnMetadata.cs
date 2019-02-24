@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using Gunter.Reporting;
@@ -31,6 +32,9 @@ namespace Gunter.Reporting
         public ColumnAggregate Aggregate { get; set; }
 
         public IFormatter Formatter { get; set; }
+
+        // Not using IList because it's not compatible with the params argument
+        public string[] Styles { get; set; }
 
         private string DebuggerDisplay() => this.ToDebuggerDisplayString(builder =>
         {

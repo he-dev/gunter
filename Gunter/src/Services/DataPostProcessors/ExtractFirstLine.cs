@@ -11,16 +11,16 @@ using Reusable.Extensions;
 
 namespace Gunter.Services.DataPostProcessors
 {
-    public class FirstLine : IDataPostProcessor
+    public class ExtractFirstLine : IDataPostProcessor
     {
         [NotNull, ItemNotNull]
         [JsonProperty(Required = Required.Always)]
-        public IList<FirstLineColumn> Columns { get; set; }
+        public IList<ExtractFirstLineColumn> Columns { get; set; }
 
         public void Execute(DataTable dataTable)
         {
-            if (Columns is null) throw new InvalidOperationException($"There are no '{nameof(Columns)}'.");           
-            
+            if (Columns is null) throw new InvalidOperationException($"There are no '{nameof(Columns)}'.");
+
             foreach (var column in Columns.Where(c => c.Attach.IsNotNullOrEmpty()))
             {
                 if (dataTable.Columns.Contains(column.Attach))
@@ -30,7 +30,7 @@ namespace Gunter.Services.DataPostProcessors
 
                 dataTable.Columns.Add(new DataColumn(column.Attach, typeof(object)));
             }
-            
+
             foreach (var column in Columns)
             {
                 foreach (var dataRow in dataTable.AsEnumerable())
@@ -51,24 +51,21 @@ namespace Gunter.Services.DataPostProcessors
         [CanBeNull]
         private static string GetFirstLine(object data)
         {
-            if (data is null || data is DBNull)
+            switch (data)
             {
-                return default;
+                case null:
+                case DBNull _: return default;
+                case string value:
+                    return
+                        string.IsNullOrEmpty(value)
+                            ? default
+                            : value.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                default: throw new ArgumentException($"Invalid data type. Expected {typeof(string).Name} but found {data.GetType().Name}.");
             }
-
-            if (!(data is string value))
-            {
-                throw new ArgumentException($"Invalid data type. Expected {typeof(string).Name} but found {data.GetType().Name}.");
-            }
-
-            return
-                string.IsNullOrEmpty(value)
-                    ? string.Empty
-                    : value.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
         }
     }
 
-    public class FirstLineColumn
+    public class ExtractFirstLineColumn
     {
         /// <summary>
         /// Gets or sets the data-table column containing json.

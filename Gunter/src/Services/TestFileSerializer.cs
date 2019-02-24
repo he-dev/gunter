@@ -36,7 +36,7 @@ namespace Gunter.Services
                 {
                     typeof(Gunter.Data.SqlClient.TableOrView),
                     typeof(Gunter.Services.DataPostProcessors.ExtractJsonValue),
-                    typeof(Gunter.Services.DataPostProcessors.FirstLine),
+                    typeof(Gunter.Services.DataPostProcessors.ExtractFirstLine),
                     typeof(Gunter.Services.Messengers.Mailr),
                     typeof(Gunter.Reporting.Modules.Level),
                     typeof(Gunter.Reporting.Modules.Greeting),

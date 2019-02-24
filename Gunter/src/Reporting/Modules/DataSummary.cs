@@ -61,11 +61,10 @@ namespace Gunter.Reporting.Modules
             if (!Columns.Any())
             {
                 columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnMetadata
-                    {
-                        Select = c.ColumnName,
-                        Aggregate = ColumnAggregate.Last
-                    })
-                    .ToList();
+                {
+                    Select = c.ColumnName,
+                    Aggregate = ColumnAggregate.Last
+                }).ToList();
             }
 
             var section = new ModuleDto
@@ -85,27 +84,33 @@ namespace Gunter.Reporting.Modules
             // Create aggregated rows and add them to the final data-table.            
             var aggregatedRows =
                 from rowGroup in rowGroups
-                select (from column in columns select Aggregate(column, rowGroup));
+                let aggregated = from column in columns select (column, value: Aggregate(column, rowGroup))
+                select aggregated;
 
             foreach (var row in aggregatedRows)
             {
-                section.Data.Body.Add(row);
+                //section.Data.Body.Add(row);
+                var newRow = section.Data.Body.NewRow();
+                foreach (var (column, value) in row)
+                {
+                    newRow.Update((column.Display ?? column.Select).ToString(), value, column.Styles);
+                }
             }
 
             // Add the footer row with column options.
             section.Data.Foot.Add(columns.Select(column => string.Join(", ", StringifyColumnOption(column))).ToList());
 
             return section;
-
-            IEnumerable<string> StringifyColumnOption(ColumnMetadata column)
-            {
-                if (column.IsKey) yield return "Key";
-                //if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
-                yield return column.Aggregate.ToString();
-            }
         }
 
-        private string Aggregate(ColumnMetadata column, IEnumerable<DataRow> rowGroup)
+        private IEnumerable<string> StringifyColumnOption(ColumnMetadata column)
+        {
+            if (column.IsKey) yield return "Key";
+            //if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
+            yield return column.Aggregate.ToString();
+        }
+
+        private object Aggregate(ColumnMetadata column, IEnumerable<DataRow> rowGroup)
         {
             try
             {
@@ -120,7 +125,7 @@ namespace Gunter.Reporting.Modules
                 {
                     //value = column.Filter is null ? value : column.Filter.Apply(value);
                     value = column.Formatter is null ? value : column.Formatter.Apply(value);
-                    return value.ToString();
+                    return value;
                 }
             }
             catch (Exception inner)

@@ -27,7 +27,7 @@
           ]
         },
         {
-          "$t": "FirstLine",
+          "$t": "ExtractFirstLine",
           "Columns": [
             {
               "From": "_text",
@@ -83,7 +83,10 @@
               "IsKey": true
             },
             {
-              "Select": "_color"
+              "Select": "_color",
+              "Styles": [
+                "color"
+              ]
             },
             {
               "Select": "_flag"
@@ -91,9 +94,6 @@
             {
               "Select": "_count",
               "Aggregate": "Sum"
-              // "Formatter": {
-              //     "$t": "TimeSpan"
-              // }
             },
             {
               "Select": "_distance",
