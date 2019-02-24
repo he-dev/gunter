@@ -13,11 +13,11 @@ using Reusable.Exceptionizer;
 namespace Gunter.Services.DataPostProcessors
 {
     [UsedImplicitly]
-    public class ExtractJsonValue : IDataPostProcessor
+    public class GetJsonValue : IDataPostProcessor
     {
         [NotNull, ItemNotNull]
         [JsonProperty(Required = Required.Always)]
-        public IList<ExtractJsonValueColumn> Columns { get; set; }
+        public IList<GetJsonValueColumn> Columns { get; set; }
 
         public void Execute(DataTable dataTable)
         {
@@ -39,7 +39,7 @@ namespace Gunter.Services.DataPostProcessors
                 {
                     try
                     {
-                        var value = GetJsonValue(dataRow, column.From, column.Select, column.Default);
+                        var value = GetJsonValueInternal(dataRow, column.From, column.Select, column.Default);
                         dataRow[column.Attach] = value;
                     }
                     catch (Exception inner)
@@ -50,7 +50,7 @@ namespace Gunter.Services.DataPostProcessors
             }
         }
 
-        private static object GetJsonValue(DataRow source, string column, string path, object defaultValue)
+        private static object GetJsonValueInternal(DataRow source, string column, string path, object defaultValue)
         {
             var value = source.Field<string>(column);
 
@@ -69,7 +69,7 @@ namespace Gunter.Services.DataPostProcessors
         }
     }
 
-    public class ExtractJsonValueColumn
+    public class GetJsonValueColumn
     {        
         /// <summary>
         /// Gets or sets the data-table column containing json.

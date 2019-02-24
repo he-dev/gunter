@@ -18,18 +18,18 @@ using Reusable.OmniLog.SemanticExtensions;
 namespace Gunter.Data
 {
     [UsedImplicitly, PublicAPI]
-    public interface IDataSource : IMergeable
+    public interface ILog : IMergeable
     {
         [CanBeNull, ItemNotNull]
         IList<IDataPostProcessor> Then { get; set; }
 
         [ItemNotNull]
-        Task<GetDataResult> GetDataAsync(string path, RuntimeVariableDictionary runtimeVariables);
+        Task<GetDataResult> GetDataAsync(RuntimeVariableDictionary runtimeVariables);
     }
 
-    public abstract class DataSource : IDataSource
+    public abstract class Log : ILog
     {
-        protected DataSource(ILogger logger) => Logger = logger;
+        protected Log(ILogger logger) => Logger = logger;
 
         protected ILogger Logger { get; }
 
@@ -41,15 +41,15 @@ namespace Gunter.Data
         [Mergeable]
         public IList<IDataPostProcessor> Then { get; set; }
 
-        public async Task<GetDataResult> GetDataAsync(string path, RuntimeVariableDictionary runtimeVariables)
+        public async Task<GetDataResult> GetDataAsync(RuntimeVariableDictionary runtimeVariables)
         {
-            using (Logger.BeginScope().WithCorrelationHandle(nameof(DataSource)).AttachElapsed())
+            using (Logger.BeginScope().WithCorrelationHandle(nameof(Log)).AttachElapsed())
             {
                 Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { DataSourceId = Id.ToString() }));
                 try
                 {
                     var getDataStopwatch = Stopwatch.StartNew();
-                    var (data, query) = await GetDataAsyncInternal(path, runtimeVariables);
+                    var (data, query) = await GetDataAsyncInternal(runtimeVariables);
                     var getDataElapsed = getDataStopwatch.Elapsed;
                     var elapsedPostProcessing = Stopwatch.StartNew();
 
@@ -73,12 +73,12 @@ namespace Gunter.Data
             }
         }
 
-        protected abstract Task<(DataTable Data, string Query)> GetDataAsyncInternal(string path, RuntimeVariableDictionary runtimeVariables);
+        protected abstract Task<(DataTable Data, string Query)> GetDataAsyncInternal(RuntimeVariableDictionary runtimeVariables);
     }
 
     public class GetDataResult : IDisposable
     {
-        [CanBeNull]
+        [NotNull]
         public DataTable Value { get; set; }
 
         [NotNull]

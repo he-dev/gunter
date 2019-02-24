@@ -49,6 +49,19 @@ namespace Gunter.DependencyInjection
                     new HttpProvider(ConfigurationManager.AppSettings["mailr:BaseUri"])
                 }, ResourceMetadata.Empty.AllowRelativeUri(true)))
                 .As<IResourceProvider>();
+            
+//            builder
+//                .Register(c =>
+//                {
+//                    var context = c.Resolve<IComponentContext>();
+//                    var programInfo = c.Resolve < ProgramInfo>();
+//                    return new CompositeProvider(new IResourceProvider[]
+//                    {
+//                        new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()),
+//                        new HttpProvider(ConfigurationManager.AppSettings["mailr:BaseUri"])
+//                    });
+//                })
+//                .As<IResourceProvider>();
 
             builder
                 .RegisterType<TestFileSerializer>()

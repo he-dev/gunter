@@ -21,7 +21,7 @@ namespace Gunter
 
         public static string FullName => $"{Name}-v{Version}";
 
-        public static string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
+        public string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
         [Required]
         [SettingMember(Prefix = "app", Strength = SettingNameStrength.Low)]

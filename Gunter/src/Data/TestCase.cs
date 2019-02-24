@@ -64,11 +64,11 @@ namespace Gunter.Data
 
     public static class TestCaseExtensions
     {
-        public static IEnumerable<IDataSource> DataSources(this TestCase testCase, TestBundle testBundle)
+        public static IEnumerable<ILog> DataSources(this TestCase testCase, TestBundle testBundle)
         {
             return
                 (from id in testCase.DataSourceIds
-                    join ds in testBundle.DataSources on id equals ds.Id
+                    join ds in testBundle.Logs on id equals ds.Id
                     select ds).Distinct();
         }
 

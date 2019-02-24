@@ -11,11 +11,11 @@ using Reusable.Extensions;
 
 namespace Gunter.Services.DataPostProcessors
 {
-    public class ExtractFirstLine : IDataPostProcessor
+    public class GetFirstLine : IDataPostProcessor
     {
         [NotNull, ItemNotNull]
         [JsonProperty(Required = Required.Always)]
-        public IList<ExtractFirstLineColumn> Columns { get; set; }
+        public IList<GetFirstLineColumn> Columns { get; set; }
 
         public void Execute(DataTable dataTable)
         {
@@ -37,7 +37,7 @@ namespace Gunter.Services.DataPostProcessors
                 {
                     try
                     {
-                        var firstLine = GetFirstLine(dataRow.Field<object>(column.From));
+                        var firstLine = GetFirstLineInternal(dataRow.Field<object>(column.From));
                         dataRow[column.Attach ?? column.From] = firstLine;
                     }
                     catch (Exception inner)
@@ -49,7 +49,7 @@ namespace Gunter.Services.DataPostProcessors
         }
 
         [CanBeNull]
-        private static string GetFirstLine(object data)
+        private static string GetFirstLineInternal(object data)
         {
             switch (data)
             {
@@ -65,7 +65,7 @@ namespace Gunter.Services.DataPostProcessors
         }
     }
 
-    public class ExtractFirstLineColumn
+    public class GetFirstLineColumn
     {
         /// <summary>
         /// Gets or sets the data-table column containing json.

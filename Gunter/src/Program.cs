@@ -64,10 +64,9 @@ namespace Gunter
 
         public async Task RunAsync()
         {
-            var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var programInfo = _container.Resolve<ProgramInfo>();
-            var defaultPath = Path.Combine(currentDirectory, programInfo.DefaultTestsDirectoryName);
-            await RunAsync("run -path \"{defaultPath}\"");
+            var defaultPath = Path.Combine(programInfo.CurrentDirectory, programInfo.DefaultTestsDirectoryName);
+            await RunAsync($"run -path \"{defaultPath}\"");
         }
 
         public async Task RunAsync(params string[] args)

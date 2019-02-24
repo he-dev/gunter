@@ -26,7 +26,7 @@ namespace Gunter.Data
         public List<TestBundleVariableCollection> Variables { get; set; } = new List<TestBundleVariableCollection>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<IDataSource> DataSources { get; set; } = new List<IDataSource>();
+        public List<ILog> Logs { get; set; } = new List<ILog>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<TestCase> Tests { get; set; } = new List<TestCase>();
@@ -59,7 +59,7 @@ namespace Gunter.Data
         public IEnumerator<IEnumerable<IMergeable>> GetEnumerator()
         {
             yield return Variables;
-            yield return DataSources;
+            yield return Logs;
             yield return Tests;
             yield return Messengers;
             yield return Reports;
@@ -75,6 +75,7 @@ namespace Gunter.Data
         TValue Value { get; }
     }
 
+    [UsedImplicitly]
     public readonly struct TestBundleVariable : IAssignment<SoftString, object>
     {
         public TestBundleVariable(SoftString name, object value)
@@ -102,9 +103,9 @@ namespace Gunter.Data
         public Merge Merge { get; set; }
 
         [Mergeable]
-        public IDictionary<SoftString, object> Items { get; set; }
+        public IDictionary<SoftString, object> Dictionary { get; set; }
 
-        public IEnumerator<TestBundleVariable> GetEnumerator() => Items.Select(x => (TestBundleVariable)x).GetEnumerator();
+        public IEnumerator<TestBundleVariable> GetEnumerator() => Dictionary.Select(x => (TestBundleVariable)x).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

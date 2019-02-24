@@ -32,7 +32,7 @@ namespace Gunter.Services
         {
             builder.True(
                 testBundle => testBundle.All(
-                    mereables => mereables.GroupBy(m => m.Id).All(g => g.Count() == 1)));
+                    mergeables => mergeables.GroupBy(m => m.Id).All(g => g.Count() == 1)));
         });
 
         public TestLoader
@@ -63,8 +63,9 @@ namespace Gunter.Services
 
             foreach (var fileName in testFiles) //.Where(fileName => tests is null || tests.Contains(Path.GetFileNameWithoutExtension(fileName), StringComparer.OrdinalIgnoreCase)))
             {
-                using (_logger.BeginScope().AttachElapsed())
+                using (_logger.BeginScope().WithCorrelationHandle("TestBundle").AttachElapsed())
                 {
+                    _logger.Log(Abstraction.Layer.IO().Meta(new { TestBundleFileName = fileName }));
                     var testBundle = await LoadTestAsync(fileName);
                     if (testBundle is null || !testBundle.Enabled)
                     {
@@ -92,13 +93,13 @@ namespace Gunter.Services
                     await file.CopyToAsync(memoryStream);
                     var testBundle = await _testFileSerializer.DeserializeAsync(memoryStream);
                     testBundle.FullName = fileName;
-                    _logger.Log(Abstraction.Layer.IO().Routine(nameof(LoadTestAsync)).Completed(), fileName);
+                    _logger.Log(Abstraction.Layer.IO().Routine(nameof(LoadTestAsync)).Completed());
                     return testBundle;
                 }
             }
             catch (Exception ex)
             {
-                _logger.Log(Abstraction.Layer.IO().Routine(nameof(LoadTestAsync)).Faulted(), fileName, ex);
+                _logger.Log(Abstraction.Layer.IO().Routine(nameof(LoadTestAsync)).Faulted(), ex);
                 return default;
             }
         }

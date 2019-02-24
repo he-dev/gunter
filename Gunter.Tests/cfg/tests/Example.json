@@ -3,13 +3,13 @@
     {
       "Id": "locals",
       "Merge": "_Gunter#defaults",
-      "Items": {
+      "Dictionary": {
         "ProductName": "Gunter",
         "Greeting-1": "Hi there!"
       }
     }
   ],
-  "DataSources": [
+  "Logs": [
     {
       "$t": "TableOrView",
       "Id": "everything",

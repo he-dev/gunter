@@ -93,7 +93,7 @@ namespace Gunter.Services
                         {
                             if (!cache.TryGetValue(current.dataSource.Id, out var cacheItem))
                             {
-                                cache[current.dataSource.Id] = cacheItem = await current.dataSource.GetDataAsync(testBundle.DirectoryName, testBundleRuntimeVariables);
+                                cache[current.dataSource.Id] = cacheItem = await current.dataSource.GetDataAsync(testBundleRuntimeVariables);
                             }
 
                             var (result, runElapsed, then) = RunTest(current.testCase, cacheItem.Value);
@@ -103,7 +103,7 @@ namespace Gunter.Services
                                 TestBundle = testBundle,
                                 TestCase = current.testCase,
                                 //TestWhen = when,
-                                DataSource = current.dataSource,
+                                Log = current.dataSource,
                                 Query = cacheItem.Query,
                                 Data = cacheItem.Value,
                                 Result = result,

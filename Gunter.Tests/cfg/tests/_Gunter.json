@@ -2,13 +2,13 @@
   "Variables": [
     {
       "Id": "defaults",
-      "Items": {
+      "Dictionary": {
         "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
         "Greeting": "Hi there!"
       }
     }
   ],
-  "DataSources": [
+  "Logs": [
     {
       "$t": "TableOrView",
       "Id": "everything",
@@ -16,7 +16,7 @@
       "Query": "file:///{TestBundle.FileName}.sql",
       "Then": [
         {
-          "$t": "ExtractJsonValue",
+          "$t": "GetJsonValue",
           "Columns": [
             {
               "From": "_text",
@@ -27,7 +27,7 @@
           ]
         },
         {
-          "$t": "ExtractFirstLine",
+          "$t": "GetFirstLine",
           "Columns": [
             {
               "From": "_text",
