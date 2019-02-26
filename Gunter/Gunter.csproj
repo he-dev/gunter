@@ -38,6 +38,15 @@
     <Compile Remove="src\Reporting\Filters\**" />
     <EmbeddedResource Remove="src\Reporting\Filters\**" />
     <None Remove="src\Reporting\Filters\**" />
+    <None Update="cfg\tests\_Gunter.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cfg\tests\Example.all.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="cfg\tests\Example.empty.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -86,12 +95,9 @@
 
   <ItemGroup>
     <None Update="cfg\tests\Example.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cfg\tests\Example.sql">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="cfg\tests\_Gunter.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="NLog.config">

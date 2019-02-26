@@ -20,8 +20,8 @@
           "Columns": [
             {
               "From": "_text",
-              "Select": "$.Color",
-              "Attach": "_color",
+              "Select": "$.Name",
+              "Attach": "_name",
               "Default": "\"255, 255, 255\""
             }
           ]
@@ -93,6 +93,9 @@
               "Styles": [
                 "color"
               ]
+            },
+            {
+              "Select": "_json"
             },
             {
               "Select": "_flag"

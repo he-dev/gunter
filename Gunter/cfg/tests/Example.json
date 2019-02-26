@@ -1,169 +1,94 @@
 {
-    "Variables": [
-        {
-            "Id": "var-1",
-            "Merge": "_Gunter/var-1",
-            "Items": {
-                "ProductName": "Gunter",
-                "Greeting-1": "Hi there!"
-            }
-        }
-    ],
-    "DataSources": [
-        {
-            "$t": "TableOrView",
-            "Id": "src-1",
-            "Merge": "_Gunter/src-1"
-        }
-    ],
-    "Tests": [
-        {
-            "Id": "tst-1",
-            "Enabled": true,
-            "Level": "Warning",
-            "Message": "Trace logging is enabled.",
-            "DataSources": [
-                "src-1"
-            ],
-            "Filter": "[Level] = 'trace'",
-            "Assert": "Count([Id]) = 0",
-            "OnPassed": "None",
-            "OnFailed": "Alert, Halt",
-            "Messages": [
-                "msg-1"
-            ],
-            "Profiles": [
-                "every-15min"
-            ]
-        },
-        {
-            "Id": "tst-2",
-            "Enabled": true,
-            "Level": "Error",
-            "Message": "Some commands did not complete successfully for a longer period of time.",
-            "DataSources": [
-                "src-1"
-            ],
-            "Filter": "[Level] = 'Error'",
-            "Assert": "Count([Id]) = 0",
-            "OnPassed": "None",
-            "OnFailed": "Alert, Halt",
-            "Messages": [
-                "msg-1"
-            ],
-            "Profiles": [
-                "every-15min"
-            ]
-        },
-        {
-            "Id": "tst-3",
-            "Enabled": true,
-            "Level": "Fatal",
-            "Message": "Some commands did not complete successfully and this for very long time!",
-            "DataSources": [
-                "src-1"
-            ],
-            "Filter": "[Level] = 'Fatal'",
-            "Assert": "Count([Id]) = 0",
-            "OnPassed": "None",
-            "OnFailed": "Alert, Halt",
-            "Messages": [
-                "msg-1"
-            ],
-            "Profiles": [
-                "every-15min"
-            ]
-        }
-    ],
-    "Messages": [
-        {
-            "$t": "Mailr",
-            "Id": "msg-1",
-            "Merge": "_Gunter/msg-1",
-            "Reports": [
-                "rpt-1"
-            ]
-        }
-    ],
-    "Reports": [
-        {
-            "Id": "rpt-1",
-            "Title": "Glitch alert | {ProductName} | {TestCase.Level}",
-            "Modules": [
-                {
-                    "$t": "Level"
-                },
-                {
-                    "$t": "Greeting",
-                    "Heading": "{Greeting-1}",
-                    "Text": "{TestCase.Message}"
-                },
-                {
-                    "$t": "TestCase",
-                    "Heading": "Test case"
-                },
-                {
-                    "$t": "DataSource",
-                    "Heading": "Data-source"
-                },
-                {
-                    "$t": "DataSummary",
-                    "Heading": "Data summary",
-                    "Columns": [
-                        {
-                            "Name": "Timestamp"
-                        },
-                        {
-                            "Name": "Product",
-                            "IsGroupKey": true
-                        },
-                        {
-                            "Name": "Logger"
-                        },
-                        {
-                            //"Name": "Scope"
-                            "Name": "CorrelationId"
-                        },
-                        {
-                            "Name": "Layer"
-                        },
-                        {
-                            "Name": "Level"
-                        },
-                        {
-                            "Name": "Category"
-                        },
-                        {
-                            "Name": "Identifier"
-                        },
-                        {
-                            "Name": "Snapshot"
-                        },
-                        {
-                            "Name": "Elapsed",
-                            "Total": "Average",
-                            "Formatter": {
-                                "$t": "TimeSpan"
-                            }
-                        },
-                        {
-                            "Name": "Message"
-                        },
-                        {
-                            "Name": "Exception",
-                            "IsGroupKey": true,
-                            "Filter": {
-                                "$t": "FirstLine"
-                            }
-                        },
-                        {
-                            "Name": "GroupCount",
-                            "Other": "Id",
-                            "Total": "Count"
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
+  "Variables": [
+    {
+      "Id": "locals",
+      "Merge": "_Gunter#defaults",
+      "Dictionary": {
+        "ProductName": "Gunter",
+        "Greeting-1": "Hi there!"
+      }
+    }
+  ],
+  "Logs": [
+    {
+      "$t": "TableOrView",
+      "Id": "nothing",
+      "Merge": "_Gunter#nothing"
+    },
+    {
+      "$t": "TableOrView",
+      "Id": "everything",
+      "Merge": "_Gunter#everything"
+    }
+  ],
+  "Tests": [
+    {
+      "Id": "fails",
+      "Enabled": true,
+      "Level": "Fatal",
+      "Message": "There is no test data.",
+      "Check": [
+        "nothing"
+      ],
+      "Assert": "Count([_id]) > 0",
+      "When": {
+        "Failed": [
+          "send -report full -use default-email",
+          "halt"
+        ]
+      },
+      "Tags": [
+        "error"
+      ]
+    },
+    {
+      "Id": "passes",
+      "Enabled": true,
+      "Level": "Information",
+      "Message": "There is no test data.",
+      "Check": [
+        "everything"
+      ],
+      "Assert": "Count([_id]) > 0",
+      "When": {
+        "Passed": [
+          "send -report full -use default-email",
+          "halt"
+        ]
+      },
+      "Tags": [
+        "status"
+      ]
+    },
+    {
+      "Id": "must-not-run",
+      "Enabled": false,
+      "Level": "Error",
+      "Message": "This test must not run.",
+      "Check": [
+        "everything"
+      ],
+      "Assert": "Count([_id]) = 0",
+      "When": {
+        "Failed": [
+          "send -report full -use default-email",
+          "halt"
+        ]
+      },
+      "Tags": []
+    }
+  ],
+  "Messengers": [
+    {
+      "$t": "Mailr",
+      "Id": "default-email",
+      "Merge": "_Gunter#default-email"
+    }
+  ],
+  "Reports": [
+    {
+      "Id": "full",
+      "Merge": "_Gunter#full-report"
+    }
+  ]
 }

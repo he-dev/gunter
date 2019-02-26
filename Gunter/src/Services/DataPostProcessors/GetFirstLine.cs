@@ -59,7 +59,7 @@ namespace Gunter.Services.DataPostProcessors
                     return
                         string.IsNullOrEmpty(value)
                             ? default
-                            : value.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                            : value.Split(new[] { "\r\n", "\r" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
                 default: throw new ArgumentException($"Invalid data type. Expected {typeof(string).Name} but found {data.GetType().Name}.");
             }
         }

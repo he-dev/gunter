@@ -8,11 +8,14 @@ using Gunter.Data.Dtos;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
+using Reusable.Utilities.JsonNet;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Gunter.Services.Messengers
 {
@@ -64,7 +67,14 @@ namespace Gunter.Services.Messengers
 
             Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Email = new { email.To, email.CC, email.Subject, email.Theme, Modules = body.Modules.Select(m => m.Key) } }));
 
-            await _resourceProvider.SendAsync(TestResultPath, email, ProgramInfo.Name, ProgramInfo.Version);
+            await _resourceProvider.SendAsync(TestResultPath, email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
+            {
+                Converters =
+                {
+                    new SoftStringConverter(),
+                    new StringEnumConverter()
+                }
+            });
         }
     }
 }

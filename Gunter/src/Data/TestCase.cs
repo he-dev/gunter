@@ -57,7 +57,7 @@ namespace Gunter.Data
         
         public IDictionary<TestResult, IList<string>> When { get; set; }
 
-        [JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        //[JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergeable]
         public IList<SoftString> Tags { get; set; } = new List<SoftString>();
     }

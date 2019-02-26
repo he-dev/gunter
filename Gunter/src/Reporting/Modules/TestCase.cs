@@ -42,17 +42,18 @@ namespace Gunter.Reporting.Modules
                 .Update(Columns.Property, nameof(Gunter.Data.TestCase.Assert))
                 .Update(Columns.Value, context.TestCase.Assert);
             section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestContext.Result))
+                .Update(Columns.Property, "When")
                 .Update(Columns.Value, context.Result.ToString(), context.Result.ToString().ToLower());
             section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestCase.When))
-                .Update(Columns.Value, context.TestCase.When);
+                .Update(Columns.Property, "Then")
+                .Update(Columns.Value, context.TestCase.When[context.Result]);
             section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestCounter.RunTestElapsed))
+                .Update(Columns.Property, "Elapsed")
                 .Update(Columns.Value, $"{RuntimeValue.TestCounter.AssertElapsed.ToString(TimespanFormat)}".Format(context.RuntimeVariables));
             section.Data.Body.NewRow()
                 .Update(Columns.Property, nameof(Gunter.Data.TestCase.Tags))
-                .Update(Columns.Value, $"[{string.Join(", ", context.TestCase.Tags.Select(p => $"'{p}'"))}]");
+                .Update(Columns.Value, context.TestCase.Tags);
+            //.Update(Columns.Value, $"[{string.Join(", ", context.TestCase.Tags.Select(p => $"'{p}'"))}]");
 
             return section;
         }

@@ -31,16 +31,18 @@ end
 --- Clear settings.
 DELETE FROM [dbo].[Gunter_Test];
 
+DECLARE @CRLF nvarchar(10) = char(13)+char(10);
+
 --- Update settings
 INSERT INTO [dbo].[Gunter_Test]([_id], [_text], [_json], [_misc], [_flag], [_count], [_distance], [_price], [_timestamp])
 SELECT [_id], [_text], [_json], [_misc], [_flag], [_count], [_distance], [_price], [_timestamp]
 FROM (
 	VALUES		
 		
-		(1, 'Line-1\r\nLine-2','{"Name":"John"}', 'Hallo!', 'true', 2, 5.5, 5.25, '2018-05-01'), -- ok
+		(1, REPLACE(N'Line-1{CRLF}Line-2', '{CRLF}', @CRLF), '{"Name":"John"}', 'Hallo!', 'true', 2, 5.5, 5.25, '2018-05-01'), -- ok
 		(2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL), -- null
 		(3, '', 'Not-json', '', 'false', 3, 6.5, 6.25, '2018-05-02'),     -- invalid
-		(4, 'Line-1\r\nLine-2','{"Name":"Bill"}', '{"Greeting":"Hallo!"}', 'true', 2, 5.5, 5.25, '2018-05-01'), -- ok
+		(4, REPLACE(N'Line-1{CRLF}Line-2', '{CRLF}', @CRLF),'{"Name":"Bill"}', '{"Greeting":"Hallo!"}', 'true', 2, 5.5, 5.25, '2018-05-01'), -- ok
 		
 
 		-- It's here so we don't have to think about the last comma.

@@ -1,100 +1,117 @@
 {
-    "Variables": [
+  "Variables": [
+    {
+      "Id": "defaults",
+      "Dictionary": {
+        "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
+        "Greeting": "Hi there!"
+      }
+    }
+  ],
+  "Logs": [
+    {
+      "$t": "TableOrView",
+      "Id": "everything",
+      "ConnectionString": "{TestDb}",
+      "Query": "file:///{TestBundle.FileName}.all.sql",
+      "Then": [
         {
-            "Id": "var-1",
-            "Items": {
-                "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
-                "Greeting": "Hi there!"
+          "$t": "GetJsonValue",
+          "Columns": [
+            {
+              "From": "_text",
+              "Select": "$.Color",
+              "Attach": "_color",
+              "Default": "\"255, 255, 255\""
             }
-        }
-    ],
-    "DataSources": [
+          ]
+        },
         {
-            "$t": "TableOrView",
-            "Id": "src-1",
-            "ConnectionString": "{TestDb}",
-            "Query": "file:///{TestBundle.FileName}.sql",
-            "Attachments": [
-                {
-                    "$t": "JsonValue",
-                    "Name": "CorrelationId",
-                    "JsonColumn": "Scope",
-                    "JsonPath": "$.[0].CorrelationId"
-                    //"JsonPath": "$.Request.Path"
-                }
-            ]
+          "$t": "GetFirstLine",
+          "Columns": [
+            {
+              "From": "_text",
+              "Attach": "_text-first-line"
+            }
+          ]
         }
-    ],
-    "Tests": [],
-    "Messages": [
+      ]
+    },
+    {
+      "$t": "TableOrView",
+      "Id": "nothing",
+      "ConnectionString": "{TestDb}",
+      "Query": "file:///{TestBundle.FileName}.empty.sql"
+    }
+  ],
+  "Tests": [],
+  "Messengers": [
+    {
+      "$t": "Mailr",
+      "Id": "default-email",
+      "To": [
+        "my@email.com"
+      ],
+      "Theme": "default"
+    }
+  ],
+  "Reports": [
+    {
+      "Id": "full-report",
+      "Title": "Glitch alert [{TestCase.Level}]",
+      "Modules": [
         {
-            "$t": "Mailr",
-            "Id": "msg-1",
-            "To": "...@gmail.com",
-            "Theme": "Default",
-            "Reports": []
-        }
-    ],
-    "Reports": [
+          "$t": "Level"
+        },
         {
-            "Id": "rpt-1",
-            "Title": "[{TestCase.Level}] - Glitch detected in {Product}",
-            "Modules": [
-                {
-                    "$t": "Level"
-                },
-                {
-                    "$t": "Greeting",
-                    "Heading": "Hi, everyone.",
-                    "Text": "{TestCase.Message}"
-                },
-                {
-                    "$t": "TestCase",
-                    "Heading": "Test case"
-                },
-                {
-                    "$t": "DataSource",
-                    "Heading": "Data-source"
-                },
-                {
-                    "$t": "DataSummary",
-                    "Heading": "Data snapshot",
-                    "Columns": [
-                        {
-                            "Name": "Product"
-                        },
-                        {
-                            "Name": "Transaction",
-                            "IsKey": true
-                            //"Filter": { "$type": "Gunter.Reporting.Filters.FirstLine, Gunter" }
-                        },
-                        //{ "Name": "_int", "Total": "Sum" },
-                        //{ "Name": "_datetime2" },
-                        {
-                            "Name": "Elapsed",
-                            "Total": "Average",
-                            "Formatter": {
-                                "$t": "TimeSpan"
-                            }
-                        },
-                        //{ "Name": "_bit", "Total": "Count" },
-                        //{ "Name": "_money" },
-                        {
-                            "Name": "Event"
-                        },
-                        {
-                            "Name": "Result"
-                        },
-                        {
-                            "Name": "Exception",
-                            //"IsKey": true
-                            "Filter": {
-                                "$t": "FirstLine"
-                            }
-                        }
-                    ]
-                }
-            ]
+          "$t": "Greeting",
+          "Heading": "Hi, everyone.",
+          "Text": "{TestCase.Message}"
+        },
+        {
+          "$t": "TestCase",
+          "Heading": "Test case"
+        },
+        {
+          "$t": "DataSource",
+          "Heading": "Data-source"
+        },
+        {
+          "$t": "DataSummary",
+          "Heading": "Data snapshot",
+          "Columns": [
+            {
+              "Select": "_text",
+              "Display": "_text-renamed"
+            },
+            {
+              "Select": "_text-first-line",
+              "IsKey": true
+            },
+            {
+              "Select": "_color",
+              "Styles": [
+                "color"
+              ]
+            },
+            {
+              "Select": "_flag"
+            },
+            {
+              "Select": "_count",
+              "Aggregate": "Sum"
+            },
+            {
+              "Select": "_distance",
+              "Aggregate": "Average"
+            },
+            {
+              "Select": "_price",
+              "Aggregate": "Min"
+            }
+          ]
         }
-    ]
+      ]
+    }
+  ]
 }
