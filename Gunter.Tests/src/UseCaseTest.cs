@@ -92,8 +92,47 @@ namespace Gunter.Tests
                         .RegisterInstance((ExecuteExceptionCallback) (ex => throw ex));
                 }))
                 {
-                    await program.RunAsync(@"run -files example -tests any");
+                    await program.RunAsync(@"run -files example -tests fails");
                     //await Task.Delay(300);
+
+                    var exceptions = _memoryRx.Exceptions<Exception>();
+
+                    False(exceptions.Any(), "There must not occur any exceptions.");
+
+                    testResult.Assert();
+                }
+            }
+        }
+        
+        [Fact]
+        public async Task Sends_alert_when_test_passes()
+        {
+            using (var teacup = _teapot.BeginScope())
+            {
+                var testResult = teacup.Mock("/api/v1.0/Gunter/Alerts/TestResult").ArrangePost((request, response) =>
+                {
+                    request
+                        .AsUserAgent(ProgramInfo.Name, ProgramInfo.Version)
+                        .AcceptsHtml()
+                        .WithContentTypeJson(body =>
+                        {
+                            body
+                                .PropertyEquals("$.Subject", "Glitch alert [Information]")
+                                .HasProperty("$.Subject");
+                        })
+                        .Occurs(1);
+
+                    response
+                        .Once(200, "OK");
+                });
+
+                using (var program = Program.Create(_loggerFactory, builder =>
+                {
+                    builder
+                        .RegisterInstance((ExecuteExceptionCallback) (ex => throw ex));
+                }))
+                {
+                    await program.RunAsync(@"run -files example -tests passes");
 
                     var exceptions = _memoryRx.Exceptions<Exception>();
 

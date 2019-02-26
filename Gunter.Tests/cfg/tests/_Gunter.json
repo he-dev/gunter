@@ -13,7 +13,7 @@
       "$t": "TableOrView",
       "Id": "everything",
       "ConnectionString": "{TestDb}",
-      "Query": "file:///{TestBundle.FileName}.sql",
+      "Query": "file:///{TestBundle.FileName}.all.sql",
       "Then": [
         {
           "$t": "GetJsonValue",
@@ -36,6 +36,12 @@
           ]
         }
       ]
+    },
+    {
+      "$t": "TableOrView",
+      "Id": "nothing",
+      "ConnectionString": "{TestDb}",
+      "Query": "file:///{TestBundle.FileName}.empty.sql"
     }
   ],
   "Tests": [],

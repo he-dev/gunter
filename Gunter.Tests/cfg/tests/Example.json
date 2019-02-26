@@ -12,15 +12,39 @@
   "Logs": [
     {
       "$t": "TableOrView",
+      "Id": "nothing",
+      "Merge": "_Gunter#nothing"
+    },
+    {
+      "$t": "TableOrView",
       "Id": "everything",
       "Merge": "_Gunter#everything"
     }
   ],
   "Tests": [
     {
-      "Id": "any",
+      "Id": "fails",
       "Enabled": true,
       "Level": "Fatal",
+      "Message": "There is no test data.",
+      "Check": [
+        "nothing"
+      ],
+      "Assert": "Count([_id]) > 0",
+      "When": {
+        "Failed": [
+          "send -report full -use default-email",
+          "halt"
+        ]
+      },
+      "Tags": [
+        "error"
+      ]
+    },
+    {
+      "Id": "passes",
+      "Enabled": true,
+      "Level": "Information",
       "Message": "There is no test data.",
       "Check": [
         "everything"
@@ -32,7 +56,9 @@
           "halt"
         ]
       },
-      "Tags": []
+      "Tags": [
+        "status"
+      ]
     },
     {
       "Id": "must-not-run",
@@ -43,23 +69,6 @@
         "everything"
       ],
       "Assert": "Count([_id]) = 0",
-      "When": {
-        "Failed": [
-          "send -report full -use default-email",
-          "halt"
-        ]
-      },
-      "Tags": []
-    },
-    {
-      "Id": "last-one",
-      "Enabled": true,
-      "Level": "Debug",
-      "Message": "There are less than 100 items.",
-      "Check": [
-        "everything"
-      ],
-      "Assert": "Count([_id]) < 100",
       "When": {
         "Failed": [
           "send -report full -use default-email",

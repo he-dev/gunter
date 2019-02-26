@@ -17,6 +17,9 @@
     <None Remove="cfg\Example.json" />
     <None Remove="cfg\Example.sql" />
     <None Remove="cfg\_Gunter.json" />
+    <None Update="cfg\tests\Example.empty.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -36,7 +39,7 @@
     <None Update="cfg\tests\Example.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="cfg\tests\Example.sql">
+    <None Update="cfg\tests\Example.all.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cfg\tests\_Gunter.json">

@@ -13,6 +13,8 @@ begin
 	(
 		[_id] [int] NOT NULL,
 		[_text] [nvarchar](max) NULL,
+		[_json] [nvarchar](max) NULL,
+		[_misc] [nvarchar](max) NULL,
 		[_flag] [bit] NULL,
 		[_count] [int] NULL,
 		[_distance] [float] NULL,
@@ -30,22 +32,24 @@ end
 DELETE FROM [dbo].[Gunter_Test];
 
 --- Update settings
-INSERT INTO [dbo].[Gunter_Test]([_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp])
-SELECT [_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp]
+INSERT INTO [dbo].[Gunter_Test]([_id], [_text], [_json], [_misc], [_flag], [_count], [_distance], [_price], [_timestamp])
+SELECT [_id], [_text], [_json], [_misc], [_flag], [_count], [_distance], [_price], [_timestamp]
 FROM (
 	VALUES		
 		
-		(1, 'Hallo!', 'true', 10, 10.5, 10.25, '2018-05-01'),
-		(2, '{"Name":"John"}', 'false', 20, 10.5, 10.25, '2018-05-02'),
+		(1, 'Line-1\r\nLine-2','{"Name":"John"}', 'Hallo!', 'true', 2, 5.5, 5.25, '2018-05-01'), -- ok
+		(2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL), -- null
+		(3, '', 'Not-json', '', 'false', 3, 6.5, 6.25, '2018-05-02'),     -- invalid
+		(4, 'Line-1\r\nLine-2','{"Name":"Bill"}', '{"Greeting":"Hallo!"}', 'true', 2, 5.5, 5.25, '2018-05-01'), -- ok
 		
 
 		-- It's here so we don't have to think about the last comma.
-		(1000, NULL, NULL, NULL, NULL, NULL, NULL)
-)sub ([_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp]);
+		(1000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+)sub ([_id], [_text], [_json], [_misc], [_flag], [_count], [_distance], [_price], [_timestamp]);
 
 COMMIT;
 
-SELECT [_id], [_text], [_flag], [_count], [_distance], [_price], [_timestamp]
+SELECT [_id], [_text], [_json], [_misc], [_flag], [_count], [_distance], [_price], [_timestamp]
 FROM [dbo].[Gunter_Test] 
 
 
