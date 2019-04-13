@@ -68,7 +68,7 @@ namespace Gunter.Services.Messengers
                 e.CC = CC;
             });
 
-            Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Email = new { email.To, email.CC, email.Subject, email.Theme, Modules = body.Modules.Select(m => m.Key) } }));
+            Logger.Log(Abstraction.Layer.Service().Meta(new { Email = new { email.To, email.CC, email.Subject, email.Theme, Modules = body.Modules.Select(m => m.Key) } }));
 
             await _resourceProvider.SendAsync(TestResultPath, email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
             {
