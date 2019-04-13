@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Gunter.Data;
-using Gunter.Reporting.Filters.Abstractions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.Exceptionize;

@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace Gunter.Data
+namespace Gunter.Services
 {
     public interface IDataPostProcessor
     {

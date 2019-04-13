@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Data;
-using Gunter.Data.Dtos;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Reusable;
 using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
@@ -41,7 +41,7 @@ namespace Gunter.Services.Messengers
 
         [Mergeable]
         public IList<string> To { get; set; }
-        
+
         [Mergeable]
         public IList<string> CC { get; set; }
 
@@ -53,13 +53,13 @@ namespace Gunter.Services.Messengers
         [SettingMember(Prefix = "mailr", Strength = SettingNameStrength.Low)]
         public string TestResultPath => _configuration.GetSetting(() => TestResultPath);
 
-        protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<(string Name, ModuleDto Section)> sections)
+        protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IModuleDto> modules)
         {
             var to = To.Select(x => x.Format(context.RuntimeVariables));
             var subject = report.Title.Format(context.RuntimeVariables);
             var body = new
             {
-                Modules = sections.ToDictionary(t => t.Name, t => t.Section)
+                Modules = modules
             };
 
             var email = Email.CreateHtml(to, subject, body, e =>
@@ -68,13 +68,24 @@ namespace Gunter.Services.Messengers
                 e.CC = CC;
             });
 
-            Logger.Log(Abstraction.Layer.Service().Meta(new { Email = new { email.To, email.CC, email.Subject, email.Theme, Modules = body.Modules.Select(m => m.Key) } }));
+            Logger.Log(Abstraction.Layer.Service().Meta(new
+            {
+                Email = new
+                {
+                    email.To,
+                    email.CC,
+                    email.Subject,
+                    email.Theme,
+                    Modules = body.Modules.Select(m => m.Name)
+                }
+            }));
 
             await _resourceProvider.SendAsync(TestResultPath, email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
             {
                 Converters =
                 {
-                    new SoftStringConverter(),
+                    new JsonStringConverter(typeof(SoftString)),
+                    //new SoftStringConverter(),
                     new StringEnumConverter()
                 }
             });

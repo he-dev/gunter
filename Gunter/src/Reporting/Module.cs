@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using Gunter.Data;
-using Gunter.Data.Dtos;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -18,7 +17,7 @@ namespace Gunter.Reporting
 
         int Ordinal { get; set; }
 
-        ModuleDto CreateDto(TestContext context);
+        IModuleDto CreateDto(TestContext context);
     }
 
     [GunterAttribute]
@@ -30,7 +29,7 @@ namespace Gunter.Reporting
 
         public int Ordinal { get; set; }
 
-        public abstract ModuleDto CreateDto(TestContext context);
+        public abstract IModuleDto CreateDto(TestContext context);
     }
 
     public interface ITabular

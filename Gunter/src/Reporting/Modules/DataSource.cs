@@ -5,7 +5,6 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using Gunter.Data;
-using Gunter.Data.Dtos;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Data;
@@ -28,10 +27,10 @@ namespace Gunter.Reporting.Modules
         [DefaultValue(@"mm\:ss\.fff")]
         public string TimespanFormat { get; set; }
 
-        public override ModuleDto CreateDto(TestContext context)
+        public override IModuleDto CreateDto(TestContext context)
         {
             // Initialize the data-table;
-            var section = new ModuleDto
+            var section = new ModuleDto<DataSource>
             {
                 Heading = Heading.Format(context.RuntimeVariables),
                 Data = new HtmlTable(HtmlTableColumn.Create

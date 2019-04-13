@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
-using Gunter.Json.Converters;
-using Gunter.Services.Messengers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -13,6 +11,7 @@ using Reusable;
 using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.Utilities.JsonNet;
+using Reusable.Utilities.JsonNet.Converters;
 
 namespace Gunter.Services
 {
@@ -58,7 +57,8 @@ namespace Gunter.Services
                 ObjectCreationHandling = ObjectCreationHandling.Reuse,
                 Converters =
                 {
-                    new MergeConverter()
+                    //new MergeConverter()
+                    new JsonStringConverter()
                 }
             };
         }

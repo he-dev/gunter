@@ -3,7 +3,7 @@
     {
       "Id": "locals",
       "Merge": "_Gunter#defaults",
-      "Dictionary": {
+      "Items": {
         "ProductName": "Gunter",
         "Greeting-1": "Hi there!"
       }
@@ -11,14 +11,14 @@
   ],
   "Logs": [
     {
-      "$t": "TableOrView",
-      "Id": "nothing",
-      "Merge": "_Gunter#nothing"
-    },
-    {
-      "$t": "TableOrView",
+      "$t": "gunter.TableOrView",
       "Id": "everything",
       "Merge": "_Gunter#everything"
+    },
+    {
+      "$t": "gunter.TableOrView",
+      "Id": "empty",
+      "Merge": "_Gunter#empty"
     }
   ],
   "Tests": [
@@ -26,9 +26,9 @@
       "Id": "fails",
       "Enabled": true,
       "Level": "Fatal",
-      "Message": "There is no test data.",
+      "Message": "There is no data.",
       "Check": [
-        "nothing"
+        "empty"
       ],
       "Assert": "Count([_id]) > 0",
       "When": {
@@ -45,11 +45,11 @@
       "Id": "passes",
       "Enabled": true,
       "Level": "Information",
-      "Message": "There is no test data.",
+      "Message": "There is some data.",
       "Check": [
         "everything"
       ],
-      "Assert": "Count([_id]) > 0",
+      "Assert": "Count([_id]) == 5",
       "When": {
         "Passed": [
           "send -report full -use default-email",
@@ -80,15 +80,18 @@
   ],
   "Messengers": [
     {
-      "$t": "Mailr",
+      "$t": "gunter.Mailr",
       "Id": "default-email",
-      "Merge": "_Gunter#default-email"
+      "To": [
+        "gunter@test.com"
+      ],
+      "Merge": "_Gunter"
     }
   ],
   "Reports": [
     {
       "Id": "full",
-      "Merge": "_Gunter#full-report"
+      "Merge": "_Gunter"
     }
   ]
 }

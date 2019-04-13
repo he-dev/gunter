@@ -8,9 +8,7 @@ using System.Linq.Custom;
 using System.Text;
 using System.Text.RegularExpressions;
 using Gunter.Data;
-using Gunter.Data.Dtos;
 using Gunter.Extensions;
-using Gunter.Reporting.Filters;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Collections;
@@ -52,7 +50,7 @@ namespace Gunter.Reporting.Modules
         [ItemCanBeNull]
         public List<ColumnMetadata> Columns { get; set; } = new List<ColumnMetadata>();
 
-        public override ModuleDto CreateDto(TestContext context)
+        public override IModuleDto CreateDto(TestContext context)
         {
             // Materialize it because we'll be modifying it.
             var columns = Columns.ToList();
@@ -67,12 +65,11 @@ namespace Gunter.Reporting.Modules
                 }).ToList();
             }
 
-            var section = new ModuleDto
+            var section = new ModuleDto<DataSummary>
             {
                 Heading = Heading.Format(context.RuntimeVariables),
                 Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))).ToArray()))
             };
-            //var table = section.Data;
 
             // Filter rows before processing them.
             var filteredRows = context.Data.Select(context.TestCase.Filter);
@@ -124,7 +121,7 @@ namespace Gunter.Reporting.Modules
                 else
                 {
                     //value = column.Filter is null ? value : column.Filter.Apply(value);
-                    value = column.Formatter is null ? value : column.Formatter.Apply(value);
+                    value = column.Formatter?.Apply(value) ?? value;
                     return value;
                 }
             }

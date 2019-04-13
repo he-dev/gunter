@@ -1,4 +1,4 @@
-﻿namespace Gunter.Reporting.Filters.Abstractions
+﻿namespace Gunter.Reporting
 {
     public interface IFilter
     {

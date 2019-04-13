@@ -23,7 +23,9 @@ namespace Gunter.Services.DataPostProcessors
         public void Execute(DataTable dataTable)
         {
             if (Columns is null) throw new InvalidOperationException($"There are no '{nameof(Columns)}'.");
-            
+
+            //foreach (var column in Columns) { }
+
             foreach (var column in Columns)
             {
                 if (dataTable.Columns.Contains(column.Attach))
@@ -32,10 +34,7 @@ namespace Gunter.Services.DataPostProcessors
                 }
 
                 dataTable.Columns.Add(new DataColumn(column.Attach, typeof(object)));
-            }
-
-            foreach (var column in Columns)
-            {
+                
                 foreach (var dataRow in dataTable.AsEnumerable())
                 {
                     try
@@ -45,7 +44,7 @@ namespace Gunter.Services.DataPostProcessors
                     }
                     catch (Exception inner)
                     {
-                        throw DynamicException.Create("AttachmentCompute", $"Could not compute the '{column.Attach}' attachment.", inner);
+                        throw DynamicException.Create("DataPostProcessor", $"Could not attach column '{column.Attach}'.", inner);
                     }
                 }
             }
@@ -70,14 +69,16 @@ namespace Gunter.Services.DataPostProcessors
         }
     }
 
+    [PublicAPI]
+    [UsedImplicitly]
     public class GetJsonValueColumn
-    {        
+    {
         /// <summary>
         /// Gets or sets the data-table column containing json.
         /// </summary>
-        [JsonProperty(Required = Required.Always)]       
+        [JsonProperty(Required = Required.Always)]
         public string From { get; set; }
-        
+
         /// <summary>
         /// Gets or sets JsonPath for extracting the value.
         /// </summary>

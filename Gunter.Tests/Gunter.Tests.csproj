@@ -17,9 +17,6 @@
     <None Remove="cfg\Example.json" />
     <None Remove="cfg\Example.sql" />
     <None Remove="cfg\_Gunter.json" />
-    <None Update="cfg\tests\Example.empty.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,17 +36,26 @@
     <None Update="cfg\tests\Example.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="cfg\tests\Example.everything.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="cfg\tests\_Gunter.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="sql\seed-test-data.sql" />
     <EmbeddedResource Include="sql\seed-test-data.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\Gunter\cfg\tests\Example.empty.sql">
+      <Link>cfg\tests\Example.empty.sql</Link>
+    </Content>
+    <Content Include="..\Gunter\cfg\tests\Example.everything.sql">
+      <Link>cfg\tests\Example.everything.sql</Link>
+    </Content>
+    <Content Include="..\Gunter\cfg\tests\Example.json">
+      <Link>cfg\tests\Example.json</Link>
+    </Content>
+    <Content Include="..\Gunter\cfg\tests\_Gunter.json">
+      <Link>cfg\tests\_Gunter.json</Link>
+    </Content>
   </ItemGroup>
 
 </Project>

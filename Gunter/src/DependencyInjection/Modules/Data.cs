@@ -1,6 +1,6 @@
 using Autofac;
 
-namespace Gunter.DependencyInjection
+namespace Gunter.DependencyInjection.Modules
 {
     internal class Data : Autofac.Module
     {

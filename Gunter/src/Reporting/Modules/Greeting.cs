@@ -1,5 +1,4 @@
 using Gunter.Data;
-using Gunter.Data.Dtos;
 using Gunter.Services;
 using Reusable.Extensions;
 
@@ -7,9 +6,9 @@ namespace Gunter.Reporting.Modules
 {
     public class Greeting : Module
     {
-        public override ModuleDto CreateDto(TestContext context)
+        public override IModuleDto CreateDto(TestContext context)
         {
-            return new ModuleDto
+            return new ModuleDto<Greeting>
             {
                 Heading = Heading.Format(context.RuntimeVariables),
                 Text = Text.Format(context.RuntimeVariables),

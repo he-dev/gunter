@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Data;
-using Gunter.Data.Dtos;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -39,39 +38,6 @@ namespace Gunter.Services
 
         public Merge Merge { get; set; }
 
-        //[Mergeable]
-        //public IList<SoftString> ReportIds { get; set; } = new List<SoftString>();
-
-//        public async Task SendAsync(TestContext context)
-//        {
-//            var reports =
-//                from id in ReportIds
-//                join report in context.TestBundle.Reports on id equals report.Id
-//                select report;
-//
-//            foreach (var report in reports)
-//            {
-//                using (Logger.BeginScope().WithCorrelationHandle("Report").AttachElapsed())
-//                {
-//                    Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { ReportId = report.Id }));
-//                    try
-//                    {
-//                        var sections =
-//                            from module in report.Modules
-//                            let dto = module.CreateDto(context)
-//                            select (module.GetType().Name, dto);
-//
-//                        await PublishReportAsync(context, report, sections);
-//                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(SendAsync)).Completed());
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(SendAsync)).Faulted(), ex);
-//                    }
-//                }
-//            }
-//        }
-        
         public async Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds)
         {
             var reports =
@@ -83,15 +49,14 @@ namespace Gunter.Services
             {
                 using (Logger.BeginScope().WithCorrelationHandle("Report").AttachElapsed())
                 {
-                    Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { ReportId = report.Id }));
+                    Logger.Log(Abstraction.Layer.Service().Meta(new { ReportId = report.Id }));
                     try
                     {
-                        var sections =
+                        var modules =
                             from module in report.Modules
-                            let dto = module.CreateDto(context)
-                            select (module.GetType().Name, dto);
+                            select module.CreateDto(context);
 
-                        await PublishReportAsync(context, report, sections);
+                        await PublishReportAsync(context, report, modules);
                         Logger.Log(Abstraction.Layer.Network().Routine(nameof(SendAsync)).Completed());
                     }
                     catch (Exception ex)
@@ -102,6 +67,6 @@ namespace Gunter.Services
             }
         }
 
-        protected abstract Task PublishReportAsync(TestContext context, IReport report, IEnumerable<(string Name, ModuleDto Section)> sections);
+        protected abstract Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IModuleDto> modules);
     }
 }

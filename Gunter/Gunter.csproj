@@ -38,13 +38,16 @@
     <Compile Remove="src\Reporting\Filters\**" />
     <EmbeddedResource Remove="src\Reporting\Filters\**" />
     <None Remove="src\Reporting\Filters\**" />
+    <Compile Remove="src\Json\Converters\**" />
+    <EmbeddedResource Remove="src\Json\Converters\**" />
+    <None Remove="src\Json\Converters\**" />
     <None Update="cfg\tests\_Gunter.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="cfg\tests\Example.all.sql">
+    <None Update="cfg\tests\Example.empty.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="cfg\tests\Example.empty.sql">
+    <None Update="cfg\tests\Example.everything.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

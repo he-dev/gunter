@@ -4,41 +4,42 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Gunter.Reporting.Formatters.Abstractions;
 using JetBrains.Annotations;
 
 namespace Gunter.Reporting.Formatters
 {
     public class TimeSpan : IFormatter
     {
+        private static readonly IDictionary<TimeSpanValueType, Func<double, System.TimeSpan>> ValueTypes = new Dictionary<TimeSpanValueType, Func<double, System.TimeSpan>>
+        {
+            [TimeSpanValueType.Milliseconds] = System.TimeSpan.FromMilliseconds,
+            [TimeSpanValueType.Seconds] = System.TimeSpan.FromSeconds,
+            [TimeSpanValueType.Minutes] = System.TimeSpan.FromMinutes,
+            [TimeSpanValueType.Hours] = System.TimeSpan.FromHours,
+            [TimeSpanValueType.Days] = System.TimeSpan.FromDays,
+        };
+
         [DefaultValue(@"mm\:ss\.fff")]
         public string Format { get; set; }
 
+        [DefaultValue(TimeSpanValueType.Milliseconds)]
+        public TimeSpanValueType Type { get; set; }
+
         public string Apply(object value)
         {
-            switch (value)
-            {
-                case int elapsed:
-                    return System.TimeSpan.FromMilliseconds(elapsed).ToString(Format);
-
-                case long elapsed:
-                    return System.TimeSpan.FromMilliseconds(elapsed).ToString(Format);
-
-                case float elapsed when float.IsNaN(elapsed):
-                    return string.Empty;
-
-                case float elapsed:
-                    return System.TimeSpan.FromMilliseconds(elapsed).ToString(Format);
-
-                case double elapsed when double.IsNaN(elapsed):
-                    return string.Empty;
-
-                case double elapsed:
-                    return System.TimeSpan.FromMilliseconds(elapsed).ToString(Format);
-
-                default:
-                    throw new ArgumentException($"Invalid data type. Expected {typeof(int).Name} or  {typeof(long).Name} but found {value.GetType().Name}.");
-            }
+            return
+                value is null
+                    ? default
+                    : ValueTypes[Type](Convert.ToDouble(value)).ToString(Format);
         }
+    }
+
+    public enum TimeSpanValueType
+    {
+        Milliseconds,
+        Seconds,
+        Minutes,
+        Hours,
+        Days
     }
 }

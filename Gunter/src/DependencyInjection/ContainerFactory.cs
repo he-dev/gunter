@@ -1,6 +1,5 @@
 ﻿using System;
 using Autofac;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Exceptionize;
@@ -9,11 +8,9 @@ using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
 
-
-
 namespace Gunter.DependencyInjection
 {
-    public static class ProgramContainerFactory
+    public static class ContainerFactory
     {
         public static IContainer CreateContainer() => CreateContainer(InitializeLogging(), _ => { });
 
@@ -30,10 +27,10 @@ namespace Gunter.DependencyInjection
                     .RegisterType<ProgramInfo>()
                     .AsSelf();
 
-                builder.RegisterModule<Service>();
-                builder.RegisterModule<Data>();
-                builder.RegisterModule<Reporting>();
-                builder.RegisterModule<Mailr>();
+                builder.RegisterModule<Modules.Service>();
+                builder.RegisterModule<Modules.Data>();
+                builder.RegisterModule<Modules.Reporting>();
+                builder.RegisterModule<Modules.Mailr>();
 
                 configureContainer?.Invoke(builder);
 

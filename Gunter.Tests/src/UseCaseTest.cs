@@ -28,7 +28,7 @@ using Xunit;
 
 namespace Gunter.Tests
 {
-    using static ProgramContainerFactory;
+    using static ContainerFactory;
     using static Assert;
 
     public class UseCaseTest : IAsyncLifetime, IClassFixture<TeapotFactoryFixture>

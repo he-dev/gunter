@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using Gunter.Reporting;
-using Gunter.Reporting.Filters;
-using Gunter.Reporting.Filters.Abstractions;
-using Gunter.Reporting.Formatters.Abstractions;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.Collections;

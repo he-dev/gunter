@@ -2,14 +2,13 @@ using System.Configuration;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
-using Newtonsoft.Json.Serialization;
 using Reusable.Commander;
 using Reusable.IOnymous;
 using Reusable.SmartConfig;
 using Reusable.Utilities.JsonNet.DependencyInjection;
 using Configuration = Reusable.SmartConfig.Configuration;
 
-namespace Gunter.DependencyInjection
+namespace Gunter.DependencyInjection.Modules
 {
     internal class Service : Module
     {

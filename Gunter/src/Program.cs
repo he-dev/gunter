@@ -17,7 +17,7 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter
 {
-    using static ProgramContainerFactory;
+    using static ContainerFactory;
 
     public class Program : IDisposable
     {

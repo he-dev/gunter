@@ -1,7 +1,7 @@
 ﻿using Autofac;
 using Gunter.Reporting;
 
-namespace Gunter.DependencyInjection
+namespace Gunter.DependencyInjection.Modules
 {
     internal class Reporting : Autofac.Module
     {
