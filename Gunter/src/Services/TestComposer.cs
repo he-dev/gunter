@@ -16,10 +16,11 @@ using Gunter.Extensions;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flawless;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
 
@@ -125,15 +126,16 @@ namespace Gunter.Services
                     {
                         var partialTestBundle = partials.SingleOrThrow
                         (
-                            p => p.Name == mergeable.Merge.OtherName,
-                            onEmpty: () => DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{mergeable.Merge.OtherName}'.")
+                            p => p.Name == mergeable.Merge.Name,
+                            onEmpty: () => DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{mergeable.Merge.Name}'.")
                         );
 
                         var partialTestBundleValue = (IEnumerable<IMergeable>)testBundleProperty.GetValue(partialTestBundle);
+                        var mergeId = mergeable.Merge.Id ?? mergeable.Id;
                         other = partialTestBundleValue.SingleOrThrow
                         (
-                            x => x.Id == mergeable.Merge.OtherId,
-                            onEmpty: () => DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{mergeable.Merge.OtherId}'.")
+                            x => x.Id == mergeId,
+                            onEmpty: () => DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{mergeId}'.")
                         );
                     }
 

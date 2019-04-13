@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Reflection;
 
@@ -13,17 +13,17 @@ namespace Gunter.Data
     [UsedImplicitly]
     public class Merge
     {
-        private const string IdPrefix = "#";
-        
-        public Merge(string otherName, SoftString otherId)
+        private Merge(string name, SoftString id)
         {
-            OtherName = otherName;
-            OtherId = otherId;
+            Name = name;
+            Id = id;
         }
 
-        public SoftString OtherName { get; }
+        [NotNull]
+        public SoftString Name { get; }
 
-        public SoftString OtherId { get; }
+        [CanBeNull]
+        public SoftString Id { get; }
 
         public static Merge Parse(string merge)
         {
@@ -31,20 +31,19 @@ namespace Gunter.Data
 
             //var joinTypes = Enum.GetNames(typeof(JoinType)).Join("|");
             //var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z]+)\\/(?<otherId>\\d+)\\?(?<type>{joinTypes})", RegexOptions.IgnoreCase);
-            var mergeMatch = Regex.Match(merge, $"(?<otherFileName>[_a-z0-9-]+)#(?<otherId>[_a-z0-9-]+)", RegexOptions.IgnoreCase);
+            var mergeMatch = Regex.Match(merge, $"(?<fileName>[_a-z0-9-]+)(#(?<id>[_a-z0-9-]+))?", RegexOptions.IgnoreCase);
             if (!mergeMatch.Success)
             {
-                throw DynamicException.Create($"InvalidMergeExpression", $"{merge.QuoteWith("'")} is not a valid merge expression. Expected: 'Name#Id'.");
+                throw DynamicException.Create($"InvalidMergeExpression", $"{merge.QuoteWith("'")} is not a valid merge expression. Expected: 'file-name[#module-id]'.");
             }
 
             return new Merge
             (
-                mergeMatch.Groups["otherFileName"].Value,
-                mergeMatch.Groups["otherId"].Value
-                //(JoinType)Enum.Parse(typeof(JoinType), mergeMatch.Groups["type"].Value, ignoreCase: true)
+                mergeMatch.Group("fileName"),
+                mergeMatch.Group("id")
             );
         }
 
-        public override string ToString() => $"{OtherName}#{OtherId}";
+        public override string ToString() => $"{Name}#{Id}";
     }
 }

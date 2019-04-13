@@ -16,6 +16,7 @@ using Reusable.OmniLog;
 
 namespace Gunter.Data
 {
+    [GunterAttribute]
     [PublicAPI]
     public class TestCase : IMergeable
     {

@@ -12,9 +12,10 @@ using Gunter.Extensions;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Commander;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
@@ -83,12 +84,12 @@ namespace Gunter.Services
                 foreach (var item in cache.Values) item.Dispose();
             }))
             {
-                _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { TestBundleFileName = testBundle.FileName }));
+                _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleFileName = testBundle.FileName }));
                 foreach (var current in tests)
                 {
                     using (_logger.BeginScope().WithCorrelationHandle("TestCase").AttachElapsed())
                     {
-                        _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { TestCaseId = current.testCase.Id }));
+                        _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
                         try
                         {
                             if (!cache.TryGetValue(current.dataSource.Id, out var cacheItem))
@@ -164,7 +165,7 @@ namespace Gunter.Services
                     ? TestResult.Passed
                     : TestResult.Failed;
 
-            _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { TestResult = testResult }));
+            _logger.Log(Abstraction.Layer.Service().Meta(new { TestResult = testResult }));
 
             return
                 testCase.When.TryGetValue(testResult, out var then)

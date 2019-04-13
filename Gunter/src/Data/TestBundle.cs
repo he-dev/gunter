@@ -12,6 +12,7 @@ using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Utilities.JsonNet.Annotations;
 
 namespace Gunter.Data
 {
@@ -103,10 +104,15 @@ namespace Gunter.Data
         public Merge Merge { get; set; }
 
         [Mergeable]
-        public IDictionary<SoftString, object> Dictionary { get; set; }
+        public IDictionary<SoftString, object> Items { get; set; }
 
-        public IEnumerator<TestBundleVariable> GetEnumerator() => Dictionary.Select(x => (TestBundleVariable)x).GetEnumerator();
+        public IEnumerator<TestBundleVariable> GetEnumerator() => Items.Select(x => (TestBundleVariable)x).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    public class GunterAttribute : NamespaceAttribute
+    {
+        public GunterAttribute() : base(ProgramInfo.Name) { }
     }
 }

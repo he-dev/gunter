@@ -3,10 +3,13 @@ using Autofac;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
+
+
 
 namespace Gunter.DependencyInjection
 {
@@ -21,13 +24,7 @@ namespace Gunter.DependencyInjection
                 var builder = new ContainerBuilder();
 
                 builder
-                    .RegisterInstance(loggerFactory)
-                    .ExternallyOwned()
-                    .As<ILoggerFactory>();
-
-                builder
-                    .RegisterGeneric(typeof(Logger<>))
-                    .As(typeof(ILogger<>));
+                    .RegisterModule(new LoggerModule(loggerFactory));
 
                 builder
                     .RegisterType<ProgramInfo>()

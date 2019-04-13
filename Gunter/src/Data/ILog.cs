@@ -10,14 +10,16 @@ using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Data
-{
-    [UsedImplicitly, PublicAPI]
+{    
+    [UsedImplicitly]
+    [PublicAPI]
     public interface ILog : IMergeable
     {
         [CanBeNull, ItemNotNull]
@@ -27,6 +29,7 @@ namespace Gunter.Data
         Task<GetDataResult> GetDataAsync(RuntimeVariableDictionary runtimeVariables);
     }
 
+    [GunterAttribute]
     public abstract class Log : ILog
     {
         protected Log(ILogger logger) => Logger = logger;
@@ -45,7 +48,7 @@ namespace Gunter.Data
         {
             using (Logger.BeginScope().WithCorrelationHandle(nameof(Log)).AttachElapsed())
             {
-                Logger.Log(Abstraction.Layer.Infrastructure().Meta(new { DataSourceId = Id.ToString() }));
+                Logger.Log(Abstraction.Layer.Service().Meta(new { DataSourceId = Id.ToString() }));
                 try
                 {
                     var getDataStopwatch = Stopwatch.StartNew();

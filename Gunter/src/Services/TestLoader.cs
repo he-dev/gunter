@@ -10,6 +10,7 @@ using Reusable.Collections;
 using Reusable.Flawless;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services

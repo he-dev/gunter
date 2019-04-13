@@ -1,5 +1,6 @@
 using System;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.Tests.Helpers
 {

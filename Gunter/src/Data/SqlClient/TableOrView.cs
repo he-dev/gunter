@@ -15,10 +15,11 @@ using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
 

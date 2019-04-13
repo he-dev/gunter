@@ -39,7 +39,7 @@
     <None Update="cfg\tests\Example.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="cfg\tests\Example.all.sql">
+    <None Update="cfg\tests\Example.everything.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="cfg\tests\_Gunter.json">

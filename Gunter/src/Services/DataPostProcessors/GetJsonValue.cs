@@ -8,10 +8,11 @@ using Gunter.Extensions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 
 namespace Gunter.Services.DataPostProcessors
 {
+    [GunterAttribute]
     [UsedImplicitly]
     public class GetJsonValue : IDataPostProcessor
     {

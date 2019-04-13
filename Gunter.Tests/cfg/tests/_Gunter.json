@@ -2,7 +2,7 @@
   "Variables": [
     {
       "Id": "defaults",
-      "Dictionary": {
+      "Items": {
         "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
         "Greeting": "Hi there!"
       }
@@ -10,24 +10,24 @@
   ],
   "Logs": [
     {
-      "$t": "TableOrView",
+      "$t": "gunter.TableOrView",
       "Id": "everything",
       "ConnectionString": "{TestDb}",
-      "Query": "file:///{TestBundle.FileName}.all.sql",
+      "Query": "file:///{TestBundle.FileName}.everything.sql",
       "Then": [
         {
-          "$t": "GetJsonValue",
+          "$t": "gunter.GetJsonValue",
           "Columns": [
             {
-              "From": "_text",
+              "From": "_json",
               "Select": "$.Name",
               "Attach": "_name",
-              "Default": "\"255, 255, 255\""
+              "Default": "Unknown"
             }
           ]
         },
         {
-          "$t": "GetFirstLine",
+          "$t": "gunter.GetFirstLine",
           "Columns": [
             {
               "From": "_text",
@@ -38,8 +38,8 @@
       ]
     },
     {
-      "$t": "TableOrView",
-      "Id": "nothing",
+      "$t": "gunter.TableOrView",
+      "Id": "empty",
       "ConnectionString": "{TestDb}",
       "Query": "file:///{TestBundle.FileName}.empty.sql"
     }
@@ -47,38 +47,66 @@
   "Tests": [],
   "Messengers": [
     {
-      "$t": "Mailr",
+      "$t": "gunter.Mailr",
       "Id": "default-email",
-      "To": [
-        "my@email.com"
-      ],
+      
       "Theme": "default"
     }
   ],
   "Reports": [
     {
-      "Id": "full-report",
+      "Id": "full",
       "Title": "Glitch alert [{TestCase.Level}]",
       "Modules": [
         {
-          "$t": "Level"
+          "$t": "gunter.Level"
         },
         {
-          "$t": "Greeting",
+          "$t": "gunter.Greeting",
           "Heading": "Hi, everyone.",
           "Text": "{TestCase.Message}"
         },
         {
-          "$t": "TestCase",
+          "$t": "gunter.TestCase",
           "Heading": "Test case"
         },
         {
-          "$t": "DataSource",
+          "$t": "gunter.DataSource",
           "Heading": "Data-source"
         },
         {
-          "$t": "DataSummary",
-          "Heading": "Data snapshot",
+          "$t": "gunter.DataSummary",
+          "Heading": "Default data summary",
+          "Columns": [
+            {
+              "Select": "_text"
+            },
+            {
+              "Select": "_json"
+            },
+            {
+              "Select": "_misc"
+            },
+            {
+              "Select": "_flag"
+            },
+            {
+              "Select": "_count"
+            },
+            {
+              "Select": "_elapsed"
+            },
+            {
+              "Select": "_price"
+            },
+            {
+              "Select": "_timestamp"
+            }
+          ]
+        },
+        {
+          "$t": "gunter.DataSummary",
+          "Heading": "Custom data summary",
           "Columns": [
             {
               "Select": "_text",
@@ -89,28 +117,16 @@
               "IsKey": true
             },
             {
-              "Select": "_color",
-              "Styles": [
-                "color"
-              ]
-            },
-            {
-              "Select": "_json"
-            },
-            {
-              "Select": "_flag"
-            },
-            {
               "Select": "_count",
               "Aggregate": "Sum"
             },
             {
-              "Select": "_distance",
+              "Select": "_elapsed",
               "Aggregate": "Average"
             },
             {
               "Select": "_price",
-              "Aggregate": "Min"
+              "Aggregate": "Max"
             }
           ]
         }

@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services

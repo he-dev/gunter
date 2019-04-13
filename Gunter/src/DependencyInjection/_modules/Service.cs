@@ -6,6 +6,7 @@ using Newtonsoft.Json.Serialization;
 using Reusable.Commander;
 using Reusable.IOnymous;
 using Reusable.SmartConfig;
+using Reusable.Utilities.JsonNet.DependencyInjection;
 using Configuration = Reusable.SmartConfig.Configuration;
 
 namespace Gunter.DependencyInjection
@@ -50,6 +51,8 @@ namespace Gunter.DependencyInjection
                 }, ResourceMetadata.Empty.AllowRelativeUri(true)))
                 .As<IResourceProvider>();
             
+            
+            
 //            builder
 //                .Register(c =>
 //                {
@@ -69,15 +72,9 @@ namespace Gunter.DependencyInjection
 
             builder
                 .RegisterInstance(RuntimeValue.Enumerate());
-
+            
             builder
-                .Register(c =>
-                {
-                    var context = c.Resolve<IComponentContext>();
-                    return new AutofacContractResolver(context);
-                })
-                .SingleInstance()
-                .As<IContractResolver>();
+                .RegisterModule<JsonContractResolverModule>();
 
             builder
                 .RegisterType<VariableNameValidator>()

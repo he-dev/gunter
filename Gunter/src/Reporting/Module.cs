@@ -21,6 +21,7 @@ namespace Gunter.Reporting
         ModuleDto CreateDto(TestContext context);
     }
 
+    [GunterAttribute]
     public abstract class Module : IModule
     {
         public string Heading { get; set; }

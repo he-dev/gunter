@@ -12,6 +12,7 @@ using JetBrains.Annotations;
 using Reusable;
 using Reusable.Commander;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter
@@ -58,9 +59,9 @@ namespace Gunter
             }
         }
 
-        private void LogHallo() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { Hallo = "G’day!" }));
+        private void LogHallo() => _logger.Log(Abstraction.Layer.Service().Meta(new { Hallo = "G’day!" }));
 
-        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { GoodBye = "See ya!" }));
+        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Service().Meta(new { GoodBye = "See ya!" }));
 
         public async Task RunAsync()
         {

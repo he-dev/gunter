@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Reusable.Extensions;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.Tests.Helpers
 {
@@ -14,6 +15,15 @@ namespace Gunter.Tests.Helpers
                 logs
                     .Select(log => log.Exception<T>())
                     .Where(Conditional.IsNotNull);
+        }
+
+        public static void AssertNone<T>(this IEnumerable<T> exceptions) where T : Exception
+        {
+            var aex = new AggregateException(exceptions);
+            if (aex.InnerExceptions.Any())
+            {
+                throw aex;
+            }
         }
     }
 }

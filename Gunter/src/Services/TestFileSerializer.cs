@@ -31,8 +31,8 @@ namespace Gunter.Services
         {
             Transform = JsonVisitor.CreateComposite
             (
-                new PropertyNameTrimmer(),
-                new PrettyTypeResolver(new[]
+                new TrimPropertyNameVisitor(),
+                new RewritePrettyTypeVisitor(TypeDictionary.From(new[]
                 {
                     typeof(Gunter.Data.SqlClient.TableOrView),
                     typeof(Gunter.Services.DataPostProcessors.GetJsonValue),
@@ -44,7 +44,7 @@ namespace Gunter.Services
                     typeof(Gunter.Reporting.Modules.DataSource),
                     typeof(Gunter.Reporting.Modules.DataSummary),
                     typeof(Gunter.Reporting.Formatters.TimeSpan),
-                })
+                }))
             );
         }
 

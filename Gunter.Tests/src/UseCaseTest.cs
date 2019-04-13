@@ -16,6 +16,7 @@ using Reusable.Commander;
 using Reusable.Data.Repositories;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Teapot;
@@ -40,12 +41,15 @@ namespace Gunter.Tests
         private readonly MemoryRx _memoryRx;
         private readonly ILoggerFactory _loggerFactory;
 
+        private readonly IDisposable _cleanUp;
+
         public UseCaseTest(TeapotFactoryFixture teapotFactory)
         {
             _teapot = teapotFactory.CreateTeapotServer(Url);
 
             _loggerFactory =
-                new LoggerFactory()
+                LoggerFactory
+                    .Empty
                     .AttachObject("Environment", ConfigurationManager.AppSettings["app:Environment"])
                     .AttachObject("Product", ProgramInfo.FullName)
                     .AttachScope()
@@ -53,6 +57,12 @@ namespace Gunter.Tests
                     .Attach<Timestamp<DateTimeUtc>>()
                     .AttachElapsedMilliseconds()
                     .AddObserver(_memoryRx = new MemoryRx());
+
+            _cleanUp = Disposable.Create(() =>
+            {
+                _loggerFactory.Dispose();
+                _teapot.Dispose();
+            });
         }
 
         public async Task InitializeAsync()
@@ -77,8 +87,9 @@ namespace Gunter.Tests
                         .WithContentTypeJson(body =>
                         {
                             body
-                                .PropertyEquals("$.Subject", "Glitch alert [Fatal]")
-                                .HasProperty("$.Subject");
+                                .Value("$.Subject")
+                                .IsNotNull()
+                                .IsEqual("Glitch alert [Fatal]");
                         })
                         .Occurs(1);
 
@@ -86,24 +97,26 @@ namespace Gunter.Tests
                         .Once(200, "OK");
                 });
 
-                using (var program = Program.Create(_loggerFactory, builder =>
-                {
-                    builder
-                        .RegisterInstance((ExecuteExceptionCallback) (ex => throw ex));
-                }))
+                using (var program = Program.Create(_loggerFactory, CustomizeContainer))
                 {
                     await program.RunAsync(@"run -files example -tests fails");
                     //await Task.Delay(300);
 
-                    var exceptions = _memoryRx.Exceptions<Exception>();
+                    _memoryRx.Exceptions<Exception>().AssertNone();
 
-                    False(exceptions.Any(), "There must not occur any exceptions.");
+                    //False(exceptions.Any(), "There must not occur any exceptions.");
 
                     testResult.Assert();
                 }
+
+                void CustomizeContainer(ContainerBuilder builder)
+                {
+                    builder
+                        .RegisterInstance((ExecuteExceptionCallback)(ex => throw ex));
+                }
             }
         }
-        
+
         [Fact]
         public async Task Sends_alert_when_test_passes()
         {
@@ -117,8 +130,8 @@ namespace Gunter.Tests
                         .WithContentTypeJson(body =>
                         {
                             body
-                                .PropertyEquals("$.Subject", "Glitch alert [Information]")
-                                .HasProperty("$.Subject");
+                                .Value("$.Subject")
+                                .IsEqual("Glitch alert [Information]");
                         })
                         .Occurs(1);
 
@@ -129,7 +142,7 @@ namespace Gunter.Tests
                 using (var program = Program.Create(_loggerFactory, builder =>
                 {
                     builder
-                        .RegisterInstance((ExecuteExceptionCallback) (ex => throw ex));
+                        .RegisterInstance((ExecuteExceptionCallback)(ex => throw ex));
                 }))
                 {
                     await program.RunAsync(@"run -files example -tests passes");
@@ -145,6 +158,7 @@ namespace Gunter.Tests
 
         public Task DisposeAsync()
         {
+            _cleanUp.Dispose();
             return Task.CompletedTask;
         }
     }

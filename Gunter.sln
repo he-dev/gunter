@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reusable.IOnymous.Mail.Smtp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reusable.SmartConfig.SqlServer", "..\Reusable\Reusable.SmartConfig.SqlServer\Reusable.SmartConfig.SqlServer.csproj", "{C6176F97-A295-400E-AD86-7EB1336699ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reusable.OmniLog.Abstractions", "..\Reusable\Reusable.OmniLog.Abstractions\Reusable.OmniLog.Abstractions.csproj", "{2B3267EE-6B6F-4650-A814-68406A9B580E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -157,6 +159,10 @@ Global
 		{C6176F97-A295-400E-AD86-7EB1336699ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6176F97-A295-400E-AD86-7EB1336699ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6176F97-A295-400E-AD86-7EB1336699ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B3267EE-6B6F-4650-A814-68406A9B580E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B3267EE-6B6F-4650-A814-68406A9B580E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B3267EE-6B6F-4650-A814-68406A9B580E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B3267EE-6B6F-4650-A814-68406A9B580E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -185,6 +191,7 @@ Global
 		{16BF6BCB-CFA6-4447-A77D-92708749AAE0} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
 		{156855AB-AB03-4322-8024-95E02A27DDFB} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
 		{C6176F97-A295-400E-AD86-7EB1336699ED} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
+		{2B3267EE-6B6F-4650-A814-68406A9B580E} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40AC697F-CF2A-4003-98FC-F63F214F68C3}

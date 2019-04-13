@@ -6,11 +6,12 @@ using Gunter.Data;
 using Gunter.Reporting.Filters.Abstractions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 using Reusable.Extensions;
 
 namespace Gunter.Services.DataPostProcessors
 {
+    [GunterAttribute]
     public class GetFirstLine : IDataPostProcessor
     {
         [NotNull, ItemNotNull]

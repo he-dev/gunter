@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using Reusable;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
-using Reusable.Exceptionizer;
+using Reusable.Exceptionize;
 
 namespace Gunter.Commands
 {

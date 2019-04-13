@@ -12,13 +12,16 @@ using Newtonsoft.Json.Converters;
 using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.SmartConfig;
 using Reusable.Utilities.JsonNet;
+using Reusable.Utilities.JsonNet.Converters;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Gunter.Services.Messengers
 {
+    [GunterAttribute]
     [PublicAPI]
     public class Mailr : Messenger
     {
