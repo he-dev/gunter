@@ -10,12 +10,12 @@ namespace Gunter.Services
     public class RuntimeVariableDictionaryFactory
     {
         private readonly IEnumerable<object> _globalObjects;
-        private readonly IEnumerable<IRuntimeValue> _runtimeVariables;
+        private readonly IEnumerable<IRuntimeVariable> _runtimeVariables;
 
         public RuntimeVariableDictionaryFactory
         (
             ProgramInfo programInfo,
-            IEnumerable<IRuntimeValue> runtimeVariables
+            IEnumerable<IRuntimeVariable> runtimeVariables
         )
         {
             _globalObjects = new object[] { programInfo };

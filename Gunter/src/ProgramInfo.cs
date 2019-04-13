@@ -17,11 +17,11 @@ namespace Gunter
 
         public static string Name => "Gunter";
 
-        public static string Version => "7.0.0";
+        public static string Version => "8.0.0";
 
         public static string FullName => $"{Name}-v{Version}";
 
-        public string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
+        public static string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
         [Required]
         [SettingMember(Prefix = "app", Strength = SettingNameStrength.Low)]

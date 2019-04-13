@@ -80,16 +80,16 @@ namespace Gunter.Services
             composition = default;
             using (_logger.BeginScope().WithCorrelationHandle("Merge").AttachElapsed())
             {
-                _logger.Log(Abstraction.Layer.Infrastructure().Meta(new { TestBundleName = testBundle.Name.ToString() }));
+                _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = testBundle.Name.ToString() }));
                 try
                 {
                     composition = Merge(testBundle, partials);
-                    _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Completed());
+                    _logger.Log(Abstraction.Layer.Service().Routine(nameof(TryCompose)).Completed());
                     return true;
                 }
                 catch (Exception inner)
                 {
-                    _logger.Log(Abstraction.Layer.Infrastructure().Routine(nameof(TryCompose)).Faulted(), inner);
+                    _logger.Log(Abstraction.Layer.Service().Routine(nameof(TryCompose)).Faulted(), inner);
                     return false;
                 }
             }

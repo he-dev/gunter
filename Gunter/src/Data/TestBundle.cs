@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using Gunter.Data;
 using Newtonsoft.Json;
-using System.Linq;
 using System.Collections;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
-using Gunter.Annotations;
 using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.Utilities.JsonNet.Annotations;
 
 namespace Gunter.Data
 {
@@ -20,6 +17,8 @@ namespace Gunter.Data
     [JsonObject]
     public class TestBundle : IEnumerable<IEnumerable<IMergeable>>
     {
+        public const string PartialPrefix = "_";
+        
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
@@ -53,7 +52,7 @@ namespace Gunter.Data
         public TestBundleType Type =>
             FullName is null
                 ? TestBundleType.Unknown
-                : Path.GetFileName(FullName).StartsWith("_")
+                : Path.GetFileName(FullName).StartsWith(PartialPrefix)
                     ? TestBundleType.Partial
                     : TestBundleType.Regular;
 
@@ -67,52 +66,5 @@ namespace Gunter.Data
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-
-    public interface IAssignment<out TName, out TValue>
-    {
-        TName Name { get; }
-
-        TValue Value { get; }
-    }
-
-    [UsedImplicitly]
-    public readonly struct TestBundleVariable : IAssignment<SoftString, object>
-    {
-        public TestBundleVariable(SoftString name, object value)
-        {
-            Name = name;
-            Value = value;
-        }
-
-        public SoftString Name { get; }
-
-        public object Value { get; }
-
-        public static implicit operator TestBundleVariable(KeyValuePair<SoftString, object> kvp) => new TestBundleVariable(kvp.Key, kvp.Value);
-
-        public static implicit operator KeyValuePair<SoftString, object>(TestBundleVariable tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
-    }
-
-    [JsonObject]
-    public class TestBundleVariableCollection : IEnumerable<TestBundleVariable>, IMergeable
-    {
-        private Dictionary<SoftString, object> _variables = new Dictionary<SoftString, object>();
-
-        public SoftString Id { get; set; }
-
-        public Merge Merge { get; set; }
-
-        [Mergeable]
-        public IDictionary<SoftString, object> Items { get; set; }
-
-        public IEnumerator<TestBundleVariable> GetEnumerator() => Items.Select(x => (TestBundleVariable)x).GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-
-    public class GunterAttribute : NamespaceAttribute
-    {
-        public GunterAttribute() : base(ProgramInfo.Name) { }
     }
 }

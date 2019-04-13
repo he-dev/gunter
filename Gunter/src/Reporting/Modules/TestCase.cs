@@ -48,7 +48,7 @@ namespace Gunter.Reporting.Modules
                 .Update(Columns.Value, context.TestCase.When[context.Result]);
             section.Data.Body.NewRow()
                 .Update(Columns.Property, "Elapsed")
-                .Update(Columns.Value, $"{RuntimeValue.TestCounter.AssertElapsed.ToString(TimespanFormat)}".Format(context.RuntimeVariables));
+                .Update(Columns.Value, $"{RuntimeVariables.TestCounter.AssertElapsed.ToString(TimespanFormat)}".Format(context.RuntimeVariables));
             section.Data.Body.NewRow()
                 .Update(Columns.Property, nameof(Gunter.Data.TestCase.Tags))
                 .Update(Columns.Value, context.TestCase.Tags);

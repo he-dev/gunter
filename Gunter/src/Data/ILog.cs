@@ -29,7 +29,7 @@ namespace Gunter.Data
         Task<GetDataResult> GetDataAsync(RuntimeVariableDictionary runtimeVariables);
     }
 
-    [GunterAttribute]
+    [Gunter]
     public abstract class Log : ILog
     {
         protected Log(ILogger logger) => Logger = logger;

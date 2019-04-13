@@ -21,7 +21,7 @@ using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Gunter.Services.Messengers
 {
-    [GunterAttribute]
+    [Gunter]
     [PublicAPI]
     public class Mailr : Messenger
     {

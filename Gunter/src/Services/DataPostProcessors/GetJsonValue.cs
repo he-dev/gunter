@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
+using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
@@ -12,7 +13,7 @@ using Reusable.Exceptionize;
 
 namespace Gunter.Services.DataPostProcessors
 {
-    [GunterAttribute]
+    [Gunter]
     [UsedImplicitly]
     public class GetJsonValue : IDataPostProcessor
     {

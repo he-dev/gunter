@@ -90,7 +90,7 @@ namespace Gunter.Data.SqlClient
                 var path = Regex.Replace(query, fileSchemePattern, string.Empty);
                 if (!Path.IsPathRooted(path))
                 {
-                    path = Path.Combine(_programInfo.CurrentDirectory, _programInfo.DefaultTestsDirectoryName, path);
+                    path = Path.Combine(ProgramInfo.CurrentDirectory, _programInfo.DefaultTestsDirectoryName, path);
                 }
 
                 query = (await _resources.ReadTextFileAsync(path)).Format(runtimeVariables);

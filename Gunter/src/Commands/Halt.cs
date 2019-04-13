@@ -8,17 +8,17 @@ using Reusable.Commander.Annotations;
 namespace Gunter.Commands
 {
     [Alias("h")]
-    internal class Halt : ConsoleCommand<RunBag, TestContext>
+    internal class Halt : ConsoleCommand<SimpleBag, TestContext>
     {
         private readonly ProgramInfo _programInfo;
 
         public Halt
         (
-            CommandServiceProvider<Run> serviceProvider
+            CommandServiceProvider<Halt> serviceProvider
         )
-            : base(serviceProvider, nameof(RunBag)) { }
+            : base(serviceProvider, nameof(SimpleBag)) { }
 
-        protected override Task ExecuteAsync(RunBag parameter, TestContext context, CancellationToken cancellationToken)
+        protected override Task ExecuteAsync(SimpleBag parameter, TestContext context, CancellationToken cancellationToken)
         {
             throw new OperationCanceledException();
         }

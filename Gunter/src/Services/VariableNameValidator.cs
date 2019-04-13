@@ -21,7 +21,7 @@ namespace Gunter.Services
     {
         private readonly IEnumerable<SoftString> _reservedNames;
 
-        public VariableNameValidator(IEnumerable<IRuntimeValue> runtimeVariables)
+        public VariableNameValidator(IEnumerable<IRuntimeVariable> runtimeVariables)
         {
             _reservedNames = 
                 runtimeVariables

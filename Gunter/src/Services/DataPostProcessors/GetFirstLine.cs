@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Gunter.Annotations;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -10,7 +11,7 @@ using Reusable.Extensions;
 
 namespace Gunter.Services.DataPostProcessors
 {
-    [GunterAttribute]
+    [Gunter]
     public class GetFirstLine : IDataPostProcessor
     {
         [NotNull, ItemNotNull]

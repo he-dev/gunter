@@ -10,7 +10,7 @@ namespace Gunter.Reporting.Modules
         {
             return new ModuleDto<Signature>
             {
-                Text = $"{RuntimeValue.Program.FullName}".Format(context.RuntimeVariables),
+                Text = $"{RuntimeVariables.Program.FullName}".Format(context.RuntimeVariables),
                 Ordinal = Ordinal
             };
         }

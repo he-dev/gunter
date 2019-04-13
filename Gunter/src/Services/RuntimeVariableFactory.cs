@@ -1,37 +1,34 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using Gunter.Data;
 using JetBrains.Annotations;
-using Reusable;
 
 namespace Gunter.Services
 {
     public static class RuntimeVariableFactory
     {
         [NotNull]
-        public static IRuntimeValue Create<T>(Expression<Func<T, object>> expression)
+        public static IRuntimeVariable Create<T>(Expression<Func<T, object>> getValueExpression)
         {
             var parameter = Expression.Parameter(typeof(object), "obj");
-            var converted = ParameterConverter<T>.Convert(expression.Body, parameter);
+            var converted = RuntimeVariableValueConverter<T>.Convert(getValueExpression.Body, parameter);
             var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
 
-            return new RuntimeValue
+            return new RuntimeVariable
             (
                 typeof(T),
-                CreateName(expression),
+                CreateName(getValueExpression),
                 getValueFunc
             );
         }
 
         [NotNull]
-        public static IRuntimeValue Create(Expression<Func<object>> expression)
+        public static IRuntimeVariable Create(Expression<Func<object>> expression)
         {
             var memberExpression = (MemberExpression)expression.Body;
 
-            return new RuntimeValue
+            return new RuntimeVariable
             (
                 memberExpression.Member.DeclaringType,
                 CreateName(expression),
@@ -72,30 +69,18 @@ namespace Gunter.Services
         }
     }
 
-    internal static class RuntimeVariableExtensions
-    {
-        public static IEnumerable<KeyValuePair<SoftString, object>> GetValues(this IEnumerable<IRuntimeValue> variables, object obj)
-        {
-            // Static variables are resolved by the declaring type.
-            return
-                variables
-                    .Where(variable => variable.Matches(obj is Type type ? type : obj.GetType()))
-                    .Select(x => new KeyValuePair<SoftString, object>(x.Name, x.Get(obj)));
-        }
-    }
-
-    internal class ParameterConverter<T> : ExpressionVisitor
+    internal class RuntimeVariableValueConverter<T> : ExpressionVisitor
     {
         private readonly ParameterExpression _parameter;
 
-        private ParameterConverter(ParameterExpression parameter)
+        private RuntimeVariableValueConverter(ParameterExpression parameter)
         {
             _parameter = parameter;
         }
 
         public static Expression Convert(Expression expression, ParameterExpression parameter)
         {
-            return new ParameterConverter<T>(parameter).Visit(expression);
+            return new RuntimeVariableValueConverter<T>(parameter).Visit(expression);
         }
 
         protected override Expression VisitParameter(ParameterExpression node)

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Reusable;
 
-namespace Gunter.Services
+namespace Gunter.Data
 {
     public class RuntimeVariableDictionary : Dictionary<SoftString, object>
     {

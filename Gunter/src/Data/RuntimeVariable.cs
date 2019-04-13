@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
@@ -9,7 +8,9 @@ using Reusable.Reflection;
 
 namespace Gunter.Data
 {
-    public interface IRuntimeValue : IEquatable<IRuntimeValue>
+    [PublicAPI]
+    [UsedImplicitly]
+    public interface IRuntimeVariable : IEquatable<IRuntimeVariable>
     {
         [AutoEqualityProperty]
         Type DeclaringType { get; }
@@ -17,18 +18,18 @@ namespace Gunter.Data
         [AutoEqualityProperty]
         SoftString Name { get; }
 
-        object Get<T>(T obj);
+        object GetValue<T>(T obj);
 
         bool Matches(Type type);
 
         string ToString(string format);
     }
 
-    internal partial class RuntimeValue : IRuntimeValue
+    internal class RuntimeVariable : IRuntimeVariable
     {
         private readonly Func<object, object> _get;
 
-        public RuntimeValue(Type declaringType, [NotNull] string name, [NotNull] Func<object, object> get)
+        public RuntimeVariable(Type declaringType, [NotNull] string name, [NotNull] Func<object, object> get)
         {
             Name = name;
             DeclaringType = declaringType;
@@ -39,10 +40,7 @@ namespace Gunter.Data
 
         public SoftString Name { get; }
 
-        public object Get<T>(T obj)
-        {
-            return _get(obj);
-        }
+        public object GetValue<T>(T obj) => _get(obj);
 
         public bool Matches(Type type)
         {
@@ -51,16 +49,11 @@ namespace Gunter.Data
 
         #region IEquatable
 
-        public bool Equals(IRuntimeValue other) => AutoEquality<IRuntimeValue>.Comparer.Equals(this, other);
+        public bool Equals(IRuntimeVariable other) => AutoEquality<IRuntimeVariable>.Comparer.Equals(this, other);
 
-        public override bool Equals(object other) => other is IRuntimeValue runtimeVariable && Equals(runtimeVariable);
+        public override bool Equals(object other) => other is IRuntimeVariable runtimeVariable && Equals(runtimeVariable);
 
-        public override int GetHashCode() => AutoEquality<IRuntimeValue>.Comparer.GetHashCode(this);
-
-        //public string ToString(string format, IFormatProvider formatProvider)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public override int GetHashCode() => AutoEquality<IRuntimeVariable>.Comparer.GetHashCode(this);
 
         #endregion
 

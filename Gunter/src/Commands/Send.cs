@@ -17,10 +17,10 @@ namespace Gunter.Commands
 
         public Send
         (
-            CommandServiceProvider<Run> serviceProvider,
+            CommandServiceProvider<Send> serviceProvider,
             ProgramInfo programInfo
         )
-            : base(serviceProvider, nameof(RunBag))
+            : base(serviceProvider, nameof(SendBag))
         {
             _programInfo = programInfo;
         }

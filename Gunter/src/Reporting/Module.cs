@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data;
+using Gunter.Annotations;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -20,7 +21,7 @@ namespace Gunter.Reporting
         IModuleDto CreateDto(TestContext context);
     }
 
-    [GunterAttribute]
+    [Gunter]
     public abstract class Module : IModule
     {
         public string Heading { get; set; }

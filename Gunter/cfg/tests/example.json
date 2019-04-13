@@ -49,7 +49,7 @@
       "Check": [
         "everything"
       ],
-      "Assert": "Count([_id]) == 5",
+      "Assert": "Count([_id]) = 5",
       "When": {
         "Passed": [
           "send -report full -use default-email",
