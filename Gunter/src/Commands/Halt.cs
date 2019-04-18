@@ -10,8 +10,6 @@ namespace Gunter.Commands
     [Alias("h")]
     internal class Halt : ConsoleCommand<SimpleBag, TestContext>
     {
-        private readonly ProgramInfo _programInfo;
-
         public Halt
         (
             CommandServiceProvider<Halt> serviceProvider

@@ -13,17 +13,11 @@ namespace Gunter.Commands
     [Alias("s")]
     internal class Send : ConsoleCommand<SendBag, TestContext>
     {
-        private readonly ProgramInfo _programInfo;
-
         public Send
         (
-            CommandServiceProvider<Send> serviceProvider,
-            ProgramInfo programInfo
+            CommandServiceProvider<Send> serviceProvider
         )
-            : base(serviceProvider, nameof(SendBag))
-        {
-            _programInfo = programInfo;
-        }
+            : base(serviceProvider, nameof(SendBag)) { }
 
         protected override async Task ExecuteAsync(SendBag parameter, TestContext context, CancellationToken cancellationToken)
         {
@@ -41,7 +35,7 @@ namespace Gunter.Commands
             await messenger.SendAsync(context, new SoftString[] { parameter.Report });
         }
     }
-    
+
     [UsedImplicitly]
     public class SendBag : SimpleBag
     {

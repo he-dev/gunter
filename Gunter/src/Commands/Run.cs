@@ -10,6 +10,7 @@ using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
+using Reusable.SmartConfig;
 
 namespace Gunter.Commands
 {
@@ -19,7 +20,7 @@ namespace Gunter.Commands
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
         private readonly ITestRunner _testRunner;
-        private readonly ProgramInfo _programInfo;
+        private readonly IConfiguration<IProgramConfig> _programConfig;
 
         public Run
         (
@@ -27,20 +28,20 @@ namespace Gunter.Commands
             ITestLoader testLoader,
             ITestComposer testComposer,
             ITestRunner testRunner,
-            ProgramInfo programInfo
+            IConfiguration<IProgramConfig> programConfig
         )
             : base(serviceProvider, nameof(RunBag))
         {
             _testLoader = testLoader;
             _testComposer = testComposer;
             _testRunner = testRunner;
-            _programInfo = programInfo;
+            _programConfig = programConfig;
         }
 
         protected override async Task ExecuteAsync(RunBag parameter, object context, CancellationToken cancellationToken)
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-            var defaultPath = Path.Combine(currentDirectory, _programInfo.DefaultTestsDirectoryName);
+            var defaultPath = Path.Combine(currentDirectory, _programConfig.GetItem(x => x.DefaultTestsDirectoryName));
 
             parameter.Path = parameter.Path ?? defaultPath;
 

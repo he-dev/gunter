@@ -14,6 +14,7 @@ using Reusable.Commander;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.SmartConfig;
 
 namespace Gunter
 {
@@ -24,12 +25,14 @@ namespace Gunter
         private readonly IContainer _container;
         private readonly ILogger _logger;
         private readonly ICommandLineExecutor _executor;
+        private readonly IConfiguration<IProgramConfig> _config;
 
         public Program(IContainer container)
         {
             _container = container;
             _logger = container.Resolve<ILogger<Program>>();
             _executor = container.Resolve<ICommandLineExecutor>();
+            _config = container.Resolve<IConfiguration<IProgramConfig>>();
         }
 
         public static Program Create() => new Program(CreateContainer());
@@ -65,8 +68,7 @@ namespace Gunter
 
         public async Task RunAsync()
         {
-            var programInfo = _container.Resolve<ProgramInfo>();
-            var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, programInfo.DefaultTestsDirectoryName);
+            var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, _config.GetItem(x => x.DefaultTestsDirectoryName));
             await RunAsync($"run -path \"{defaultPath}\"");
         }
 

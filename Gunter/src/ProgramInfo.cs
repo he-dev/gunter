@@ -23,16 +23,37 @@ namespace Gunter
 
         public static string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
-        [Required]
-        [SettingMember(Prefix = "app", Strength = SettingNameStrength.Low)]
-        public string Environment => _configuration.GetSetting(() => Environment);
+        // todo - this needs to be refactored and removed from here
+        [ResourcePrefix("app")]
+        [ResourceName(Level = ResourceNameLevel.Member)]
+        public string Environment => _configuration.GetItem(() => Environment);
 
-        [Required]
-        [SettingMember(Prefix = "mailr", Strength = SettingNameStrength.Low)]
-        public string MailrBaseUri => _configuration.GetSetting(() => MailrBaseUri);
+//
+//        [Required]
+//        [SettingMember(Prefix = "mailr", Strength = SettingNameStrength.Low)]
+        //public string MailrBaseUri => _configuration.GetSetting(() => MailrBaseUri);
+//
+//        [Required]
+//        [SettingMember(Prefix = "app", Strength = SettingNameStrength.Low)]
+        //public string DefaultTestsDirectoryName => _configuration.GetSetting(() => DefaultTestsDirectoryName);
+    }
 
-        [Required]
-        [SettingMember(Prefix = "app", Strength = SettingNameStrength.Low)]
-        public string DefaultTestsDirectoryName => _configuration.GetSetting(() => DefaultTestsDirectoryName);
+    [ResourcePrefix("app")]
+    [ResourceName(Level = ResourceNameLevel.Member)]
+    public interface IProgramConfig
+    {
+        string Environment { get; set; }
+
+
+        string DefaultTestsDirectoryName { get; set; }
+    }
+
+    [ResourcePrefix("mailr")]
+    [ResourceName(Level = ResourceNameLevel.Member)]
+    public interface IMailrConfig
+    {
+        string BaseUri { get; set; }
+        
+        string TestResultPath { get; }
     }
 }

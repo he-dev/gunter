@@ -22,6 +22,7 @@ using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
+using Reusable.SmartConfig;
 
 namespace Gunter.Data.SqlClient
 {
@@ -29,17 +30,17 @@ namespace Gunter.Data.SqlClient
     [UsedImplicitly]
     public class TableOrView : Log
     {
-        private readonly ProgramInfo _programInfo;
+        private readonly IConfiguration<IProgramConfig> _programConfig;
         private readonly IResourceProvider _resources;
 
         public TableOrView
         (
             ILogger<TableOrView> logger,
-            ProgramInfo programInfo,
+            IConfiguration<IProgramConfig> programConfig,
             IResourceProvider resources
         ) : base(logger)
         {
-            _programInfo = programInfo;
+            _programConfig = programConfig;
             _resources = resources;
         }
 
@@ -90,7 +91,7 @@ namespace Gunter.Data.SqlClient
                 var path = Regex.Replace(query, fileSchemePattern, string.Empty);
                 if (!Path.IsPathRooted(path))
                 {
-                    path = Path.Combine(ProgramInfo.CurrentDirectory, _programInfo.DefaultTestsDirectoryName, path);
+                    path = Path.Combine(ProgramInfo.CurrentDirectory, _programConfig.GetItem(x => x.DefaultTestsDirectoryName), path);
                 }
 
                 query = (await _resources.ReadTextFileAsync(path)).Format(runtimeVariables);

@@ -25,33 +25,29 @@ namespace Gunter.Services.Messengers
     [PublicAPI]
     public class Mailr : Messenger
     {
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration<IMailrConfig> _config;
         private readonly IResourceProvider _resourceProvider;
 
         public Mailr
         (
             ILogger<Mailr> logger,
-            IConfiguration configuration,
+            IConfiguration<IMailrConfig> configuration,
             IResourceProvider resourceProvider
         ) : base(logger)
         {
-            _configuration = configuration;
+            _config = configuration;
             _resourceProvider = resourceProvider;
         }
 
         [Mergeable]
-        public IList<string> To { get; set; }
+        public List<string> To { get; set; }
 
         [Mergeable]
-        public IList<string> CC { get; set; }
+        public List<string> CC { get; set; }
 
         [DefaultValue("default")]
         [Mergeable]
         public string Theme { get; set; }
-
-        [JsonIgnore]
-        [SettingMember(Prefix = "mailr", Strength = SettingNameStrength.Low)]
-        public string TestResultPath => _configuration.GetSetting(() => TestResultPath);
 
         protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IModuleDto> modules)
         {
@@ -80,7 +76,7 @@ namespace Gunter.Services.Messengers
                 }
             }));
 
-            await _resourceProvider.SendAsync(TestResultPath, email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
+            await _resourceProvider.SendAsync(_config.GetItem(x => x.TestResultPath), email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
             {
                 Converters =
                 {

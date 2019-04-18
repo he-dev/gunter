@@ -32,25 +32,29 @@ namespace Gunter.DependencyInjection.Modules
 
             //            builder
             //                .RegisterType<CompositeResourceProvider>()
-            //                .As<IFirstResourceProvider>();
-
+            //                .As<IFirstResourceProvider>();      
+            
             builder
-                .RegisterInstance(new Configuration(new CompositeProvider(new IResourceProvider[]
-                {
-                    new AppSettingProvider(new UriStringToSettingIdentifierConverter()).DecorateWith(SettingNameProvider.Factory()),
-                })))
-                //.RegisterType<Configuration>()
+                .RegisterInstance(new Configuration(new AppSettingProvider()))
                 .As<IConfiguration>();
 
             builder
+                .RegisterInstance(new Configuration<IProgramConfig>(new AppSettingProvider()))
+                .As<IConfiguration<IProgramConfig>>();
+            
+            builder
+                .RegisterInstance(new Configuration<IMailrConfig>(new AppSettingProvider()))
+                .As<IConfiguration<IMailrConfig>>();
+            
+            builder
                 .Register(c =>
                 {
-                    var programInfo = c.Resolve<ProgramInfo>();
+                    var programConfig = c.Resolve<IConfiguration<IMailrConfig>>();
                     return new CompositeProvider(new IResourceProvider[]
                     {
                         new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()),
-                        new HttpProvider(programInfo.MailrBaseUri)
-                    }, ResourceMetadata.Empty.AllowRelativeUri(true));
+                        new HttpProvider(programConfig.GetItem(x => x.BaseUri))
+                    }, Metadata.Empty.AllowRelativeUri(true));
                 })
                 .As<IResourceProvider>();                                  
 
