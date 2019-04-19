@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net47</TargetFramework>
+    <!--<TargetFramework>net47</TargetFramework>-->
+    <TargetFrameworks>netcoreapp2.2;net47</TargetFrameworks>
     <AssemblyName>Gunter</AssemblyName>
     <RootNamespace>Gunter</RootNamespace>
     <Configurations>Debug;Release</Configurations>
@@ -125,7 +126,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2018.3.0" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">
     <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
   </Target>
 

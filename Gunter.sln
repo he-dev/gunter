@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gunter.Tests", "Gunter.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reusable.Core", "..\Reusable\Reusable.Core\Reusable.Core.csproj", "{DCA5AA77-350C-4C1F-906D-ABF0EC93B918}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reusable", "reusable", "{E6444249-74BF-4645-AA64-C185A6F02CC8}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{E6444249-74BF-4645-AA64-C185A6F02CC8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{4308BCEB-9037-46E9-A6B0-2BA62563DB07}"
 EndProject
