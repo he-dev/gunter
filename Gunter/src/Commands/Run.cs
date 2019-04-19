@@ -10,12 +10,13 @@ using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
+using Reusable.Commander.Services;
 using Reusable.SmartConfig;
 
 namespace Gunter.Commands
 {
     [Alias("b")]
-    internal class Run : ConsoleCommand<RunBag, object>
+    internal class Run : ConsoleCommand<IRunParameter, object>
     {
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
@@ -30,7 +31,7 @@ namespace Gunter.Commands
             ITestRunner testRunner,
             IConfiguration<IProgramConfig> programConfig
         )
-            : base(serviceProvider, nameof(RunBag))
+            : base(serviceProvider, nameof(IRunParameter))
         {
             _testLoader = testLoader;
             _testComposer = testComposer;
@@ -38,28 +39,34 @@ namespace Gunter.Commands
             _programConfig = programConfig;
         }
 
-        protected override async Task ExecuteAsync(RunBag parameter, object context, CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(ICommandLineReader<IRunParameter> parameter, object context, CancellationToken cancellationToken)
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var defaultPath = Path.Combine(currentDirectory, _programConfig.GetItem(x => x.DefaultTestsDirectoryName));
 
-            parameter.Path = parameter.Path ?? defaultPath;
 
-            var bundles = await _testLoader.LoadTestsAsync(parameter.Path);
-            var compositions = _testComposer.ComposeTests(bundles, parameter);
+            var bundles = await _testLoader.LoadTestsAsync(parameter.GetItem(x => x.Path));
+            var testFilter = new TestFilter
+            {
+                Path = parameter.GetItem(x => x.Path) ?? defaultPath,
+                Files = parameter.GetItem(x => x.Files),
+                Tests = parameter.GetItem(x => x.Tests),
+                Tags = parameter.GetItem(x => x.Tags)
+            };
+            var compositions = _testComposer.ComposeTests(bundles, testFilter);
             await _testRunner.RunAsync(compositions);
         }
     }
 
     [UsedImplicitly]
-    public class RunBag : SimpleBag, ITestFilter
+    public interface IRunParameter : ICommandParameter
     {
-        public string Path { get; set; }
+        string Path { get; }
 
-        public IList<string> Files { get; set; }
+        IList<string> Files { get; }
 
-        public IList<string> Tests { get; set; }
+        IList<string> Tests { get; }
 
-        public IList<string> Tags { get; set; }
+        IList<string> Tags { get; }
     }
 }

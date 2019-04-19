@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 using Gunter.Data;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
+using Reusable.Commander.Services;
 
 namespace Gunter.Commands
 {
     [Alias("h")]
-    internal class Halt : ConsoleCommand<SimpleBag, TestContext>
+    internal class Halt : ConsoleCommand<ICommandParameter, TestContext>
     {
         public Halt
         (
@@ -16,7 +17,7 @@ namespace Gunter.Commands
         )
             : base(serviceProvider, nameof(SimpleBag)) { }
 
-        protected override Task ExecuteAsync(SimpleBag parameter, TestContext context, CancellationToken cancellationToken)
+        protected override Task ExecuteAsync(ICommandLineReader<ICommandParameter> parameter, TestContext context, CancellationToken cancellationToken)
         {
             throw new OperationCanceledException();
         }

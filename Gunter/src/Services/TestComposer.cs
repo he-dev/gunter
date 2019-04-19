@@ -32,7 +32,7 @@ namespace Gunter.Services
         IEnumerable<TestBundle> ComposeTests
         (
             [NotNull, ItemNotNull] IEnumerable<TestBundle> bundles,
-            [NotNull] ITestFilter testFilter
+            [NotNull] TestFilter testFilter
         );
     }
 
@@ -47,7 +47,7 @@ namespace Gunter.Services
             _componentContext = componentContext;
         }
 
-        public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, ITestFilter testFilter)
+        public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, TestFilter testFilter)
         {
             var bundleGroups = bundles.ToLookup(b => b.Type);
 
