@@ -24,14 +24,14 @@ namespace Gunter
     {
         private readonly IContainer _container;
         private readonly ILogger _logger;
-        private readonly ICommandLineExecutor _executor;
+        private readonly ICommandExecutor _executor;
         private readonly IConfiguration<IProgramConfig> _config;
 
         public Program(IContainer container)
         {
             _container = container;
             _logger = container.Resolve<ILogger<Program>>();
-            _executor = container.Resolve<ICommandLineExecutor>();
+            _executor = container.Resolve<ICommandExecutor>();
             _config = container.Resolve<IConfiguration<IProgramConfig>>();
         }
 

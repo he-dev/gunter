@@ -31,13 +31,13 @@ namespace Gunter.Services
     internal class TestRunner : ITestRunner
     {
         private readonly ILogger _logger;
-        private readonly ICommandLineExecutor _commandLineExecutor;
+        private readonly ICommandExecutor _commandLineExecutor;
         private readonly RuntimeVariableDictionaryFactory _runtimeVariableDictionaryFactory;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
-            ICommandLineExecutor commandLineExecutor,
+            ICommandExecutor commandLineExecutor,
             RuntimeVariableDictionaryFactory runtimeVariableDictionaryFactory
         )
         {
