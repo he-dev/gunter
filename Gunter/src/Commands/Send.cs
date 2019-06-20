@@ -6,13 +6,13 @@ using JetBrains.Annotations;
 using Reusable;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
-using Reusable.Commander.Services;
+using Reusable.Data.Annotations;
 using Reusable.Exceptionize;
 
 namespace Gunter.Commands
 {
-    [Alias("s")]
-    internal class Send : ConsoleCommand<ISendParameter, TestContext>
+    [Tags("s")]
+    internal class Send : Command<ISendParameter, TestContext>
     {
         public Send
         (
@@ -38,12 +38,12 @@ namespace Gunter.Commands
     }
 
     [UsedImplicitly]
-    public interface ISendParameter : ICommandParameter
+    public interface ISendParameter : ICommandArgumentGroup
     {
-        [Alias("R")]
+        [Tags("R")]
         string Report { get; }
 
-        [Alias("U")]
+        [Tags("U")]
         string Use { get; }
     }
 }

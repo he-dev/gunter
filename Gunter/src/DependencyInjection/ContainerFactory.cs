@@ -7,7 +7,6 @@ using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Attachments;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.SmartConfig;
 
 namespace Gunter.DependencyInjection
 {

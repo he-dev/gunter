@@ -4,20 +4,20 @@ using System.Threading.Tasks;
 using Gunter.Data;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
-using Reusable.Commander.Services;
+using Reusable.Data.Annotations;
 
 namespace Gunter.Commands
 {
-    [Alias("h")]
-    internal class Halt : ConsoleCommand<ICommandParameter, TestContext>
+    [Tags("h")]
+    internal class Halt : Command<ICommandArgumentGroup, TestContext>
     {
         public Halt
         (
             CommandServiceProvider<Halt> serviceProvider
         )
-            : base(serviceProvider, nameof(SimpleBag)) { }
+            : base(serviceProvider) { }
 
-        protected override Task ExecuteAsync(ICommandLineReader<ICommandParameter> parameter, TestContext context, CancellationToken cancellationToken)
+        protected override Task ExecuteAsync(ICommandLineReader<ICommandArgumentGroup> parameter, TestContext context, CancellationToken cancellationToken)
         {
             throw new OperationCanceledException();
         }

@@ -11,10 +11,11 @@ using Newtonsoft.Json.Converters;
 using Reusable;
 using Reusable.Extensions;
 using Reusable.IOnymous;
+using Reusable.IOnymous.Config;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.SmartConfig;
+using Reusable.Quickey;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
@@ -25,18 +26,15 @@ namespace Gunter.Services.Messengers
     [PublicAPI]
     public class Mailr : Messenger
     {
-        private readonly IConfiguration<IMailrConfig> _config;
-        private readonly IResourceProvider _resourceProvider;
+        private readonly IResourceProvider _resources;
 
         public Mailr
         (
             ILogger<Mailr> logger,
-            IConfiguration<IMailrConfig> configuration,
-            IResourceProvider resourceProvider
+            IResourceProvider resources
         ) : base(logger)
         {
-            _config = configuration;
-            _resourceProvider = resourceProvider;
+            _resources = resources;
         }
 
         [Mergeable]
@@ -76,7 +74,8 @@ namespace Gunter.Services.Messengers
                 }
             }));
 
-            await _resourceProvider.SendAsync(_config.GetItem(x => x.TestResultPath), email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
+            var testResultPath = await _resources.ReadSettingAsync(From<IMailrConfig>.Select(x => x.TestResultPath));
+            await _resources.SendAsync(testResultPath, email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
             {
                 Converters =
                 {

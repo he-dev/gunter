@@ -32,10 +32,10 @@ namespace Gunter.Reporting
 
         private string DebuggerDisplay() => this.ToDebuggerDisplayString(builder =>
         {
-            builder.DisplayMember(x => x.Select);
-            builder.DisplayMember(x => IsKey);
+            builder.DisplayValue(x => x.Select);
+            builder.DisplayValue(x => IsKey);
             //builder.DisplayMember(x => Filter);
-            builder.DisplayMember(x => x.Aggregate);
+            builder.DisplayValue(x => x.Aggregate);
         });
 
         public bool Equals(ColumnMetadata other) => AutoEquality<ColumnMetadata>.Comparer.Equals(this, other);

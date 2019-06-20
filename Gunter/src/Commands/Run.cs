@@ -10,18 +10,20 @@ using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
-using Reusable.Commander.Services;
-using Reusable.SmartConfig;
+using Reusable.Data.Annotations;
+using Reusable.IOnymous;
+using Reusable.IOnymous.Config;
+using Reusable.Quickey;
 
 namespace Gunter.Commands
 {
-    [Alias("b")]
-    internal class Run : ConsoleCommand<IRunParameter, object>
+    [Tags("b")]
+    internal class Run : Command<IRunParameter, object>
     {
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
         private readonly ITestRunner _testRunner;
-        private readonly IConfiguration<IProgramConfig> _programConfig;
+        private readonly IResourceProvider _resources;
 
         public Run
         (
@@ -29,20 +31,20 @@ namespace Gunter.Commands
             ITestLoader testLoader,
             ITestComposer testComposer,
             ITestRunner testRunner,
-            IConfiguration<IProgramConfig> programConfig
+            IResourceProvider resources
         )
             : base(serviceProvider, nameof(IRunParameter))
         {
             _testLoader = testLoader;
             _testComposer = testComposer;
             _testRunner = testRunner;
-            _programConfig = programConfig;
+            _resources = resources;
         }
 
         protected override async Task ExecuteAsync(ICommandLineReader<IRunParameter> parameter, object context, CancellationToken cancellationToken)
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-            var defaultPath = Path.Combine(currentDirectory, _programConfig.GetItem(x => x.DefaultTestsDirectoryName));
+            var defaultPath = Path.Combine(currentDirectory, _resources.ReadSetting(From<IProgramConfig>.Select(x => x.DefaultTestsDirectoryName)));
 
 
             var bundles = await _testLoader.LoadTestsAsync(parameter.GetItem(x => x.Path));
@@ -59,7 +61,7 @@ namespace Gunter.Commands
     }
 
     [UsedImplicitly]
-    public interface IRunParameter : ICommandParameter
+    public interface IRunParameter : ICommandArgumentGroup
     {
         string Path { get; }
 

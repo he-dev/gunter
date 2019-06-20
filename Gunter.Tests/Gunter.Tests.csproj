@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!--<TargetFramework>net47</TargetFramework>-->
-    <TargetFrameworks>netcoreapp2.2;net47</TargetFrameworks>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -21,10 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.9.1" />
+    <PackageReference Include="Autofac" Version="4.9.2" />
     <PackageReference Include="Dapper" Version="1.50.7" />
-    <PackageReference Include="JustMock" Version="2019.1.207.1" />
-    <PackageReference Include="XUnit" Version="2.4.1" />
+    <PackageReference Include="JustMock" Version="2019.2.508.1" />
+<!--    <PackageReference Include="XUnit" Version="2.4.1" />-->
   </ItemGroup>
 
   <ItemGroup>

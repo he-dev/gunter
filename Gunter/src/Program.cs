@@ -9,12 +9,15 @@ using Autofac;
 using Gunter.DependencyInjection;
 using Gunter.Services;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Configuration;
 using Reusable;
 using Reusable.Commander;
+using Reusable.IOnymous;
+using Reusable.IOnymous.Config;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.SmartConfig;
+using Reusable.Quickey;
 
 namespace Gunter
 {
@@ -25,14 +28,23 @@ namespace Gunter
         private readonly IContainer _container;
         private readonly ILogger _logger;
         private readonly ICommandExecutor _executor;
-        private readonly IConfiguration<IProgramConfig> _config;
+        private readonly IResourceProvider _resources;
 
         public Program(IContainer container)
         {
             _container = container;
             _logger = container.Resolve<ILogger<Program>>();
             _executor = container.Resolve<ICommandExecutor>();
-            _config = container.Resolve<IConfiguration<IProgramConfig>>();
+            _resources = container.Resolve<IResourceProvider>();
+            
+            var location = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+            Directory.SetCurrentDirectory(location);
+
+            var configuration =
+                new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json")
+                    .Build();
         }
 
         public static Program Create() => new Program(CreateContainer());
@@ -68,7 +80,8 @@ namespace Gunter
 
         public async Task RunAsync()
         {
-            var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, _config.GetItem(x => x.DefaultTestsDirectoryName));
+            var defaultTestsDirectoryName = await _resources.ReadSettingAsync(From<IProgramConfig>.Select(x => x.DefaultTestsDirectoryName));
+            var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName);
             await RunAsync($"run -path \"{defaultPath}\"");
         }
 

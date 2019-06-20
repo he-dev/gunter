@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Gunter;
 using Gunter.Reporting;
 using Reusable.IOnymous;
-using Reusable.SmartConfig;
 
 [assembly:InternalsVisibleTo("Gunter.Tests")]
 

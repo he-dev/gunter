@@ -1,12 +1,13 @@
+using System.Collections.Immutable;
 using System.Configuration;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
 using Reusable.Commander;
 using Reusable.IOnymous;
-using Reusable.SmartConfig;
+using Reusable.IOnymous.Config;
+using Reusable.Quickey;
 using Reusable.Utilities.JsonNet.DependencyInjection;
-using Configuration = Reusable.SmartConfig.Configuration;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -14,49 +15,22 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            //builder
-            //    .RegisterType<RuntimeFormatterFactory>()
-            //    .As<IRuntimeFormatterFactory>();
-
             builder
                 .RegisterType<PhysicalDirectoryTree>()
                 .As<IDirectoryTree>();
 
-            //builder
-            //    .RegisterInstance(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
-            //    .As<IResourceProvider>();
-
-            //builder
-            //    .RegisterInstance(new AppSettingProvider(new UriStringToSettingIdentifierConverter()))
-            //    .As<IResourceProvider>();
-
-            //            builder
-            //                .RegisterType<CompositeResourceProvider>()
-            //                .As<IFirstResourceProvider>();      
-            
-            builder
-                .RegisterInstance(new Configuration(new AppSettingProvider()))
-                .As<IConfiguration>();
-
-            builder
-                .RegisterInstance(new Configuration<IProgramConfig>(new AppSettingProvider()))
-                .As<IConfiguration<IProgramConfig>>();
-            
-            builder
-                .RegisterInstance(new Configuration<IMailrConfig>(new AppSettingProvider()))
-                .As<IConfiguration<IMailrConfig>>();
-            
             builder
                 .Register(c =>
                 {
-                    var programConfig = c.Resolve<IConfiguration<IMailrConfig>>();
-                    return new CompositeProvider(new IResourceProvider[]
-                    {
-                        new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()),
-                        new HttpProvider(programConfig.GetItem(x => x.BaseUri))
-                    }, Metadata.Empty.AllowRelativeUri(true));
+                    var appSettings = new JsonProvider("appsettings.json");
+                    return
+                        CompositeProvider
+                            .Empty
+                            .Add(appSettings)
+                            .Add(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
+                            .Add(new MailrProvider(appSettings.ReadSetting(From<IMailrConfig>.Select(x => x.BaseUri))));
                 })
-                .As<IResourceProvider>();                                  
+                .As<IResourceProvider>();
 
             builder
                 .RegisterType<TestFileSerializer>()
@@ -64,7 +38,7 @@ namespace Gunter.DependencyInjection.Modules
 
             builder
                 .RegisterInstance(RuntimeVariables.Enumerate());
-            
+
             builder
                 .RegisterModule<JsonContractResolverModule>();
 
@@ -88,15 +62,15 @@ namespace Gunter.DependencyInjection.Modules
                 .RegisterType<RuntimeVariableDictionaryFactory>()
                 .AsSelf();
 
+            var commands =
+                ImmutableList<CommandModule>
+                    .Empty
+                    .Add<Commands.Run>()
+                    .Add<Commands.Send>()
+                    .Add<Commands.Halt>();
+
             builder
-                .RegisterModule(
-                    new CommanderModule(commands =>
-                        commands
-                            .Add<Commands.Run>()
-                            .Add<Commands.Send>()
-                            .Add<Commands.Halt>()
-                    )
-                );
+                .RegisterModule(new CommanderModule(commands));
         }
     }
 }
