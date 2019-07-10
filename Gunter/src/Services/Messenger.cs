@@ -47,7 +47,7 @@ namespace Gunter.Services
 
             foreach (var report in reports)
             {
-                using (Logger.BeginScope().WithCorrelationHandle("Report").AttachElapsed())
+                using (Logger.BeginScope().CorrelationHandle("Report").AttachElapsed())
                 {
                     Logger.Log(Abstraction.Layer.Service().Meta(new { ReportId = report.Id }));
                     try

@@ -8,8 +8,8 @@ using Gunter.Data;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Data;
-using Reusable.IOnymous.Models;
 using Reusable.Extensions;
+using Reusable.IOnymous.Http.Mailr.Models;
 
 namespace Gunter.Reporting.Modules
 {

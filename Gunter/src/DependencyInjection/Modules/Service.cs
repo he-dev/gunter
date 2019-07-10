@@ -4,8 +4,11 @@ using Autofac;
 using Gunter.Data;
 using Gunter.Services;
 using Reusable.Commander;
+using Reusable.Commander.DependencyInjection;
+using Reusable.Data;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
+using Reusable.IOnymous.Http;
 using Reusable.Quickey;
 using Reusable.Utilities.JsonNet.DependencyInjection;
 
@@ -28,7 +31,7 @@ namespace Gunter.DependencyInjection.Modules
                             .Empty
                             .Add(appSettings)
                             .Add(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
-                            .Add(new MailrProvider(appSettings.ReadSetting(From<IMailrConfig>.Select(x => x.BaseUri))));
+                            .Add(new HttpProvider(appSettings.ReadSetting(MailrConfig.BaseUri), ImmutableContainer.Empty.SetName(ResourceProvider.CreateTag("Mailr"))));
                 })
                 .As<IResourceProvider>();
 

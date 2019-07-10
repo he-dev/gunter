@@ -111,8 +111,7 @@ namespace Gunter.Tests
 
                 void CustomizeContainer(ContainerBuilder builder)
                 {
-                    builder
-                        .RegisterInstance((ExecuteExceptionCallback)(ex => throw ex));
+                    //builder.RegisterInstance((ExecuteExceptionCallback)(ex => throw ex));
                 }
             }
         }
@@ -141,8 +140,7 @@ namespace Gunter.Tests
 
                 using (var program = Program.Create(_loggerFactory, builder =>
                 {
-                    builder
-                        .RegisterInstance((ExecuteExceptionCallback)(ex => throw ex));
+                    //builder.RegisterInstance((ExecuteExceptionCallback)(ex => throw ex));
                 }))
                 {
                     await program.RunAsync(@"run -files example -tests passes");

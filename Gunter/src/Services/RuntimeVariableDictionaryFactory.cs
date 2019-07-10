@@ -22,24 +22,25 @@ namespace Gunter.Services
             _runtimeVariables = runtimeVariables;
         }
 
-        public RuntimeVariableDictionary Create
+        public RuntimeVariableProvider Create
         (
             IEnumerable<object> runtimeObjects,
             IEnumerable<TestBundleVariable> variables
         )
         {
+            var tuples = variables.Select(x => (x.Name, x.Value));
+            
             var dictionary =
                 _globalObjects
                     .Concat(runtimeObjects)
                     .Select(_runtimeVariables.GetValues)
                     .SelectMany(x => x)
-                    .Concat(variables.Select(x => (KeyValuePair<SoftString, object>)x))
-                    // We pick the last variable from each group to allow variable override.
-                    .GroupBy(x => x.Key)
-                    .Select(x => x.Last())
-                    .ToDictionary(x => x.Key, x => x.Value);
+                    .Concat(tuples) // You need this helper variable because the Select didn't work here.
+                    .GroupBy(x => x.Name)
+                    .Select(x => x.Last()) // You pick the last variable from each group to allow variable override.
+                    .ToDictionary(x => x.Name, x => x.Value);
 
-            return new RuntimeVariableDictionary(dictionary);
+            return new RuntimeVariableProvider(dictionary);
         }
     }
 }

@@ -8,19 +8,16 @@ using Reusable.Commander;
 using Reusable.Commander.Annotations;
 using Reusable.Data.Annotations;
 using Reusable.Exceptionize;
+using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.Commands
 {
     [Tags("s")]
-    internal class Send : Command<ISendParameter, TestContext>
+    internal class Send : Command<SendCommandLine, TestContext>
     {
-        public Send
-        (
-            CommandServiceProvider<Send> serviceProvider
-        )
-            : base(serviceProvider, nameof(Send)) { }
+        public Send(ILogger<Send> logger) : base(logger) { }
 
-        protected override async Task ExecuteAsync(ICommandLineReader<ISendParameter> parameter, TestContext context, CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(SendCommandLine commandLine, TestContext context, CancellationToken cancellationToken)
         {
             var messenger =
                 context
@@ -28,22 +25,24 @@ namespace Gunter.Commands
                     .Messengers
                     .SingleOrThrow
                     (
-                        m => m.Id.Equals(parameter.GetItem(x => x.Use)),
-                        onEmpty: () => DynamicException.Create("MessengerNotFound", $"Could not find messenger '{parameter.GetItem(x => x.Use)}'.")
+                        m => m.Id.Equals(commandLine.Use),
+                        onEmpty: () => DynamicException.Create("MessengerNotFound", $"Could not find messenger '{commandLine.Use}'.")
                     );
 
             // ReSharper disable once PossibleNullReferenceException - messenger won't be null
-            await messenger.SendAsync(context, new SoftString[] { parameter.GetItem(x => x.Report) });
+            await messenger.SendAsync(context, new SoftString[] { commandLine.Report });
         }
     }
 
     [UsedImplicitly]
-    public interface ISendParameter : ICommandArgumentGroup
+    public class SendCommandLine : CommandLine
     {
+        public SendCommandLine(CommandLineDictionary arguments) : base(arguments) { }
+
         [Tags("R")]
-        string Report { get; }
+        public string Report => GetArgument(() => Report);
 
         [Tags("U")]
-        string Use { get; }
+        public string Use => GetArgument(() => Use);
     }
 }

@@ -14,7 +14,7 @@
       "Id": "everything",
       "ConnectionString": "{TestDb}",
       "Query": "file:///{TestBundle.FileName}.everything.sql",
-      "Then": [
+      "Filters": [
         {
           "$t": "gunter.GetJsonValue",
           "Columns": [
@@ -49,7 +49,6 @@
     {
       "$t": "gunter.Mailr",
       "Id": "default-email",
-      
       "Theme": "default"
     }
   ],

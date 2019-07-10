@@ -7,7 +7,7 @@ using Reusable.Quickey;
 
 namespace Gunter
 {
-    [UseGlobal("app"), UseMember]
+    [UseScheme("app"), UseMember]
     [SettingSelectorFormatter]
     public class ProgramInfo
     {
@@ -29,23 +29,23 @@ namespace Gunter
         public string Environment => _resources.ReadSetting(() => Environment);
     }
 
-    [UseGlobal("app"), UseMember]
-    [TrimStart("I"), TrimEnd("Config")]
+    [UseScheme("app"), UseMember]
+    [TrimEnd("Config")]
     [SettingSelectorFormatter]
-    public interface IProgramConfig
+    public class ProgramConfig : SelectorBuilder<ProgramConfig>
     {
-        string Environment { get; set; }
+        public static Selector<string> Environment = Select(() => Environment);
 
-        string DefaultTestsDirectoryName { get; set; }
+        public static Selector<string> DefaultTestsDirectoryName = Select(() => DefaultTestsDirectoryName);
     }
 
-    [UseGlobal("mailr"), UseMember]
-    [TrimStart("I"), TrimEnd("Config")]
+    [UseScheme("mailr"), UseMember]
+    [TrimEnd("Config")]
     [SettingSelectorFormatter]
-    public interface IMailrConfig
+    public class MailrConfig : SelectorBuilder<MailrConfig>
     {
-        string BaseUri { get; set; }
+        public static Selector<string> BaseUri = Select(() => BaseUri);
 
-        string TestResultPath { get; }
+        public static Selector<string> TestResultPath = Select(() => TestResultPath);
     }
 }

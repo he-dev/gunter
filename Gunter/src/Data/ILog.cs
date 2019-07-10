@@ -23,10 +23,10 @@ namespace Gunter.Data
     public interface ILog : IMergeable
     {
         [CanBeNull, ItemNotNull]
-        IList<IDataPostProcessor> Then { get; set; }
+        IList<IDataFilter> Filters { get; set; }
 
         [ItemNotNull]
-        Task<GetDataResult> GetDataAsync(RuntimeVariableDictionary runtimeVariables);
+        Task<GetDataResult> GetDataAsync(RuntimeVariableProvider runtimeVariables);
     }
 
     [Gunter]
@@ -42,11 +42,11 @@ namespace Gunter.Data
         public Merge Merge { get; set; }
 
         [Mergeable]
-        public IList<IDataPostProcessor> Then { get; set; }
+        public IList<IDataFilter> Filters { get; set; }
 
-        public async Task<GetDataResult> GetDataAsync(RuntimeVariableDictionary runtimeVariables)
+        public async Task<GetDataResult> GetDataAsync(RuntimeVariableProvider runtimeVariables)
         {
-            using (Logger.BeginScope().WithCorrelationHandle(nameof(Log)).AttachElapsed())
+            using (Logger.BeginScope().CorrelationHandle(nameof(Log)).AttachElapsed())
             {
                 Logger.Log(Abstraction.Layer.Service().Meta(new { DataSourceId = Id.ToString() }));
                 try
@@ -56,9 +56,9 @@ namespace Gunter.Data
                     var getDataElapsed = getDataStopwatch.Elapsed;
                     var elapsedPostProcessing = Stopwatch.StartNew();
 
-                    foreach (var dataPostProcessor in Then ?? Enumerable.Empty<IDataPostProcessor>())
+                    foreach (var dataFilter in Filters ?? Enumerable.Empty<IDataFilter>())
                     {
-                        dataPostProcessor.Execute(data);
+                        dataFilter.Execute(data);
                     }
 
                     return new GetDataResult
@@ -76,12 +76,12 @@ namespace Gunter.Data
             }
         }
 
-        protected abstract Task<(DataTable Data, string Query)> GetDataAsyncInternal(RuntimeVariableDictionary runtimeVariables);
+        protected abstract Task<(DataTable Data, string Query)> GetDataAsyncInternal(RuntimeVariableProvider runtimeVariables);
     }
 
     public class GetDataResult : IDisposable
     {
-        [NotNull]
+        [CanBeNull]
         public DataTable Value { get; set; }
 
         [NotNull]

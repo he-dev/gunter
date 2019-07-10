@@ -32,17 +32,20 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
         private readonly ICommandExecutor _commandLineExecutor;
+        private readonly ICommandFactory _commandFactory;
         private readonly RuntimeVariableDictionaryFactory _runtimeVariableDictionaryFactory;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
             ICommandExecutor commandLineExecutor,
+            ICommandFactory commandFactory,
             RuntimeVariableDictionaryFactory runtimeVariableDictionaryFactory
         )
         {
             _logger = logger;
             _commandLineExecutor = commandLineExecutor;
+            _commandFactory = commandFactory;
             _runtimeVariableDictionaryFactory = runtimeVariableDictionaryFactory;
         }
 
@@ -77,7 +80,7 @@ namespace Gunter.Services
 
             var cache = new Dictionary<SoftString, GetDataResult>();
 
-            using (_logger.BeginScope().WithCorrelationHandle("TestBundle").AttachElapsed())
+            using (_logger.BeginScope().CorrelationHandle("TestBundle").AttachElapsed())
             using (Disposable.Create(() =>
             {
                 foreach (var item in cache.Values) item.Dispose();
@@ -86,7 +89,7 @@ namespace Gunter.Services
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleFileName = testBundle.FileName }));
                 foreach (var current in tests)
                 {
-                    using (_logger.BeginScope().WithCorrelationHandle("TestCase").AttachElapsed())
+                    using (_logger.BeginScope().CorrelationHandle("TestCase").AttachElapsed())
                     {
                         _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
                         try
@@ -126,7 +129,7 @@ namespace Gunter.Services
 
                             foreach (var cmd in then)
                             {
-                                await _commandLineExecutor.ExecuteAsync(cmd, context);
+                                await _commandLineExecutor.ExecuteAsync(cmd, context, _commandFactory);
                             }
 
                             _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Completed());

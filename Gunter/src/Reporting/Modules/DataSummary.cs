@@ -15,7 +15,7 @@ using Reusable.Collections;
 using Reusable.Data;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
-using Reusable.IOnymous.Models;
+using Reusable.IOnymous.Http.Mailr.Models;
 using Reusable.Reflection;
 
 namespace Gunter.Reporting.Modules

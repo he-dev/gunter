@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Gunter.Annotations;
-using Gunter.Data;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
 
-namespace Gunter.Services.DataPostProcessors
+namespace Gunter.Services.DataFilters
 {
     [Gunter]
-    public class GetFirstLine : IDataPostProcessor
+    public class GetFirstLine : IDataFilter
     {
         [NotNull, ItemNotNull]
         [JsonProperty(Required = Required.Always)]
@@ -20,7 +19,7 @@ namespace Gunter.Services.DataPostProcessors
 
         public void Execute(DataTable dataTable)
         {
-            if (Columns is null) throw new InvalidOperationException($"There are no '{nameof(Columns)}'.");
+            if (Columns is null) throw new InvalidOperationException($"{nameof(GetFirstLine)}Filter requires at least one column.");
 
             foreach (var column in Columns.Where(c => c.Attach.IsNotNullOrEmpty()))
             {

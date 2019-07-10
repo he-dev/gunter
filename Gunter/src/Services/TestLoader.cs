@@ -26,7 +26,7 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
         private readonly IDirectoryTree _directoryTree;
-        private readonly IResourceProvider _resourceProvider;
+        private readonly IResourceProvider _resources;
         private readonly ITestFileSerializer _testFileSerializer;
 
         private static readonly IExpressValidator<TestBundle> UniqueMergeableIdsValidator = ExpressValidator.For<TestBundle>(builder =>
@@ -40,13 +40,13 @@ namespace Gunter.Services
         (
             ILogger<TestLoader> logger,
             IDirectoryTree directoryTree,
-            IResourceProvider resourceProvider,
+            IResourceProvider resources,
             ITestFileSerializer testFileSerializer
         )
         {
             _logger = logger;
             _directoryTree = directoryTree;
-            _resourceProvider = resourceProvider;
+            _resources = resources;
             _testFileSerializer = testFileSerializer;
         }
 
@@ -64,7 +64,7 @@ namespace Gunter.Services
 
             foreach (var fileName in testFiles) //.Where(fileName => tests is null || tests.Contains(Path.GetFileNameWithoutExtension(fileName), StringComparer.OrdinalIgnoreCase)))
             {
-                using (_logger.BeginScope().WithCorrelationHandle("TestBundle").AttachElapsed())
+                using (_logger.BeginScope().CorrelationHandle("TestBundle").AttachElapsed())
                 {
                     _logger.Log(Abstraction.Layer.IO().Meta(new { TestBundleFileName = fileName }));
                     var testBundle = await LoadTestAsync(fileName);
@@ -88,7 +88,7 @@ namespace Gunter.Services
         {
             try
             {
-                var file = await _resourceProvider.GetFileAsync(fileName, MimeType.Text);
+                var file = await _resources.GetFileAsync(fileName, MimeType.Text);
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);

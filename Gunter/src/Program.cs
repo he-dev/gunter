@@ -27,14 +27,16 @@ namespace Gunter
     {
         private readonly IContainer _container;
         private readonly ILogger _logger;
-        private readonly ICommandExecutor _executor;
+        private readonly ICommandExecutor _commandExecutor;
         private readonly IResourceProvider _resources;
+        private readonly ICommandFactory _commandFactory;
 
         public Program(IContainer container)
         {
             _container = container;
             _logger = container.Resolve<ILogger<Program>>();
-            _executor = container.Resolve<ICommandExecutor>();
+            _commandExecutor = container.Resolve<ICommandExecutor>();
+            _commandFactory = container.Resolve<ICommandFactory>();
             _resources = container.Resolve<IResourceProvider>();
             
             var location = Path.GetDirectoryName(typeof(Program).Assembly.Location);
@@ -80,14 +82,14 @@ namespace Gunter
 
         public async Task RunAsync()
         {
-            var defaultTestsDirectoryName = await _resources.ReadSettingAsync(From<IProgramConfig>.Select(x => x.DefaultTestsDirectoryName));
+            var defaultTestsDirectoryName = await _resources.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
             var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName);
             await RunAsync($"run -path \"{defaultPath}\"");
         }
 
         public async Task RunAsync(params string[] args)
         {
-            await _executor.ExecuteAsync<object>(args.Join(" "), default);           
+            await _commandExecutor.ExecuteAsync<object>(args.Join(" "), default, _commandFactory);           
         }
 
         public void Dispose() => _container.Dispose();

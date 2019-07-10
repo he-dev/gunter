@@ -1,21 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.IO;
 using Gunter.Annotations;
-using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Reusable.Exceptionize;
 
-namespace Gunter.Services.DataPostProcessors
+namespace Gunter.Services.DataFilters
 {
     [Gunter]
     [UsedImplicitly]
-    public class GetJsonValue : IDataPostProcessor
+    public class GetJsonValue : IDataFilter
     {
         [NotNull, ItemNotNull]
         [JsonProperty(Required = Required.Always)]
@@ -23,9 +20,7 @@ namespace Gunter.Services.DataPostProcessors
 
         public void Execute(DataTable dataTable)
         {
-            if (Columns is null) throw new InvalidOperationException($"There are no '{nameof(Columns)}'.");
-
-            //foreach (var column in Columns) { }
+            if (Columns is null) throw new InvalidOperationException($"{nameof(GetJsonValue)}Filter requires at least one column.");
 
             foreach (var column in Columns)
             {

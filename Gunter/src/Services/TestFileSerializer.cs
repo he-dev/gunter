@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
+using Gunter.Services.DataFilters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -34,8 +35,8 @@ namespace Gunter.Services
                 new RewritePrettyTypeVisitor(TypeDictionary.From(new[]
                 {
                     typeof(Gunter.Data.SqlClient.TableOrView),
-                    typeof(Gunter.Services.DataPostProcessors.GetJsonValue),
-                    typeof(Gunter.Services.DataPostProcessors.GetFirstLine),
+                    typeof(GetJsonValue),
+                    typeof(GetFirstLine),
                     typeof(Gunter.Services.Messengers.Mailr),
                     typeof(Gunter.Reporting.Modules.Level),
                     typeof(Gunter.Reporting.Modules.Greeting),

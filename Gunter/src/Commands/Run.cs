@@ -13,12 +13,13 @@ using Reusable.Commander.Annotations;
 using Reusable.Data.Annotations;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
+using Reusable.OmniLog.Abstractions;
 using Reusable.Quickey;
 
 namespace Gunter.Commands
 {
     [Tags("b")]
-    internal class Run : Command<IRunParameter, object>
+    internal class Run : Command<RunCommandLine, object>
     {
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
@@ -27,13 +28,13 @@ namespace Gunter.Commands
 
         public Run
         (
-            CommandServiceProvider<Run> serviceProvider,
+            ILogger<Run> logger,
             ITestLoader testLoader,
             ITestComposer testComposer,
             ITestRunner testRunner,
             IResourceProvider resources
         )
-            : base(serviceProvider, nameof(IRunParameter))
+            : base(logger)
         {
             _testLoader = testLoader;
             _testComposer = testComposer;
@@ -41,19 +42,19 @@ namespace Gunter.Commands
             _resources = resources;
         }
 
-        protected override async Task ExecuteAsync(ICommandLineReader<IRunParameter> parameter, object context, CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(RunCommandLine commandLine, object context, CancellationToken cancellationToken)
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-            var defaultPath = Path.Combine(currentDirectory, _resources.ReadSetting(From<IProgramConfig>.Select(x => x.DefaultTestsDirectoryName)));
+            var defaultPath = Path.Combine(currentDirectory, _resources.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
 
-            var bundles = await _testLoader.LoadTestsAsync(parameter.GetItem(x => x.Path));
+            var bundles = await _testLoader.LoadTestsAsync(commandLine.Path);
             var testFilter = new TestFilter
             {
-                Path = parameter.GetItem(x => x.Path) ?? defaultPath,
-                Files = parameter.GetItem(x => x.Files),
-                Tests = parameter.GetItem(x => x.Tests),
-                Tags = parameter.GetItem(x => x.Tags)
+                Path = commandLine.Path ?? defaultPath,
+                Files = commandLine.Files,
+                Tests = commandLine.Tests,
+                Tags = commandLine.Tags
             };
             var compositions = _testComposer.ComposeTests(bundles, testFilter);
             await _testRunner.RunAsync(compositions);
@@ -61,14 +62,16 @@ namespace Gunter.Commands
     }
 
     [UsedImplicitly]
-    public interface IRunParameter : ICommandArgumentGroup
+    public class RunCommandLine : CommandLine
     {
-        string Path { get; }
+        public RunCommandLine(CommandLineDictionary arguments) : base(arguments) { }
 
-        IList<string> Files { get; }
+        public string Path => GetArgument(() => Path);
 
-        IList<string> Tests { get; }
+        public IList<string> Files => GetArgument(() => Files);
 
-        IList<string> Tags { get; }
+        public IList<string> Tests => GetArgument(() => Tests);
+
+        public IList<string> Tags => GetArgument(() => Tags);
     }
 }

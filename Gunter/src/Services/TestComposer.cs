@@ -78,7 +78,7 @@ namespace Gunter.Services
         private bool TryCompose(TestBundle testBundle, IGrouping<TestBundleType, TestBundle> partials, out TestBundle composition)
         {
             composition = default;
-            using (_logger.BeginScope().WithCorrelationHandle("Merge").AttachElapsed())
+            using (_logger.BeginScope().CorrelationHandle("Merge").AttachElapsed())
             {
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = testBundle.Name.ToString() }));
                 try

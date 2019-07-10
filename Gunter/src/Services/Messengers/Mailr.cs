@@ -12,6 +12,9 @@ using Reusable;
 using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
+using Reusable.IOnymous.Http;
+using Reusable.IOnymous.Http.Mailr;
+using Reusable.IOnymous.Http.Mailr.Models;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
@@ -51,16 +54,25 @@ namespace Gunter.Services.Messengers
         {
             var to = To.Select(x => x.Format(context.RuntimeVariables));
             var subject = report.Title.Format(context.RuntimeVariables);
-            var body = new
-            {
-                Modules = modules
-            };
 
-            var email = Email.CreateHtml(to, subject, body, e =>
+            var email = new Email.Html(to, subject)
             {
-                e.Theme = Theme;
-                e.CC = CC;
-            });
+                Theme = Theme,
+                CC = CC,
+                Body = new
+                {
+                    Modules = modules
+                },
+                SerializeCallback = e => ResourceHelper.SerializeAsJsonAsync(e, new JsonSerializer
+                {
+                    Converters =
+                    {
+                        new JsonStringConverter(typeof(SoftString)),
+                        //new SoftStringConverter(),
+                        new StringEnumConverter()
+                    }
+                })
+            };
 
             Logger.Log(Abstraction.Layer.Service().Meta(new
             {
@@ -70,20 +82,12 @@ namespace Gunter.Services.Messengers
                     email.CC,
                     email.Subject,
                     email.Theme,
-                    Modules = body.Modules.Select(m => m.Name)
+                    Modules = modules.Select(m => m.Name)
                 }
             }));
 
-            var testResultPath = await _resources.ReadSettingAsync(From<IMailrConfig>.Select(x => x.TestResultPath));
-            await _resources.SendAsync(testResultPath, email, ProgramInfo.Name, ProgramInfo.Version, new JsonSerializer
-            {
-                Converters =
-                {
-                    new JsonStringConverter(typeof(SoftString)),
-                    //new SoftStringConverter(),
-                    new StringEnumConverter()
-                }
-            });
+            var testResultPath = await _resources.ReadSettingAsync(MailrConfig.TestResultPath);
+            await _resources.UseMailr().SendEmailAsync(testResultPath, new UserAgent(ProgramInfo.Name, ProgramInfo.Version), email);
         }
     }
 }
