@@ -62,7 +62,7 @@ namespace Gunter.Services
 
             var testBundles = new List<TestBundle>();
 
-            foreach (var fileName in testFiles) //.Where(fileName => tests is null || tests.Contains(Path.GetFileNameWithoutExtension(fileName), StringComparer.OrdinalIgnoreCase)))
+            foreach (var fileName in testFiles)
             {
                 using (_logger.BeginScope().CorrelationHandle("TestBundle").AttachElapsed())
                 {
