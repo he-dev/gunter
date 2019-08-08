@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Reusable;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
@@ -47,7 +48,8 @@ namespace Gunter.Services
 
             foreach (var report in reports)
             {
-                using (Logger.BeginScope().CorrelationHandle("Report").AttachElapsed())
+                using (Logger.UseScope(correlationHandle: "Report"))
+                using (Logger.UseStopwatch())
                 {
                     Logger.Log(Abstraction.Layer.Service().Meta(new { ReportId = report.Id }));
                     try

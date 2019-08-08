@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Immutable;
 using System.Configuration;
+using System.Net.Http;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
 using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
+using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
 using Reusable.IOnymous.Http;
@@ -25,13 +28,17 @@ namespace Gunter.DependencyInjection.Modules
             builder
                 .Register(c =>
                 {
-                    var appSettings = new JsonProvider("appsettings.json");
+                    var appSettings = new JsonProvider(ProgramInfo.CurrentDirectory, "appsettings.json");
+                    var httpProvider = new HttpProvider(new HttpClient(new HttpClientHandler { UseProxy = false })
+                    {
+                        BaseAddress = new Uri(appSettings.ReadSetting(MailrConfig.BaseUri))
+                    }, ImmutableContainer.Empty.SetName(ResourceProvider.CreateTag("Mailr")));
                     return
                         CompositeProvider
                             .Empty
                             .Add(appSettings)
                             .Add(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
-                            .Add(new HttpProvider(appSettings.ReadSetting(MailrConfig.BaseUri), ImmutableContainer.Empty.SetName(ResourceProvider.CreateTag("Mailr"))));
+                            .Add(httpProvider);
                 })
                 .As<IResourceProvider>();
 

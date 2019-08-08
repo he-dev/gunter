@@ -21,6 +21,7 @@ using Reusable.Extensions;
 using Reusable.Flawless;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
 
@@ -78,7 +79,7 @@ namespace Gunter.Services
         private bool TryCompose(TestBundle testBundle, IGrouping<TestBundleType, TestBundle> partials, out TestBundle composition)
         {
             composition = default;
-            using (_logger.BeginScope().CorrelationHandle("Merge").AttachElapsed())
+            using (_logger.UseScope(correlationHandle: "Merge").Attach(_logger.UseStopwatch()))
             {
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = testBundle.Name.ToString() }));
                 try

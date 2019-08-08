@@ -15,6 +15,7 @@ using Reusable.Exceptionize;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
@@ -80,7 +81,8 @@ namespace Gunter.Services
 
             var cache = new Dictionary<SoftString, GetDataResult>();
 
-            using (_logger.BeginScope().CorrelationHandle("TestBundle").AttachElapsed())
+            using (_logger.UseScope(correlationHandle: "TestBundle"))
+            using (_logger.UseStopwatch())
             using (Disposable.Create(() =>
             {
                 foreach (var item in cache.Values) item.Dispose();
@@ -89,7 +91,8 @@ namespace Gunter.Services
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleFileName = testBundle.FileName }));
                 foreach (var current in tests)
                 {
-                    using (_logger.BeginScope().CorrelationHandle("TestCase").AttachElapsed())
+                    using (_logger.UseScope(correlationHandle: "TestCase"))
+                    using (_logger.UseStopwatch())
                     {
                         _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
                         try

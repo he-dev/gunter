@@ -6,22 +6,14 @@ using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Reusable;
 using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
 using Reusable.IOnymous.Http;
 using Reusable.IOnymous.Http.Mailr;
 using Reusable.IOnymous.Http.Mailr.Models;
-using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.Quickey;
-using Reusable.Utilities.JsonNet;
-using Reusable.Utilities.JsonNet.Converters;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Gunter.Services.Messengers
 {
@@ -55,6 +47,8 @@ namespace Gunter.Services.Messengers
             var to = To.Select(x => x.Format(context.RuntimeVariables));
             var subject = report.Title.Format(context.RuntimeVariables);
 
+            modules = modules.ToList();
+
             var email = new Email.Html(to, subject)
             {
                 Theme = Theme,
@@ -63,15 +57,6 @@ namespace Gunter.Services.Messengers
                 {
                     Modules = modules
                 },
-                SerializeCallback = e => ResourceHelper.SerializeAsJsonAsync(e, new JsonSerializer
-                {
-                    Converters =
-                    {
-                        new JsonStringConverter(typeof(SoftString)),
-                        //new SoftStringConverter(),
-                        new StringEnumConverter()
-                    }
-                })
             };
 
             Logger.Log(Abstraction.Layer.Service().Meta(new

@@ -11,6 +11,7 @@ using Newtonsoft.Json.Serialization;
 using Reusable;
 using Reusable.Extensions;
 using Reusable.IOnymous;
+using Reusable.OmniLog;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
 
@@ -32,7 +33,7 @@ namespace Gunter.Services
             Transform = JsonVisitor.CreateComposite
             (
                 new TrimPropertyNameVisitor(),
-                new RewritePrettyTypeVisitor(TypeDictionary.From(new[]
+                new RewriteTypeVisitor(new PrettyTypeResolver(TypeDictionary.From(new[]
                 {
                     typeof(Gunter.Data.SqlClient.TableOrView),
                     typeof(GetJsonValue),
@@ -44,7 +45,7 @@ namespace Gunter.Services
                     typeof(Gunter.Reporting.Modules.DataSource),
                     typeof(Gunter.Reporting.Modules.DataSummary),
                     typeof(Gunter.Reporting.Formatters.TimeSpan),
-                }))
+                })))
             );
         }
 
@@ -58,7 +59,11 @@ namespace Gunter.Services
                 ObjectCreationHandling = ObjectCreationHandling.Reuse,
                 Converters =
                 {
-                    //new MergeConverter()
+                    //new MergeConverter(),
+                    new LambdaJsonConverter<LogLevel>
+                    {
+                        ReadJsonCallback = LogLevel.FromName
+                    },
                     new JsonStringConverter()
                 }
             };

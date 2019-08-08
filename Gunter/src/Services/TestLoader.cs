@@ -11,6 +11,7 @@ using Reusable.Flawless;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
@@ -29,12 +30,10 @@ namespace Gunter.Services
         private readonly IResourceProvider _resources;
         private readonly ITestFileSerializer _testFileSerializer;
 
-        private static readonly IExpressValidator<TestBundle> UniqueMergeableIdsValidator = ExpressValidator.For<TestBundle>(builder =>
-        {
-            builder.True(
-                testBundle => testBundle.All(
-                    mergeables => mergeables.GroupBy(m => m.Id).All(g => g.Count() == 1)));
-        });
+        private static readonly ValidationRuleCollection<TestBundle, object> UniqueMergeableIdsValidator =
+            ValidationRuleCollection
+                .For<TestBundle>()
+                .Accept(b => b.When(x => x.All(mergeables => mergeables.GroupBy(m => m.Id).All(g => g.Count() == 1))).Message("All mergable items must have unique ids."));
 
         public TestLoader
         (
@@ -64,7 +63,8 @@ namespace Gunter.Services
 
             foreach (var fileName in testFiles)
             {
-                using (_logger.BeginScope().CorrelationHandle("TestBundle").AttachElapsed())
+                using (_logger.UseScope(correlationHandle: "TestBundle"))
+                using (_logger.UseStopwatch())
                 {
                     _logger.Log(Abstraction.Layer.IO().Meta(new { TestBundleFileName = fileName }));
                     var testBundle = await LoadTestAsync(fileName);
@@ -74,7 +74,7 @@ namespace Gunter.Services
                     }
 
 
-                    UniqueMergeableIdsValidator.Validate(testBundle).Assert();
+                    testBundle.ValidateWith(UniqueMergeableIdsValidator).ThrowOnFailure();
 
                     testBundles.Add(testBundle);
                 }
@@ -88,7 +88,7 @@ namespace Gunter.Services
         {
             try
             {
-                var file = await _resources.GetFileAsync(fileName, MimeType.Text);
+                var file = await _resources.GetFileAsync(fileName, MimeType.Plain);
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);

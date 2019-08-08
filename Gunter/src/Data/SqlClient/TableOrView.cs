@@ -82,7 +82,7 @@ namespace Gunter.Data.SqlClient
         private async Task<string> GetQueryAsync(RuntimeVariableProvider runtimeVariables)
         {
             // language=regexp
-            const string fileSchemePattern = "^file:";
+            const string fileSchemePattern = "^file:///";
             var query = Query.Format(runtimeVariables);
             if (Regex.IsMatch(query, fileSchemePattern))
             {

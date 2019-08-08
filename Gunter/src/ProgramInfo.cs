@@ -8,7 +8,7 @@ using Reusable.Quickey;
 namespace Gunter
 {
     [UseScheme("app"), UseMember]
-    [SettingSelectorFormatter]
+    [PlainSelectorFormatter]
     public class ProgramInfo
     {
         private readonly IResourceProvider _resources;
@@ -31,7 +31,7 @@ namespace Gunter
 
     [UseScheme("app"), UseMember]
     [TrimEnd("Config")]
-    [SettingSelectorFormatter]
+    [PlainSelectorFormatter]
     public class ProgramConfig : SelectorBuilder<ProgramConfig>
     {
         public static Selector<string> Environment = Select(() => Environment);
@@ -41,7 +41,7 @@ namespace Gunter
 
     [UseScheme("mailr"), UseMember]
     [TrimEnd("Config")]
-    [SettingSelectorFormatter]
+    [PlainSelectorFormatter]
     public class MailrConfig : SelectorBuilder<MailrConfig>
     {
         public static Selector<string> BaseUri = Select(() => BaseUri);

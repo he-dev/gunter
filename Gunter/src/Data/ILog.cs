@@ -14,10 +14,11 @@ using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Data
-{    
+{
     [UsedImplicitly]
     [PublicAPI]
     public interface ILog : IMergeable
@@ -46,7 +47,7 @@ namespace Gunter.Data
 
         public async Task<GetDataResult> GetDataAsync(RuntimeVariableProvider runtimeVariables)
         {
-            using (Logger.BeginScope().CorrelationHandle(nameof(Log)).AttachElapsed())
+            using (Logger.UseScope(correlationHandle: nameof(Log)).Attach(Logger.UseStopwatch()))
             {
                 Logger.Log(Abstraction.Layer.Service().Meta(new { DataSourceId = Id.ToString() }));
                 try
