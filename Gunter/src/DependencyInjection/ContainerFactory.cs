@@ -65,24 +65,18 @@ namespace Gunter.DependencyInjection
                             { "Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"] },
                             { "Product", ProgramInfo.FullName }
                         },
-                        new StopwatchNode
-                        {
-                            // Selects milliseconds to be logged. This is the default.
-                            GetValue = elapsed => elapsed.TotalMilliseconds
-                        },
+                        new StopwatchNode(),
                         new ComputableNode
                         {
                             Computables =
                             {
-                                // Adds utc timestamp to each log-entry.
                                 new Reusable.OmniLog.Computables.Timestamp<DateTimeUtc>()
                             }
                         },
                         new LambdaNode(),
                         new CorrelationNode(),
                         new SemanticNode(),
-                        new DumpNode
-                            { },
+                        new DumpNode(),
                         new SerializationNode(),
                         new FilterNode(logEntry => true) { Enabled = false },
                         new RenameNode

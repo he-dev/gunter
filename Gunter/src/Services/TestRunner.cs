@@ -81,8 +81,7 @@ namespace Gunter.Services
 
             var cache = new Dictionary<SoftString, GetDataResult>();
 
-            using (_logger.UseScope(correlationHandle: "TestBundle"))
-            using (_logger.UseStopwatch())
+            using (_logger.UseScope(correlationHandle: "TestBundle").Attach(_logger.UseStopwatch()))
             using (Disposable.Create(() =>
             {
                 foreach (var item in cache.Values) item.Dispose();
