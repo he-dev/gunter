@@ -19,6 +19,20 @@ namespace Gunter.Data
     {
         public const string PartialPrefix = "_";
         
+        public static readonly IEnumerable<Type> KnownTypes = new[]
+        {
+            typeof(Gunter.Data.SqlClient.TableOrView),
+            typeof(Gunter.Services.DataFilters.GetJsonValue),
+            typeof(Gunter.Services.DataFilters.GetFirstLine),
+            typeof(Gunter.Services.Messengers.Mailr),
+            typeof(Gunter.Reporting.Modules.Level),
+            typeof(Gunter.Reporting.Modules.Greeting),
+            typeof(Gunter.Reporting.Modules.TestCase),
+            typeof(Gunter.Reporting.Modules.DataSource),
+            typeof(Gunter.Reporting.Modules.DataSummary),
+            typeof(Gunter.Reporting.Formatters.TimeSpan),
+        };
+        
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 

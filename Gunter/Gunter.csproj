@@ -61,6 +61,7 @@
     <Compile Remove="src\Json\JsonVisitor.cs" />
     <Compile Remove="src\Reporting\Filters\Elapsed.cs" />
     <Compile Remove="src\Services\TestFileProvider.cs" />
+    <Compile Remove="src\Services\TestFileSerializer.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'False'">
@@ -85,6 +86,7 @@
     <ProjectReference Include="..\..\Reusable\Reusable.Flexo\Reusable.Flexo.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous\Reusable.IOnymous.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config\Reusable.IOnymous.Config.csproj" />
+    <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config.Json\Reusable.IOnymous.Config.Json.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Http\Reusable.IOnymous.Http.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Http.Mailr\Reusable.IOnymous.Http.Mailr.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.OmniLog.NLogRx\Reusable.OmniLog.NLogRx.csproj" />
@@ -129,10 +131,6 @@
     <PackageReference Include="Autofac" Version="4.9.2" />
     <PackageReference Include="Dapper" Version="1.50.7" />
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config.Json\Reusable.IOnymous.Config.Json.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">

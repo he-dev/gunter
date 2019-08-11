@@ -10,13 +10,13 @@
   ],
   "Logs": [
     {
-      "$t": "gunter.TableOrView",
+      "$g": "TableOrView",
       "Id": "everything",
       "ConnectionString": "{TestDb}",
       "Query": "file:///{TestBundle.FileName}.everything.sql",
       "Filters": [
         {
-          "$t": "gunter.GetJsonValue",
+          "$g": "GetJsonValue",
           "Columns": [
             {
               "From": "_json",
@@ -27,7 +27,7 @@
           ]
         },
         {
-          "$t": "gunter.GetFirstLine",
+          "$g": "GetFirstLine",
           "Columns": [
             {
               "From": "_text",
@@ -38,7 +38,7 @@
       ]
     },
     {
-      "$t": "gunter.TableOrView",
+      "$g": "TableOrView",
       "Id": "empty",
       "ConnectionString": "{TestDb}",
       "Query": "file:///{TestBundle.FileName}.empty.sql"
@@ -47,7 +47,7 @@
   "Tests": [],
   "Messengers": [
     {
-      "$t": "gunter.Mailr",
+      "$g": "Mailr",
       "Id": "default-email",
       "Theme": "default"
     }
@@ -58,23 +58,23 @@
       "Title": "Glitch alert [{TestCase.Level}]",
       "Modules": [
         {
-          "$t": "gunter.Level"
+          "$g": "Level"
         },
         {
-          "$t": "gunter.Greeting",
+          "$g": "Greeting",
           "Heading": "Hi, everyone.",
           "Text": "{TestCase.Message}"
         },
         {
-          "$t": "gunter.TestCase",
+          "$g": "TestCase",
           "Heading": "Test case"
         },
         {
-          "$t": "gunter.DataSource",
+          "$g": "DataSource",
           "Heading": "Data-source"
         },
         {
-          "$t": "gunter.DataSummary",
+          "$g": "DataSummary",
           "Heading": "Default data summary",
           "Columns": [
             {
@@ -104,7 +104,7 @@
           ]
         },
         {
-          "$t": "gunter.DataSummary",
+          "$g": "DataSummary",
           "Heading": "Custom data summary",
           "Columns": [
             {

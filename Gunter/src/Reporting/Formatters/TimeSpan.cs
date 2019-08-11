@@ -4,10 +4,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Gunter.Annotations;
 using JetBrains.Annotations;
 
 namespace Gunter.Reporting.Formatters
 {
+    [Gunter]
     public class TimeSpan : IFormatter
     {
         private static readonly IDictionary<TimeSpanValueType, Func<double, System.TimeSpan>> ValueTypes = new Dictionary<TimeSpanValueType, Func<double, System.TimeSpan>>

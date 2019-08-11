@@ -12,6 +12,7 @@ using Reusable.IOnymous.Config;
 using Reusable.IOnymous.Http;
 using Reusable.IOnymous.Http.Mailr;
 using Reusable.IOnymous.Http.Mailr.Models;
+using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 
@@ -61,15 +62,12 @@ namespace Gunter.Services.Messengers
 
             Logger.Log(Abstraction.Layer.Service().Meta(new
             {
-                Email = new
-                {
-                    email.To,
-                    email.CC,
-                    email.Subject,
-                    email.Theme,
-                    Modules = modules.Select(m => m.Name)
-                }
-            }));
+                email.To,
+                email.CC,
+                email.Subject,
+                email.Theme,
+                Modules = modules.Select(m => m.Name)
+            }, "Email"));
 
             var testResultPath = await _resources.ReadSettingAsync(MailrConfig.TestResultPath);
             await _resources.UseMailr().SendEmailAsync(testResultPath, new UserAgent(ProgramInfo.Name, ProgramInfo.Version), email);

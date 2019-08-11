@@ -7,12 +7,14 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Extensions;
 using Reusable.Flawless;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.Utilities.JsonNet;
 
 namespace Gunter.Services
 {
@@ -28,7 +30,7 @@ namespace Gunter.Services
         private readonly ILogger _logger;
         private readonly IDirectoryTree _directoryTree;
         private readonly IResourceProvider _resources;
-        private readonly ITestFileSerializer _testFileSerializer;
+        private readonly IPrettyJsonSerializer _testFileSerializer;
 
         private static readonly ValidationRuleCollection<TestBundle, object> UniqueMergeableIdsValidator =
             ValidationRuleCollection
@@ -40,7 +42,7 @@ namespace Gunter.Services
             ILogger<TestLoader> logger,
             IDirectoryTree directoryTree,
             IResourceProvider resources,
-            ITestFileSerializer testFileSerializer
+            IPrettyJsonSerializer testFileSerializer
         )
         {
             _logger = logger;
@@ -92,7 +94,7 @@ namespace Gunter.Services
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
-                    var testBundle = await _testFileSerializer.DeserializeAsync(memoryStream);
+                    var testBundle = await _testFileSerializer.DeserializeAsync<TestBundle>(memoryStream.Rewind(), TypeDictionary.From(TestBundle.KnownTypes));
                     testBundle.FullName = fileName;
                     _logger.Log(Abstraction.Layer.IO().Routine(nameof(LoadTestAsync)).Completed());
                     return testBundle;

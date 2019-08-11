@@ -24,6 +24,20 @@ namespace Gunter.Services
 
     internal class TestFileSerializer : ITestFileSerializer
     {
+        private static readonly IEnumerable<Type> BuiltInTypes = new[]
+        {
+            typeof(Gunter.Data.SqlClient.TableOrView),
+            typeof(Gunter.Services.DataFilters.GetJsonValue),
+            typeof(Gunter.Services.DataFilters.GetFirstLine),
+            typeof(Gunter.Services.Messengers.Mailr),
+            typeof(Gunter.Reporting.Modules.Level),
+            typeof(Gunter.Reporting.Modules.Greeting),
+            typeof(Gunter.Reporting.Modules.TestCase),
+            typeof(Gunter.Reporting.Modules.DataSource),
+            typeof(Gunter.Reporting.Modules.DataSummary),
+            typeof(Gunter.Reporting.Formatters.TimeSpan),
+        };
+        
         private readonly JsonSerializer _jsonSerializer;
 
         private static readonly JsonVisitor Transform;
@@ -33,19 +47,7 @@ namespace Gunter.Services
             Transform = JsonVisitor.CreateComposite
             (
                 new TrimPropertyNameVisitor(),
-                new RewriteTypeVisitor(new PrettyTypeResolver(TypeDictionary.From(new[]
-                {
-                    typeof(Gunter.Data.SqlClient.TableOrView),
-                    typeof(GetJsonValue),
-                    typeof(GetFirstLine),
-                    typeof(Gunter.Services.Messengers.Mailr),
-                    typeof(Gunter.Reporting.Modules.Level),
-                    typeof(Gunter.Reporting.Modules.Greeting),
-                    typeof(Gunter.Reporting.Modules.TestCase),
-                    typeof(Gunter.Reporting.Modules.DataSource),
-                    typeof(Gunter.Reporting.Modules.DataSummary),
-                    typeof(Gunter.Reporting.Formatters.TimeSpan),
-                })))
+                new RewriteTypeVisitor(new PrettyTypeResolver(TypeDictionary.From(BuiltInTypes)))
             );
         }
 

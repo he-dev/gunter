@@ -6,12 +6,10 @@ using Reusable.Exceptionize;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Abstractions.Data;
-using Reusable.OmniLog.Computables;
 using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.Rx;
 using Reusable.OmniLog.Rx.ConsoleRenderers;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.OmniLog.SemanticExtensions.Nodes;
 
 namespace Gunter.DependencyInjection
 {
@@ -56,64 +54,35 @@ namespace Gunter.DependencyInjection
             {
                 Reusable.Utilities.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
-                var loggerFactory = new LoggerFactory
-                {
-                    Nodes =
-                    {
-                        new ConstantNode
-                        {
-                            { "Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"] },
-                            { "Product", ProgramInfo.FullName }
-                        },
-                        new StopwatchNode(),
-                        new ComputableNode
-                        {
-                            Computables =
+                return
+                    new LoggerFactory()
+                        .UseConstant(
+                            ("Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"]),
+                            ("Product", ProgramInfo.FullName))
+                        .UseScalar(new Reusable.OmniLog.Scalars.Timestamp<DateTimeUtc>())
+                        .UseStopwatch()
+                        .UseLambda()
+                        .UseCorrelation()
+                        .UseBuilder()
+                        .UseOneToMany()
+                        .UseMapper()
+                        .UseSerializer()
+                        .UseRename(
+                            (LogEntry.Names.Scope, "Scope"),
+                            (LogEntry.Names.Object, "Identifier"),
+                            (LogEntry.Names.Snapshot, "Snapshot"))
+                        .UseFallback(
+                            (LogEntry.Names.Level, LogLevel.Information))
+                        .UseBuffer()
+                        .UseEcho(
+                            new NLogRx(), 
+                            new ConsoleRx
                             {
-                                new Reusable.OmniLog.Computables.Timestamp<DateTimeUtc>()
-                            }
-                        },
-                        new LambdaNode(),
-                        new CorrelationNode(),
-                        new SemanticNode(),
-                        new DumpNode(),
-                        new SerializationNode(),
-                        new FilterNode(logEntry => true) { Enabled = false },
-                        new RenameNode
-                        {
-                            Changes =
-                            {
-                                { CorrelationNode.DefaultLogEntryItemNames.Scope, "Scope" },
-                                { DumpNode.DefaultLogEntryItemNames.Variable, "Identifier" },
-                                { DumpNode.DefaultLogEntryItemNames.Dump, "Snapshot" },
-                            }
-                        },
-                        new FallbackNode
-                        {
-                            Defaults =
-                            {
-                                [LogEntry.BasicPropertyNames.Level] = LogLevel.Information
-                            }
-                        },
-                        new TransactionNode(),
-                        new EchoNode
-                        {
-                            Rx =
-                            {
-                                new NLogRx(), // Use NLog.
-                                new ConsoleRx // Use console.
+                                Renderer = new SimpleConsoleRenderer
                                 {
-                                    Renderer = new SimpleConsoleRenderer
-                                    {
-                                        Template = @"[{Timestamp:HH:mm:ss:fff}] [{Logger:u}] {Message}"
-                                    }
+                                    Template = @"[{Timestamp:HH:mm:ss:fff}] [{Level:u}] {Layer} | {Category} | {Identifier}: {Snapshot} {Elapsed}ms | {Message} {Exception}"
                                 }
-                            },
-                        }
-                    }
-                };
-
-                return loggerFactory;
+                            });
             }
             catch (Exception inner)
             {

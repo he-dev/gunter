@@ -5,6 +5,7 @@ using System.Net.Http;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
+using Newtonsoft.Json.Serialization;
 using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
@@ -12,7 +13,10 @@ using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
 using Reusable.IOnymous.Http;
+using Reusable.OmniLog;
 using Reusable.Quickey;
+using Reusable.Utilities.JsonNet;
+using Reusable.Utilities.JsonNet.Converters;
 using Reusable.Utilities.JsonNet.DependencyInjection;
 
 namespace Gunter.DependencyInjection.Modules
@@ -42,9 +46,23 @@ namespace Gunter.DependencyInjection.Modules
                 })
                 .As<IResourceProvider>();
 
+//            builder
+//                .RegisterType<TestFileSerializer>()
+//                .As<ITestFileSerializer>();
+
             builder
-                .RegisterType<TestFileSerializer>()
-                .As<ITestFileSerializer>();
+                .Register(ctx =>
+                {
+                    return new PrettyJsonSerializer(ctx.Resolve<IContractResolver>(), serializer =>
+                    {
+                        serializer.Converters.Add(new LambdaJsonConverter<LogLevel>
+                        {
+                            ReadJsonCallback = LogLevel.FromName
+                        });
+                        serializer.Converters.Add(new JsonStringConverter());
+                    });
+                })
+                .As<IPrettyJsonSerializer>();
 
             builder
                 .RegisterInstance(RuntimeVariables.Enumerate());
