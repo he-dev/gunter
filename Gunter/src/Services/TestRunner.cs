@@ -80,7 +80,7 @@ namespace Gunter.Services
 
             var testBundleRuntimeVariables =
                 _runtimePropertyProvider
-                    .AddObjects(new object[] { testBundle })
+                    .AddObjects(testBundle)
                     .AddProperties(testBundle.Variables.Flatten());
 
             using (_logger.UseScope(correlationHandle: "ProcessTestBundle"))
@@ -114,17 +114,14 @@ namespace Gunter.Services
                                 Result = result,
                                 RuntimeProperties =
                                     _runtimePropertyProvider
-                                        .AddObjects(new object[]
-                                        {
+                                        .AddObjects(
                                             testBundle,
                                             current.testCase,
-                                            //current.dataSource, // todo - not used - should be query
                                             new TestCounter
                                             {
                                                 GetDataElapsed = logView.GetDataElapsed,
                                                 RunTestElapsed = runElapsed
-                                            },
-                                        })
+                                            })
                                         .AddProperties(testBundle.Variables.Flatten())
                             };
 

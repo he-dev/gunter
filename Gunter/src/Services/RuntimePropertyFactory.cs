@@ -12,15 +12,10 @@ namespace Gunter.Services
         public static IProperty Create<T>(Expression<Func<T, object>> getValueExpression)
         {
             var parameter = Expression.Parameter(typeof(object), "obj");
-            var converted = RuntimeVariableValueConverter<T>.Convert(getValueExpression.Body, parameter);
+            var converted = RuntimePropertyConverter<T>.Convert(getValueExpression.Body, parameter);
             var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
-
-            return new InstanceProperty
-            (
-                typeof(T),
-                CreateName(getValueExpression),
-                getValueFunc
-            );
+            
+            return new InstanceProperty(typeof(T), CreateName(getValueExpression), getValueFunc);
         }
 
         [NotNull]
@@ -47,8 +42,8 @@ namespace Gunter.Services
                     case MemberExpression memberExpression:
                         // ReSharper disable once PossibleNullReferenceException
                         // For member expression the DeclaringType cannot be null.
-                        var typeName = memberExpression.Member.DeclaringType.Name;
-                        if (memberExpression.Member.DeclaringType.IsInterface)
+                        var typeName = memberExpression.Member.ReflectedType.Name;
+                        if (memberExpression.Member.ReflectedType.IsInterface)
                         {
                             // Remove the leading "I" from an interface name.
                             typeName = Regex.Replace(typeName, "^I", string.Empty);
@@ -69,18 +64,19 @@ namespace Gunter.Services
         }
     }
 
-    internal class RuntimeVariableValueConverter<T> : ExpressionVisitor
+    // (T)obj
+    internal class RuntimePropertyConverter<T> : ExpressionVisitor
     {
         private readonly ParameterExpression _parameter;
 
-        private RuntimeVariableValueConverter(ParameterExpression parameter)
+        private RuntimePropertyConverter(ParameterExpression parameter)
         {
             _parameter = parameter;
         }
 
         public static Expression Convert(Expression expression, ParameterExpression parameter)
         {
-            return new RuntimeVariableValueConverter<T>(parameter).Visit(expression);
+            return new RuntimePropertyConverter<T>(parameter).Visit(expression);
         }
 
         protected override Expression VisitParameter(ParameterExpression node)

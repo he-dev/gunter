@@ -74,6 +74,8 @@ namespace Gunter.Services
             );
         }
 
+        public RuntimePropertyProvider AddObjects(params object[] objects) => AddObjects(objects.AsEnumerable());
+
         public RuntimePropertyProvider AddProperties(IEnumerable<IProperty> properties)
         {
             return new RuntimePropertyProvider

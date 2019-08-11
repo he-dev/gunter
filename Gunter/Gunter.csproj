@@ -38,13 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="src\Json\Converters\SoftStringConverter.cs" />
-    <Compile Remove="src\Json\JsonVisitor.cs" />
-    <Compile Remove="src\Reporting\Filters\Elapsed.cs" />
-    <Compile Remove="src\Services\TestFileProvider.cs" />
-    <Compile Remove="src\Services\TestFileSerializer.cs" />
-    <Compile Remove="src\Services\RuntimeVariableDictionaryFactory.cs" />
-    <Compile Remove="src\Services\RuntimeVariableExtensions.cs" />
+    <Compile Remove="noop" />
   </ItemGroup>
 
   <ItemGroup>
@@ -66,6 +60,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.9.2" />
+    <PackageReference Include="Dapper" Version="1.50.7" />
+    <PackageReference Include="JetBrains.Annotations" Version="2019.1.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
@@ -96,14 +93,8 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.9.2" />
-    <PackageReference Include="Dapper" Version="1.50.7" />
-    <PackageReference Include="JetBrains.Annotations" Version="2019.1.1" />
-  </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">
-    <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
-  </Target>
+<!--  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">-->
+<!--    <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />-->
+<!--  </Target>-->
 
 </Project>
