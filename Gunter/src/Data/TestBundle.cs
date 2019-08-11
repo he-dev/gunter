@@ -37,7 +37,7 @@ namespace Gunter.Data
         public bool Enabled { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<TestBundleVariableCollection> Variables { get; set; } = new List<TestBundleVariableCollection>();
+        public List<StaticPropertyCollection> Variables { get; set; } = new List<StaticPropertyCollection>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<ILog> Logs { get; set; } = new List<ILog>();

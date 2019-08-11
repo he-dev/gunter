@@ -6,16 +6,16 @@ using JetBrains.Annotations;
 
 namespace Gunter.Services
 {
-    public static class RuntimeVariableFactory
+    public static class RuntimePropertyFactory
     {
         [NotNull]
-        public static IRuntimeVariable Create<T>(Expression<Func<T, object>> getValueExpression)
+        public static IProperty Create<T>(Expression<Func<T, object>> getValueExpression)
         {
             var parameter = Expression.Parameter(typeof(object), "obj");
             var converted = RuntimeVariableValueConverter<T>.Convert(getValueExpression.Body, parameter);
             var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
 
-            return new RuntimeVariable
+            return new InstanceProperty
             (
                 typeof(T),
                 CreateName(getValueExpression),
@@ -24,13 +24,13 @@ namespace Gunter.Services
         }
 
         [NotNull]
-        public static IRuntimeVariable Create(Expression<Func<object>> expression)
+        public static IProperty Create(Expression<Func<object>> expression)
         {
             var memberExpression = (MemberExpression)expression.Body;
 
-            return new RuntimeVariable
+            return new InstanceProperty
             (
-                memberExpression.Member.DeclaringType,
+                memberExpression.Member.ReflectedType,
                 CreateName(expression),
                 _ => expression.Compile()()
             );

@@ -45,8 +45,8 @@ namespace Gunter.Services.Messengers
 
         protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IModuleDto> modules)
         {
-            var to = To.Select(x => x.Format(context.RuntimeVariables));
-            var subject = report.Title.Format(context.RuntimeVariables);
+            var to = To.Select(x => x.Format(context.RuntimeProperties));
+            var subject = report.Title.Format(context.RuntimeProperties);
 
             modules = modules.ToList();
 
@@ -67,7 +67,7 @@ namespace Gunter.Services.Messengers
                 email.Subject,
                 email.Theme,
                 Modules = modules.Select(m => m.Name)
-            }, "Email"));
+            }, "EmailInfo"));
 
             var testResultPath = await _resources.ReadSettingAsync(MailrConfig.TestResultPath);
             await _resources.UseMailr().SendEmailAsync(testResultPath, new UserAgent(ProgramInfo.Name, ProgramInfo.Version), email);

@@ -7,6 +7,7 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flawless;
 using Reusable.IOnymous;
@@ -21,7 +22,7 @@ namespace Gunter.Services
     internal interface ITestLoader
     {
         [ItemNotNull]
-        Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName);
+        Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName, IList<string> includeFileNames);
     }
 
     [UsedImplicitly]
@@ -32,10 +33,10 @@ namespace Gunter.Services
         private readonly IResourceProvider _resources;
         private readonly IPrettyJsonSerializer _testFileSerializer;
 
-        private static readonly ValidationRuleCollection<TestBundle, object> UniqueMergeableIdsValidator =
-            ValidationRuleCollection
-                .For<TestBundle>()
-                .Accept(b => b.When(x => x.All(mergeables => mergeables.GroupBy(m => m.Id).All(g => g.Count() == 1))).Message("All mergable items must have unique ids."));
+//        private static readonly ValidationRuleCollection<TestBundle, object> UniqueMergeableIdsValidator =
+//            ValidationRuleCollection
+//                .For<TestBundle>()
+//                .Accept(b => b.When(x => x.All(mergeables => mergeables.GroupBy(m => m.Id).All(g => g.Count() == 1))).Message("All mergable items must have unique ids."));
 
         public TestLoader
         (
@@ -51,7 +52,7 @@ namespace Gunter.Services
             _testFileSerializer = testFileSerializer;
         }
 
-        public async Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName)
+        public async Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName, IList<string> includeFileNames)
         {
             _logger.Log(Abstraction.Layer.IO().Meta(new { TestDirectoryName = testDirectoryName }));
 
@@ -65,45 +66,71 @@ namespace Gunter.Services
 
             foreach (var fileName in testFiles)
             {
-                using (_logger.UseScope(correlationHandle: "TestBundle"))
+                using (_logger.UseScope(correlationHandle: "LoadTestFile"))
                 using (_logger.UseStopwatch())
                 {
-                    _logger.Log(Abstraction.Layer.IO().Meta(new { TestBundleFileName = fileName }));
-                    var testBundle = await LoadTestAsync(fileName);
-                    if (testBundle is null || !testBundle.Enabled)
+                    _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fileName }));
+
+                    var canLoad =
+                        includeFileNames is null ||
+                        includeFileNames.Any(includeFileName => SoftString.Comparer.Equals(includeFileName, Path.GetFileNameWithoutExtension(fileName)));
+
+                    if (!canLoad)
                     {
+                        _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("Excluded by filter."));
                         continue;
                     }
 
+                    try
+                    {
+                        var testBundle = await LoadTestAsync(fileName);
+                        if (!testBundle.Enabled)
+                        {
+                            _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("It's disabled."));
+                            continue;
+                        }
 
-                    testBundle.ValidateWith(UniqueMergeableIdsValidator).ThrowOnFailure();
+                        var duplicateIds =
+                            from mergables in testBundle
+                            from mergable in mergables
+                            group mergable by mergable.Id into g
+                            where g.Count() > 1
+                            select g;
 
-                    testBundles.Add(testBundle);
+                        duplicateIds = duplicateIds.ToList();
+                        if (duplicateIds.Any())
+                        {
+                            _logger.Log(Abstraction.Layer.IO().Meta(duplicateIds.Select(g => g.Key.ToString()), "DuplicateIds").Error());
+                            continue;
+                        }
+
+                        testBundle.FullName = fileName;
+                        testBundles.Add(testBundle);
+                        _logger.Log(Abstraction.Layer.IO().Routine("LoadTestFile").Completed());
+                    }
+                    catch (Exception inner)
+                    {
+                        _logger.Log(Abstraction.Layer.IO().Routine("LoadTestFile").Faulted(inner));
+                    }
                 }
             }
 
             return testBundles;
         }
 
-        [ItemCanBeNull]
+        [ItemNotNull]
         private async Task<TestBundle> LoadTestAsync(string fileName)
         {
-            try
+            var file = await _resources.GetFileAsync(fileName, MimeType.Plain);
+            if (!file.Exists)
             {
-                var file = await _resources.GetFileAsync(fileName, MimeType.Plain);
-                using (var memoryStream = new MemoryStream())
-                {
-                    await file.CopyToAsync(memoryStream);
-                    var testBundle = await _testFileSerializer.DeserializeAsync<TestBundle>(memoryStream.Rewind(), TypeDictionary.From(TestBundle.KnownTypes));
-                    testBundle.FullName = fileName;
-                    _logger.Log(Abstraction.Layer.IO().Routine(nameof(LoadTestAsync)).Completed());
-                    return testBundle;
-                }
+                throw DynamicException.Create("FileNotFound", $"Test file '{fileName}' does not exist.");
             }
-            catch (Exception ex)
+
+            using (var memoryStream = new MemoryStream())
             {
-                _logger.Log(Abstraction.Layer.IO().Routine(nameof(LoadTestAsync)).Faulted(), ex);
-                return default;
+                await file.CopyToAsync(memoryStream);
+                return await _testFileSerializer.DeserializeAsync<TestBundle>(memoryStream.Rewind(), TypeDictionary.From(TestBundle.KnownTypes));
             }
         }
     }

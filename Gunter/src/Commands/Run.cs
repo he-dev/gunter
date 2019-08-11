@@ -48,11 +48,11 @@ namespace Gunter.Commands
             var defaultPath = Path.Combine(currentDirectory, _resources.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
 
-            var bundles = await _testLoader.LoadTestsAsync(commandLine.Path);
+            var bundles = await _testLoader.LoadTestsAsync(commandLine.Path, commandLine.Files);
             var testFilter = new TestFilter
             {
                 Path = commandLine.Path ?? defaultPath,
-                Files = commandLine.Files,
+                //Files = commandLine.Files,
                 Tests = commandLine.Tests,
                 Tags = commandLine.Tags
             };

@@ -5,6 +5,7 @@ using System.Net.Http;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
@@ -60,12 +61,13 @@ namespace Gunter.DependencyInjection.Modules
                             ReadJsonCallback = LogLevel.FromName
                         });
                         serializer.Converters.Add(new JsonStringConverter());
+                        serializer.DefaultValueHandling = DefaultValueHandling.Populate;
                     });
                 })
                 .As<IPrettyJsonSerializer>();
 
             builder
-                .RegisterInstance(RuntimeVariables.Enumerate());
+                .RegisterInstance(RuntimeProperty.BuiltIn.Enumerate());
 
             builder
                 .RegisterModule<JsonContractResolverModule>();
@@ -87,7 +89,7 @@ namespace Gunter.DependencyInjection.Modules
                 .As<ITestRunner>();
 
             builder
-                .RegisterType<RuntimeVariableDictionaryFactory>()
+                .RegisterType<RuntimePropertyProvider>()
                 .AsSelf();
 
             var commands =

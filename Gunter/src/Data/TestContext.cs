@@ -10,7 +10,7 @@ namespace Gunter.Data
         //public TestWhen TestWhen { get; set; }
         public DataTable Data { get; set; }
         public ILog Log { get; set; }
-        public RuntimeVariableProvider RuntimeVariables { get; set; }
+        public RuntimePropertyProvider RuntimeProperties { get; set; }
         public string Query { get; set; }
         public TestResult Result { get; set; }
     }

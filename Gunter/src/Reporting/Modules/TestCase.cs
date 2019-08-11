@@ -27,7 +27,7 @@ namespace Gunter.Reporting.Modules
         {
             var section = new ModuleDto<TestCase>
             {
-                Heading = Heading.Format(context.RuntimeVariables),
+                Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create
                 (
                     ("Property", typeof(string)),
@@ -49,7 +49,7 @@ namespace Gunter.Reporting.Modules
                 .Update(Columns.Value, context.TestCase.When[context.Result]);
             section.Data.Body.NewRow()
                 .Update(Columns.Property, "Elapsed")
-                .Update(Columns.Value, $"{RuntimeVariables.TestCounter.AssertElapsed.ToString(TimespanFormat)}".Format(context.RuntimeVariables));
+                .Update(Columns.Value, $"{RuntimeProperty.BuiltIn.TestCounter.AssertElapsed.ToFormatString(TimespanFormat)}".Format(context.RuntimeProperties));
             section.Data.Body.NewRow()
                 .Update(Columns.Property, nameof(Gunter.Data.TestCase.Tags))
                 .Update(Columns.Value, context.TestCase.Tags);

@@ -9,6 +9,7 @@ using System.Threading.Tasks.Dataflow;
 using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Caching.Memory;
 using Reusable;
 using Reusable.Commander;
 using Reusable.Exceptionize;
@@ -34,20 +35,20 @@ namespace Gunter.Services
         private readonly ILogger _logger;
         private readonly ICommandExecutor _commandLineExecutor;
         private readonly ICommandFactory _commandFactory;
-        private readonly RuntimeVariableDictionaryFactory _runtimeVariableDictionaryFactory;
+        private readonly RuntimePropertyProvider _runtimePropertyProvider;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
             ICommandExecutor commandLineExecutor,
             ICommandFactory commandFactory,
-            RuntimeVariableDictionaryFactory runtimeVariableDictionaryFactory
+            RuntimePropertyProvider runtimePropertyProvider
         )
         {
             _logger = logger;
             _commandLineExecutor = commandLineExecutor;
             _commandFactory = commandFactory;
-            _runtimeVariableDictionaryFactory = runtimeVariableDictionaryFactory;
+            _runtimePropertyProvider = runtimePropertyProvider;
         }
 
         public async Task RunAsync(IEnumerable<TestBundle> testBundles)
@@ -77,31 +78,30 @@ namespace Gunter.Services
                 from dataSource in testCase.DataSources(testBundle)
                 select (testCase, dataSource);
 
-            var testBundleRuntimeVariables = _runtimeVariableDictionaryFactory.Create(new object[] { testBundle }, testBundle.Variables.Flatten());
+            var testBundleRuntimeVariables =
+                _runtimePropertyProvider
+                    .AddObjects(new object[] { testBundle })
+                    .AddProperties(testBundle.Variables.Flatten());
 
-            var cache = new Dictionary<SoftString, GetDataResult>();
-
-            using (_logger.UseScope(correlationHandle: "TestBundle").Attach(_logger.UseStopwatch()))
-            using (Disposable.Create(() =>
+            using (_logger.UseScope(correlationHandle: "ProcessTestBundle"))
+            using (_logger.UseStopwatch())
+            using (var cache = new MemoryCache(new MemoryCacheOptions()))
             {
-                foreach (var item in cache.Values) item.Dispose();
-            }))
-            {
-                _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleFileName = testBundle.FileName }));
+                _logger.Log(Abstraction.Layer.Service().Meta(new { TestFileName = testBundle.FileName }));
                 foreach (var current in tests)
                 {
-                    using (_logger.UseScope(correlationHandle: "TestCase"))
+                    using (_logger.UseScope(correlationHandle: "ProcessTestCase"))
                     using (_logger.UseStopwatch())
                     {
                         _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
                         try
                         {
-                            if (!cache.TryGetValue(current.dataSource.Id, out var cacheItem))
+                            if (!cache.TryGetValue<LogView>(current.dataSource.Id, out var logView))
                             {
-                                cache[current.dataSource.Id] = cacheItem = await current.dataSource.GetDataAsync(testBundleRuntimeVariables);
+                                cache.Set(current.dataSource.Id, logView = await current.dataSource.GetDataAsync(testBundleRuntimeVariables));
                             }
 
-                            var (result, runElapsed, then) = RunTest(current.testCase, cacheItem.Value);
+                            var (result, runElapsed, then) = RunTest(current.testCase, logView.Data);
 
                             var context = new TestContext
                             {
@@ -109,24 +109,23 @@ namespace Gunter.Services
                                 TestCase = current.testCase,
                                 //TestWhen = when,
                                 Log = current.dataSource,
-                                Query = cacheItem.Query,
-                                Data = cacheItem.Value,
+                                Query = logView.Query,
+                                Data = logView.Data,
                                 Result = result,
-                                RuntimeVariables = _runtimeVariableDictionaryFactory.Create
-                                (
-                                    new object[]
-                                    {
-                                        testBundle,
-                                        current.testCase,
-                                        //current.dataSource, // todo - not used - should be query
-                                        new TestCounter
+                                RuntimeProperties =
+                                    _runtimePropertyProvider
+                                        .AddObjects(new object[]
                                         {
-                                            GetDataElapsed = cacheItem.GetDataElapsed,
-                                            RunTestElapsed = runElapsed
-                                        },
-                                    },
-                                    testBundle.Variables.Flatten()
-                                )
+                                            testBundle,
+                                            current.testCase,
+                                            //current.dataSource, // todo - not used - should be query
+                                            new TestCounter
+                                            {
+                                                GetDataElapsed = logView.GetDataElapsed,
+                                                RunTestElapsed = runElapsed
+                                            },
+                                        })
+                                        .AddProperties(testBundle.Variables.Flatten())
                             };
 
                             foreach (var cmd in then)
@@ -134,7 +133,7 @@ namespace Gunter.Services
                                 await _commandLineExecutor.ExecuteAsync(cmd, context, _commandFactory);
                             }
 
-                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Completed());
+                            _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Completed());
                         }
                         catch (OperationCanceledException)
                         {
@@ -142,39 +141,43 @@ namespace Gunter.Services
                         }
                         catch (DynamicException ex) when (ex.NameMatches("^DataSource"))
                         {
-                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Faulted(), ex);
+                            _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Faulted(), ex);
                             // It'd be pointless to continue when there is no data.
                             break;
                         }
                         catch (Exception ex)
                         {
-                            _logger.Log(Abstraction.Layer.Business().Routine(nameof(RunAsync)).Faulted(), ex);
+                            _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Faulted(), ex);
                         }
                     }
                 }
+
+                _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Completed());
             }
         }
 
         private (TestResult Result, TimeSpan Elapsed, IList<string> Then) RunTest(TestCase testCase, DataTable data)
         {
-            var assertStopwatch = Stopwatch.StartNew();
-            if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
+            using (_logger.UseStopwatch())
             {
-                throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
+                if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
+                {
+                    throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
+                }
+
+                var assertElapsed = _logger.Stopwatch().Elapsed;
+                var testResult =
+                    result
+                        ? TestResult.Passed
+                        : TestResult.Failed;
+
+                _logger.Log(Abstraction.Layer.Service().Meta(new { TestResult = testResult }));
+
+                return
+                    testCase.When.TryGetValue(testResult, out var then)
+                        ? (testResult, assertElapsed, then)
+                        : (testResult, assertElapsed, default);
             }
-
-            var assertElapsed = assertStopwatch.Elapsed;
-            var testResult =
-                result
-                    ? TestResult.Passed
-                    : TestResult.Failed;
-
-            _logger.Log(Abstraction.Layer.Service().Meta(new { TestResult = testResult }));
-
-            return
-                testCase.When.TryGetValue(testResult, out var then)
-                    ? (testResult, assertElapsed, then)
-                    : (testResult, assertElapsed, default);
         }
     }
 }
