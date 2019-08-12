@@ -10,8 +10,8 @@ namespace Gunter.Reporting.Modules
         {
             return new ModuleDto<Greeting>
             {
-                Heading = Heading.Format(context.RuntimeVariables),
-                Text = Text.Format(context.RuntimeVariables),
+                Heading = Heading.Format(context.RuntimeProperties),
+                Text = Text.Format(context.RuntimeProperties),
                 Ordinal = Ordinal
             };
         }

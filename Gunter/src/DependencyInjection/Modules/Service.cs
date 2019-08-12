@@ -1,17 +1,24 @@
+using System;
 using System.Collections.Immutable;
 using System.Configuration;
-using System.IO;
+using System.Net.Http;
 using Autofac;
 using Gunter.Data;
 using Gunter.Reporting;
 using Gunter.Services;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
+using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
 using Reusable.IOnymous.Http;
+using Reusable.OmniLog;
 using Reusable.Quickey;
+using Reusable.Utilities.JsonNet;
+using Reusable.Utilities.JsonNet.Converters;
 using Reusable.Utilities.JsonNet.DependencyInjection;
 using Module = Autofac.Module;
 
@@ -30,28 +37,47 @@ namespace Gunter.DependencyInjection.Modules
                 .Register(c =>
                 {
                     var appSettings = new JsonProvider(ProgramInfo.CurrentDirectory, "appsettings.json");
+                    var httpProvider = new HttpProvider(new HttpClient(new HttpClientHandler { UseProxy = false })
+                    {
+                        BaseAddress = new Uri(appSettings.ReadSetting(MailrConfig.BaseUri))
+                    }, ImmutableContainer.Empty.SetName(ResourceProvider.CreateTag("Mailr")));
                     return
                         CompositeProvider
                             .Empty
                             .Add(appSettings)
                             .Add(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
-                            .Add(new HttpProvider(appSettings.ReadSetting(MailrConfig.BaseUri), ImmutableContainer.Empty.SetName(ResourceProvider.CreateTag("Mailr"))));
+                            .Add(httpProvider);
                 })
                 .As<IResourceProvider>();
 
-            builder
-                .RegisterType<TestFileSerializer>()
-                .As<ITestFileSerializer>();
+//            builder
+//                .RegisterType<TestFileSerializer>()
+//                .As<ITestFileSerializer>();
 
             builder
-                .RegisterInstance(RuntimeVariables.Enumerate());
+                .Register(ctx =>
+                {
+                    return new PrettyJsonSerializer(ctx.Resolve<IContractResolver>(), serializer =>
+                    {
+                        serializer.Converters.Add(new LambdaJsonConverter<LogLevel>
+                        {
+                            ReadJsonCallback = LogLevel.FromName
+                        });
+                        serializer.Converters.Add(new JsonStringConverter());
+                        serializer.DefaultValueHandling = DefaultValueHandling.Populate;
+                    });
+                })
+                .As<IPrettyJsonSerializer>();
+
+            builder
+                .RegisterInstance(RuntimeProperty.BuiltIn.Enumerate());
 
             builder
                 .RegisterModule<JsonContractResolverModule>();
 
             builder
-                .RegisterType<VariableNameValidator>()
-                .As<IVariableNameValidator>();
+                .RegisterType<RuntimePropertyNameValidator>()
+                .As<IRuntimePropertyNameValidator>();
 
             builder
                 .RegisterType<TestLoader>()
@@ -66,7 +92,7 @@ namespace Gunter.DependencyInjection.Modules
                 .As<ITestRunner>();
 
             builder
-                .RegisterType<RuntimeVariableDictionaryFactory>()
+                .RegisterType<RuntimePropertyProvider>()
                 .AsSelf();
 
             var commands =

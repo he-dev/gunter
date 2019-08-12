@@ -11,12 +11,12 @@
   ],
   "Logs": [
     {
-      "$t": "gunter.TableOrView",
+      "$g": "TableOrView",
       "Id": "everything",
       "Merge": "_Gunter#everything"
     },
     {
-      "$t": "gunter.TableOrView",
+      "$g": "TableOrView",
       "Id": "empty",
       "Merge": "_Gunter#empty"
     }
@@ -80,7 +80,7 @@
   ],
   "Messengers": [
     {
-      "$t": "gunter.Mailr",
+      "$g": "Mailr",
       "Id": "default-email",
       "To": [
         "gunter@test.com"

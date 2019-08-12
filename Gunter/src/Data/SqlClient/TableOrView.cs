@@ -50,15 +50,16 @@ namespace Gunter.Data.SqlClient
         [Mergeable(Required = true)]
         public string Query { get; set; }
 
-        protected override async Task<(DataTable Data, string Query)> GetDataAsyncInternal(RuntimeVariableProvider runtimeVariables)
+        protected override async Task<LogView> GetDataAsyncInternal(RuntimePropertyProvider runtimeProperties)
         {
             if (ConnectionString is null) throw new InvalidOperationException($"{nameof(TableOrView)} #{Id.ToString()} requires a connection-string.");
 
-            var query = await GetQueryAsync(runtimeVariables);
+            var query = await GetQueryAsync(runtimeProperties);
 
-            using (var conn = new SqlConnection(ConnectionString.Format(runtimeVariables)))
+            using (var conn = new SqlConnection(ConnectionString.Format(runtimeProperties)))
             {
                 Logger.Log(Abstraction.Layer.Database().Meta(new { conn.ConnectionString }));
+
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
@@ -73,17 +74,21 @@ namespace Gunter.Data.SqlClient
                         Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count }));
                         Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
 
-                        return (dataTable, cmd.CommandText);
+                        return new LogView
+                        {
+                            Query = cmd.CommandText,
+                            Data = dataTable,
+                        };
                     }
                 }
             }
         }
 
-        private async Task<string> GetQueryAsync(RuntimeVariableProvider runtimeVariables)
+        private async Task<string> GetQueryAsync(RuntimePropertyProvider runtimeProperties)
         {
             // language=regexp
             const string fileSchemePattern = "^file:///";
-            var query = Query.Format(runtimeVariables);
+            var query = Query.Format(runtimeProperties);
             if (Regex.IsMatch(query, fileSchemePattern))
             {
                 var path = Regex.Replace(query, fileSchemePattern, string.Empty);
@@ -92,24 +97,8 @@ namespace Gunter.Data.SqlClient
                     var defaultTestsDirectoryName = await _resources.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
                     path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path);
                 }
-                try
-                {
-                    return (await _resources.ReadTextFileAsync(path)).Format(runtimeVariables);
-                    //Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See [Message]" }), query);
-                }
-                catch (Exception inner)
-                {
-                    throw DynamicException.Create
-                    (
-                        $"ReadQuery",
-                        $"Could not read query from '{path}'. See inner exception for details. ",
-                        inner
-                    );
-                }
-            }
-            else
-            {
-                return query;
+
+                query = (await _resources.ReadTextFileAsync(path)).Format(runtimeProperties);
             }
         }
     }

@@ -14,10 +14,11 @@ using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Data
-{    
+{
     [UsedImplicitly]
     [PublicAPI]
     public interface ILog : IMergeable
@@ -26,7 +27,7 @@ namespace Gunter.Data
         IList<IDataFilter> Filters { get; set; }
 
         [ItemNotNull]
-        Task<GetDataResult> GetDataAsync(RuntimeVariableProvider runtimeVariables);
+        Task<LogView> GetDataAsync(RuntimePropertyProvider runtimeProperties);
     }
 
     [Gunter]
@@ -44,30 +45,28 @@ namespace Gunter.Data
         [Mergeable]
         public IList<IDataFilter> Filters { get; set; }
 
-        public async Task<GetDataResult> GetDataAsync(RuntimeVariableProvider runtimeVariables)
+        public async Task<LogView> GetDataAsync(RuntimePropertyProvider runtimeProperties)
         {
-            using (Logger.BeginScope().CorrelationHandle(nameof(Log)).AttachElapsed())
+            using (Logger.UseScope(correlationHandle: nameof(Log)))
+            using (Logger.UseStopwatch())
             {
                 Logger.Log(Abstraction.Layer.Service().Meta(new { DataSourceId = Id.ToString() }));
                 try
                 {
-                    var getDataStopwatch = Stopwatch.StartNew();
-                    var (data, query) = await GetDataAsyncInternal(runtimeVariables);
-                    var getDataElapsed = getDataStopwatch.Elapsed;
-                    var elapsedPostProcessing = Stopwatch.StartNew();
+                    var result = await GetDataAsyncInternal(runtimeProperties);
+                    result.GetDataElapsed = Logger.Stopwatch().Elapsed;
 
-                    foreach (var dataFilter in Filters ?? Enumerable.Empty<IDataFilter>())
+                    using (Logger.UseStopwatch())
                     {
-                        dataFilter.Execute(data);
+                        foreach (var dataFilter in Filters ?? Enumerable.Empty<IDataFilter>())
+                        {
+                            dataFilter.Execute(result.Data);
+                        }
+
+                        result.FilterDataElapsed = Logger.Stopwatch().Elapsed;
                     }
 
-                    return new GetDataResult
-                    {
-                        Value = data,
-                        Query = query,
-                        GetDataElapsed = getDataElapsed,
-                        PostProcessingElapsed = elapsedPostProcessing.Elapsed
-                    };
+                    return result;
                 }
                 catch (Exception inner)
                 {
@@ -76,21 +75,21 @@ namespace Gunter.Data
             }
         }
 
-        protected abstract Task<(DataTable Data, string Query)> GetDataAsyncInternal(RuntimeVariableProvider runtimeVariables);
+        protected abstract Task<LogView> GetDataAsyncInternal(RuntimePropertyProvider runtimeProperties);
     }
 
-    public class GetDataResult : IDisposable
+    public class LogView : IDisposable
     {
-        [CanBeNull]
-        public DataTable Value { get; set; }
-
         [NotNull]
         public string Query { get; set; }
+        
+        [CanBeNull]
+        public DataTable Data { get; set; }
 
         public TimeSpan GetDataElapsed { get; set; }
 
-        public TimeSpan PostProcessingElapsed { get; set; }
+        public TimeSpan FilterDataElapsed { get; set; }
 
-        public void Dispose() => Value?.Dispose();
+        public void Dispose() => Data?.Dispose();
     }
 }

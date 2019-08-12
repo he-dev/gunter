@@ -24,25 +24,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="src\Expanders\**" />
-    <EmbeddedResource Remove="src\Expanders\**" />
-    <None Remove="src\Expanders\**" />
-    <Compile Remove="src\Messaging\Emails\Internal\Factories\**" />
-    <EmbeddedResource Remove="src\Messaging\Emails\Internal\Factories\**" />
-    <None Remove="src\Messaging\Emails\Internal\Factories\**" />
-    <Compile Remove="src\Messaging\Emails\Internal\**" />
-    <EmbeddedResource Remove="src\Messaging\Emails\Internal\**" />
-    <None Remove="src\Messaging\Emails\Internal\**" />
-    <Compile Remove="src\Data\Dtos\TableDto.cs" />
-    <Compile Remove="src\Commands\Explicit.cs" />
-    <Compile Remove="src\Commands\Batch.cs" />
-    <Compile Remove="src\Data\TestRunnerActions.cs" />
-    <Compile Remove="src\Reporting\Filters\**" />
-    <EmbeddedResource Remove="src\Reporting\Filters\**" />
-    <None Remove="src\Reporting\Filters\**" />
-    <Compile Remove="src\Json\Converters\**" />
-    <EmbeddedResource Remove="src\Json\Converters\**" />
-    <None Remove="src\Json\Converters\**" />
     <None Update="cfg\tests\_Gunter.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -58,34 +39,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="src\Json\Converters\SoftStringConverter.cs" />
-    <Compile Remove="src\Json\JsonVisitor.cs" />
-    <Compile Remove="src\Reporting\Filters\Elapsed.cs" />
-    <Compile Remove="src\Services\TestFileProvider.cs" />
+    <Compile Remove="noop" />
   </ItemGroup>
 
-  <ItemGroup Condition="'False'">
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Reusable.Core" Version="8.2.0" />
-    <PackageReference Include="Reusable.Commander" Version="8.2.0" />
-    <PackageReference Include="Reusable.IOnymous" Version="8.2.0" />
-    <PackageReference Include="Reusable.IOnymous.Http.Mailr" Version="8.2.0" />
-    <PackageReference Include="Reusable.OmniLog" Version="8.2.0" />
-    <PackageReference Include="Reusable.OmniLog.NLogRx" Version="8.2.0" />
-    <PackageReference Include="Reusable.OmniLog.SemanticExtensions" Version="8.2.0" />
-    <PackageReference Include="Reusable.SemanticVersion" Version="8.2.0" />
-    <PackageReference Include="Reusable.SmartConfig" Version="8.2.0" />
-    <PackageReference Include="Reusable.Utilities.SqlClient" Version="8.2.0" />
-    <PackageReference Include="Reusable.Utilities.NLog" Version="8.2.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'True'">
+  <ItemGroup>
     <ProjectReference Include="..\..\Reusable\Reusable.OneTo1\Reusable.OneTo1.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Core\Reusable.Core.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Commander\Reusable.Commander.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Flexo\Reusable.Flexo.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous\Reusable.IOnymous.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config\Reusable.IOnymous.Config.csproj" />
+    <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config.Json\Reusable.IOnymous.Config.Json.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Http\Reusable.IOnymous.Http.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Http.Mailr\Reusable.IOnymous.Http.Mailr.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.OmniLog.NLogRx\Reusable.OmniLog.NLogRx.csproj" />
@@ -97,6 +61,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.9.2" />
+    <PackageReference Include="Dapper" Version="1.50.7" />
+    <PackageReference Include="JetBrains.Annotations" Version="2019.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -126,18 +94,8 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.9.2" />
-    <PackageReference Include="Dapper" Version="1.50.7" />
-    <PackageReference Include="JetBrains.Annotations" Version="2019.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config.Json\Reusable.IOnymous.Config.Json.csproj" />
-  </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">
-    <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />
-  </Target>
+<!--  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">-->
+<!--    <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />-->
+<!--  </Target>-->
 
 </Project>

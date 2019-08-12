@@ -11,19 +11,19 @@ using Reusable.Reflection;
 
 namespace Gunter.Services
 {
-    public interface IVariableNameValidator
+    public interface IRuntimePropertyNameValidator
     {
         void ValidateNamesNotReserved(IEnumerable<SoftString> variableNames);
     }
 
     [UsedImplicitly]
-    internal class VariableNameValidator : IVariableNameValidator
+    internal class RuntimePropertyNameValidator : IRuntimePropertyNameValidator
     {
         private readonly IEnumerable<SoftString> _reservedNames;
 
-        public VariableNameValidator(IEnumerable<IRuntimeVariable> runtimeVariables)
+        public RuntimePropertyNameValidator(IEnumerable<IProperty> runtimeVariables)
         {
-            _reservedNames = 
+            _reservedNames =
                 runtimeVariables
                     .Select(x => x.Name)
                     .ToList();
@@ -34,12 +34,12 @@ namespace Gunter.Services
             var invalidVariableNames = variableNames.Intersect(_reservedNames).ToList();
             if (invalidVariableNames.Any())
             {
-                throw DynamicException.Factory.CreateDynamicException(
+                throw DynamicException.Create
+                (
                     $"ReservedVariableName{nameof(Exception)}",
-                    $"These variable names use reserved names: {invalidVariableNames.Join(", ").EncloseWith("[]")}",
-                    null
+                    $"These variable names use reserved names: {invalidVariableNames.Join(", ").EncloseWith("[]")}"
                 );
             }
         }
-    }    
+    }
 }

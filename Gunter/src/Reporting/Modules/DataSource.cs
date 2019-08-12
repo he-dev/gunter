@@ -32,7 +32,7 @@ namespace Gunter.Reporting.Modules
             // Initialize the data-table;
             var section = new ModuleDto<DataSource>
             {
-                Heading = Heading.Format(context.RuntimeVariables),
+                Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create
                 (
                     ("Property", typeof(string)),
@@ -44,7 +44,7 @@ namespace Gunter.Reporting.Modules
             table.Body.Add("Type", context.Log.GetType().Name);
             table.Body.NewRow().Update(Columns.Property, "Query").Update(Columns.Value, context.Query, "query");
             table.Body.Add("RowCount", context.Data.Rows.Count.ToString());
-            table.Body.Add("Elapsed", $"{RuntimeVariables.TestCounter.GetDataElapsed.ToString(TimespanFormat)}".Format(context.RuntimeVariables));
+            table.Body.Add("Elapsed", $"{RuntimeProperty.BuiltIn.TestCounter.GetDataElapsed.ToFormatString(TimespanFormat)}".Format(context.RuntimeProperties));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.

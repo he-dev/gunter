@@ -19,11 +19,25 @@ namespace Gunter.Data
     {
         public const string PartialPrefix = "_";
         
+        public static readonly IEnumerable<Type> KnownTypes = new[]
+        {
+            typeof(Gunter.Data.SqlClient.TableOrView),
+            typeof(Gunter.Services.DataFilters.GetJsonValue),
+            typeof(Gunter.Services.DataFilters.GetFirstLine),
+            typeof(Gunter.Services.Messengers.Mailr),
+            typeof(Gunter.Reporting.Modules.Level),
+            typeof(Gunter.Reporting.Modules.Greeting),
+            typeof(Gunter.Reporting.Modules.TestCase),
+            typeof(Gunter.Reporting.Modules.DataSource),
+            typeof(Gunter.Reporting.Modules.DataSummary),
+            typeof(Gunter.Reporting.Formatters.TimeSpan),
+        };
+        
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<TestBundleVariableCollection> Variables { get; set; } = new List<TestBundleVariableCollection>();
+        public List<StaticPropertyCollection> Variables { get; set; } = new List<StaticPropertyCollection>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<ILog> Logs { get; set; } = new List<ILog>();

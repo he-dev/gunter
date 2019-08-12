@@ -5,7 +5,10 @@ using Reusable;
 using Reusable.Exceptionize;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
-using Reusable.OmniLog.Attachments;
+using Reusable.OmniLog.Abstractions.Data;
+using Reusable.OmniLog.Nodes;
+using Reusable.OmniLog.Rx;
+using Reusable.OmniLog.Rx.ConsoleRenderers;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.DependencyInjection
@@ -28,7 +31,6 @@ namespace Gunter.DependencyInjection
                     .RegisterType<ProgramInfo>()
                     .AsSelf();
 
-                
 
                 builder.RegisterModule<Modules.Service>();
                 builder.RegisterModule<Modules.Data>();
@@ -52,17 +54,35 @@ namespace Gunter.DependencyInjection
             {
                 Reusable.Utilities.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
-                var loggerFactory =
+                return
                     new LoggerFactory()
-                        .AttachObject("Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"])
-                        .AttachObject("Product", ProgramInfo.FullName)
-                        .AttachScope()
-                        .AttachSnapshot()
-                        .Attach<Timestamp<DateTimeUtc>>()
-                        .AttachElapsedMilliseconds()
-                        .AddObserver<NLogRx>();
-
-                return loggerFactory;
+                        .UseConstant(
+                            ("Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"]),
+                            ("Product", ProgramInfo.FullName))
+                        .UseScalar(new Reusable.OmniLog.Scalars.Timestamp<DateTimeUtc>())
+                        .UseStopwatch()
+                        .UseLambda()
+                        .UseCorrelation()
+                        .UseBuilder()
+                        .UseOneToMany()
+                        .UseMapper()
+                        .UseSerializer()
+                        .UseRename(
+                            (LogEntry.Names.Scope, "Scope"),
+                            (LogEntry.Names.Object, "Identifier"),
+                            (LogEntry.Names.Snapshot, "Snapshot"))
+                        .UseFallback(
+                            (LogEntry.Names.Level, LogLevel.Information))
+                        .UseBuffer()
+                        .UseEcho(
+                            new NLogRx(), 
+                            new ConsoleRx
+                            {
+                                Renderer = new SimpleConsoleRenderer
+                                {
+                                    Template = @"[{Timestamp:HH:mm:ss:fff}] [{Level:u}] {Layer} | {Category} | {Identifier}: {Snapshot} {Elapsed}ms | {Message} {Exception}"
+                                }
+                            });
             }
             catch (Exception inner)
             {

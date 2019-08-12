@@ -10,17 +10,13 @@ using Newtonsoft.Json;
 using Reusable;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
 {
     public interface IMessenger : IMergeable
     {
-        //[JsonProperty("Reports")]
-        //IList<SoftString> ReportIds { get; set; }
-
-        //Task SendAsync(TestContext context);
-
         Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds);
     }
 
@@ -47,7 +43,8 @@ namespace Gunter.Services
 
             foreach (var report in reports)
             {
-                using (Logger.BeginScope().CorrelationHandle("Report").AttachElapsed())
+                using (Logger.UseScope(correlationHandle: "PublishReport"))
+                using (Logger.UseStopwatch())
                 {
                     Logger.Log(Abstraction.Layer.Service().Meta(new { ReportId = report.Id }));
                     try
@@ -57,11 +54,11 @@ namespace Gunter.Services
                             select module.CreateDto(context);
 
                         await PublishReportAsync(context, report, modules);
-                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(SendAsync)).Completed());
+                        Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Completed());
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(Abstraction.Layer.Network().Routine(nameof(SendAsync)).Faulted(), ex);
+                        Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Faulted(ex));
                     }
                 }
             }

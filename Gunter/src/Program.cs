@@ -38,7 +38,7 @@ namespace Gunter
             _commandExecutor = container.Resolve<ICommandExecutor>();
             _commandFactory = container.Resolve<ICommandFactory>();
             _resources = container.Resolve<IResourceProvider>();
-            
+
             var location = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             Directory.SetCurrentDirectory(location);
 
@@ -76,9 +76,9 @@ namespace Gunter
             }
         }
 
-        private void LogHallo() => _logger.Log(Abstraction.Layer.Service().Meta(new { Hallo = "G’day!" }));
+        private void LogHallo() => _logger.Log(Abstraction.Layer.Service().Routine(nameof(Main)).Running(), l => l.Message("G’day!"));
 
-        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Service().Meta(new { GoodBye = "See ya!" }));
+        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Service().Routine(nameof(Main)).Completed(), l => l.Message("See ya!"));
 
         public async Task RunAsync()
         {
@@ -89,7 +89,7 @@ namespace Gunter
 
         public async Task RunAsync(params string[] args)
         {
-            await _commandExecutor.ExecuteAsync<object>(args.Join(" "), default, _commandFactory);           
+            await _commandExecutor.ExecuteAsync<object>(args.Join(" "), default, _commandFactory);
         }
 
         public void Dispose() => _container.Dispose();

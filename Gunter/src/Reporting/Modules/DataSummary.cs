@@ -67,7 +67,7 @@ namespace Gunter.Reporting.Modules
 
             var section = new ModuleDto<DataSummary>
             {
-                Heading = Heading.Format(context.RuntimeVariables),
+                Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))).ToArray()))
             };
 

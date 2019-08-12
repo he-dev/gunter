@@ -21,6 +21,7 @@ using Reusable.Extensions;
 using Reusable.Flawless;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Reflection;
 
@@ -53,10 +54,10 @@ namespace Gunter.Services
 
             foreach (var bundle in bundleGroups[TestBundleType.Regular])
             {
-                if (!testFilter.Files.IsNullOr(names => names.Select(SoftString.Create).Contains(bundle.Name)))
-                {
-                    continue;
-                }
+//                if (!testFilter.Files.IsNullOr(names => names.Select(SoftString.Create).Contains(bundle.Name)))
+//                {
+//                    continue;
+//                }
 
                 var executableTests =
                     from test in bundle.Tests
@@ -78,7 +79,8 @@ namespace Gunter.Services
         private bool TryCompose(TestBundle testBundle, IGrouping<TestBundleType, TestBundle> partials, out TestBundle composition)
         {
             composition = default;
-            using (_logger.BeginScope().CorrelationHandle("Merge").AttachElapsed())
+            using (_logger.UseScope(correlationHandle: "Merge"))
+            using (_logger.UseStopwatch())
             {
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = testBundle.Name.ToString() }));
                 try
@@ -163,11 +165,11 @@ namespace Gunter.Services
                                 case IEnumerable<KeyValuePair<SoftString, object>> x when otherValue is IEnumerable<KeyValuePair<SoftString, object>> y:
                                     newValue = x.Union(y).ToDictionary(p => p.Key, p => p.Value);
                                     break;
-                                
+
                                 case null:
                                     newValue = otherValue;
                                     break;
-                                
+
                                 default:
                                     newValue = currentValue;
                                     break;

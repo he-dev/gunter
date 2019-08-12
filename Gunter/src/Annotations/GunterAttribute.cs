@@ -4,6 +4,9 @@ namespace Gunter.Annotations
 {
     public class GunterAttribute : NamespaceAttribute
     {
-        public GunterAttribute() : base(ProgramInfo.Name) { }
+        public GunterAttribute() : base(ProgramInfo.Name)
+        {
+            Alias = "G";
+        }
     }
 }
