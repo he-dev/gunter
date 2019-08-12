@@ -99,7 +99,7 @@ namespace Gunter.Services
                                 cache[current.dataSource.Id] = cacheItem = await current.dataSource.GetDataAsync(testBundleRuntimeVariables);
                             }
 
-                            var (result, runElapsed, then) = RunTest(current.testCase, cacheItem.Value);
+                            var (result, runElapsed, commands) = RunTest(current.testCase, cacheItem.Value);
 
                             var context = new TestContext
                             {
@@ -127,7 +127,7 @@ namespace Gunter.Services
                                 )
                             };
 
-                            foreach (var cmd in then)
+                            foreach (var cmd in commands)
                             {
                                 await _commandLineExecutor.ExecuteAsync(cmd, context, _commandFactory);
                             }
@@ -153,7 +153,7 @@ namespace Gunter.Services
             }
         }
 
-        private (TestResult Result, TimeSpan Elapsed, IList<string> Then) RunTest(TestCase testCase, DataTable data)
+        private (TestResult Result, TimeSpan Elapsed, IList<string> Commands) RunTest(TestCase testCase, DataTable data)
         {
             var assertStopwatch = Stopwatch.StartNew();
             if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
@@ -172,7 +172,7 @@ namespace Gunter.Services
             return
                 testCase.When.TryGetValue(testResult, out var then)
                     ? (testResult, assertElapsed, then)
-                    : (testResult, assertElapsed, default);
+                    : (testResult, assertElapsed, new string[0]);
         }
     }
 }

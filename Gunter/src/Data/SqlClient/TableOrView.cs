@@ -82,7 +82,7 @@ namespace Gunter.Data.SqlClient
         private async Task<string> GetQueryAsync(RuntimeVariableProvider runtimeVariables)
         {
             // language=regexp
-            const string fileSchemePattern = "^file:";
+            const string fileSchemePattern = "^file:///";
             var query = Query.Format(runtimeVariables);
             if (Regex.IsMatch(query, fileSchemePattern))
             {
@@ -92,13 +92,25 @@ namespace Gunter.Data.SqlClient
                     var defaultTestsDirectoryName = await _resources.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
                     path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path);
                 }
-
-                query = (await _resources.ReadTextFileAsync(path)).Format(runtimeVariables);
+                try
+                {
+                    return (await _resources.ReadTextFileAsync(path)).Format(runtimeVariables);
+                    //Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See [Message]" }), query);
+                }
+                catch (Exception inner)
+                {
+                    throw DynamicException.Create
+                    (
+                        $"ReadQuery",
+                        $"Could not read query from '{path}'. See inner exception for details. ",
+                        inner
+                    );
+                }
             }
-
-            Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See [Message]" }), query);
-
-            return query;
+            else
+            {
+                return query;
+            }
         }
     }
 }

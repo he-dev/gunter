@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
 using System.Configuration;
+using System.IO;
 using Autofac;
 using Gunter.Data;
+using Gunter.Reporting;
 using Gunter.Services;
 using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
@@ -11,6 +13,7 @@ using Reusable.IOnymous.Config;
 using Reusable.IOnymous.Http;
 using Reusable.Quickey;
 using Reusable.Utilities.JsonNet.DependencyInjection;
+using Module = Autofac.Module;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -18,6 +21,7 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
+            
             builder
                 .RegisterType<PhysicalDirectoryTree>()
                 .As<IDirectoryTree>();
@@ -25,7 +29,7 @@ namespace Gunter.DependencyInjection.Modules
             builder
                 .Register(c =>
                 {
-                    var appSettings = new JsonProvider("appsettings.json");
+                    var appSettings = new JsonProvider(ProgramInfo.CurrentDirectory, "appsettings.json");
                     return
                         CompositeProvider
                             .Empty
