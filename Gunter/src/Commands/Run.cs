@@ -24,7 +24,7 @@ namespace Gunter.Commands
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
         private readonly ITestRunner _testRunner;
-        private readonly IResourceProvider _resources;
+        private readonly IResourceSquid _resources;
 
         public Run
         (
@@ -32,7 +32,7 @@ namespace Gunter.Commands
             ITestLoader testLoader,
             ITestComposer testComposer,
             ITestRunner testRunner,
-            IResourceProvider resources
+            IResourceSquid resources
         )
             : base(logger)
         {

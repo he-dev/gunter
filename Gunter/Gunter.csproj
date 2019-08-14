@@ -50,11 +50,11 @@
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config\Reusable.IOnymous.Config.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Config.Json\Reusable.IOnymous.Config.Json.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Http\Reusable.IOnymous.Http.csproj" />
-    <ProjectReference Include="..\..\Reusable\Reusable.IOnymous.Http.Mailr\Reusable.IOnymous.Http.Mailr.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.OmniLog.NLogRx\Reusable.OmniLog.NLogRx.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.OmniLog.SemanticExtensions\Reusable.OmniLog.SemanticExtensions.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.OmniLog\Reusable.OmniLog.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Utilities.JsonNet\Reusable.Utilities.JsonNet.csproj" />
+    <ProjectReference Include="..\..\Reusable\Reusable.Utilities.Mailr\Reusable.Utilities.Mailr.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Utilities.NLog\Reusable.Utilities.NLog.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Utilities.SqlClient\Reusable.Utilities.SqlClient.csproj" />
   </ItemGroup>

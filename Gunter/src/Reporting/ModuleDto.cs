@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using Reusable.IOnymous.Http.Mailr.Models;
+using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Reporting
 {

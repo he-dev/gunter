@@ -10,11 +10,11 @@ using Reusable.Extensions;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
 using Reusable.IOnymous.Http;
-using Reusable.IOnymous.Http.Mailr;
-using Reusable.IOnymous.Http.Mailr.Models;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.Utilities.Mailr;
+using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Services.Messengers
 {
@@ -22,12 +22,12 @@ namespace Gunter.Services.Messengers
     [PublicAPI]
     public class Mailr : Messenger
     {
-        private readonly IResourceProvider _resources;
+        private readonly IResourceSquid _resources;
 
         public Mailr
         (
             ILogger<Mailr> logger,
-            IResourceProvider resources
+            IResourceSquid resources
         ) : base(logger)
         {
             _resources = resources;
@@ -70,7 +70,7 @@ namespace Gunter.Services.Messengers
             }, "EmailInfo"));
 
             var testResultPath = await _resources.ReadSettingAsync(MailrConfig.TestResultPath);
-            await _resources.UseMailr().SendEmailAsync(testResultPath, new UserAgent(ProgramInfo.Name, ProgramInfo.Version), email);
+            await _resources.SendEmailAsync(testResultPath, new UserAgent(ProgramInfo.Name, ProgramInfo.Version), email, "Mailr");
         }
     }
 }

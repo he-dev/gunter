@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Linq.Custom;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,9 +24,9 @@ namespace Gunter.Commands
                 context
                     .TestBundle
                     .Messengers
+                    .Where(m => m.Id.Equals(commandLine.Use))
                     .SingleOrThrow
                     (
-                        m => m.Id.Equals(commandLine.Use),
                         onEmpty: () => DynamicException.Create("MessengerNotFound", $"Could not find messenger '{commandLine.Use}'.")
                     );
 

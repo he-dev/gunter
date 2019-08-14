@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.IO;
+using Microsoft.Extensions.Configuration;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
 using Reusable.Quickey;
@@ -11,12 +12,23 @@ namespace Gunter
     [PlainSelectorFormatter]
     public class ProgramInfo
     {
-        private readonly IResourceProvider _resources;
+        private readonly IResourceSquid _resources;
 
-        public ProgramInfo(IResourceProvider resources)
+        static ProgramInfo()
+        {
+            Configuration =
+                new ConfigurationBuilder()
+                    .SetBasePath(ProgramInfo.CurrentDirectory)
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+        }
+
+        public ProgramInfo(IResourceSquid resources)
         {
             _resources = resources;
         }
+
+        public static IConfiguration Configuration { get; }
 
         public static string Name => "Gunter";
 

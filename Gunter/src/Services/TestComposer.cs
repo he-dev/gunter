@@ -126,17 +126,15 @@ namespace Gunter.Services
                     var other = default(IMergeable);
                     if (!(mergeable.Merge is null))
                     {
-                        var partialTestBundle = partials.SingleOrThrow
+                        var partialTestBundle = partials.Where(p => p.Name == mergeable.Merge.Name).SingleOrThrow
                         (
-                            p => p.Name == mergeable.Merge.Name,
                             onEmpty: () => DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{mergeable.Merge.Name}'.")
                         );
 
                         var partialTestBundleValue = (IEnumerable<IMergeable>)testBundleProperty.GetValue(partialTestBundle);
                         var mergeId = mergeable.Merge.Id ?? mergeable.Id;
-                        other = partialTestBundleValue.SingleOrThrow
+                        other = partialTestBundleValue.Where(x => x.Id == mergeId).SingleOrThrow
                         (
-                            x => x.Id == mergeId,
                             onEmpty: () => DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{mergeId}'.")
                         );
                     }

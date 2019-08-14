@@ -31,12 +31,12 @@ namespace Gunter.Data.SqlClient
     [UsedImplicitly]
     public class TableOrView : Log
     {
-        private readonly IResourceProvider _resources;
+        private readonly IResourceSquid _resources;
 
         public TableOrView
         (
             ILogger<TableOrView> logger,
-            IResourceProvider resources
+            IResourceSquid resources
         ) : base(logger)
         {
             _resources = resources;
@@ -95,7 +95,7 @@ namespace Gunter.Data.SqlClient
                 if (!Path.IsPathRooted(path))
                 {
                     var defaultTestsDirectoryName = await _resources.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
-                    path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path);
+                    path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path).Format(runtimeProperties);
                 }
 
                 query = (await _resources.ReadTextFileAsync(path)).Format(runtimeProperties);

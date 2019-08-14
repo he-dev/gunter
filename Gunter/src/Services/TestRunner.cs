@@ -80,7 +80,7 @@ namespace Gunter.Services
 
             var testBundleRuntimeVariables =
                 _runtimePropertyProvider
-                    .AddObjects(testBundle)
+                    .AddObjects(new object[] { testBundle })
                     .AddProperties(testBundle.Variables.Flatten());
 
             using (_logger.UseScope(correlationHandle: "ProcessTestBundle"))

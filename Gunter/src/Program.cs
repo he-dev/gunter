@@ -28,7 +28,7 @@ namespace Gunter
         private readonly IContainer _container;
         private readonly ILogger _logger;
         private readonly ICommandExecutor _commandExecutor;
-        private readonly IResourceProvider _resources;
+        private readonly IResourceSquid _resources;
         private readonly ICommandFactory _commandFactory;
 
         public Program(IContainer container)
@@ -37,7 +37,7 @@ namespace Gunter
             _logger = container.Resolve<ILogger<Program>>();
             _commandExecutor = container.Resolve<ICommandExecutor>();
             _commandFactory = container.Resolve<ICommandFactory>();
-            _resources = container.Resolve<IResourceProvider>();
+            _resources = container.Resolve<IResourceSquid>();
 
             var location = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             Directory.SetCurrentDirectory(location);

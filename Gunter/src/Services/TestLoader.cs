@@ -10,6 +10,7 @@ using Reusable.Collections;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flawless;
+using Reusable.IO;
 using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
@@ -30,7 +31,7 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
         private readonly IDirectoryTree _directoryTree;
-        private readonly IResourceProvider _resources;
+        private readonly IResourceSquid _resources;
         private readonly IPrettyJsonSerializer _testFileSerializer;
 
 //        private static readonly ValidationRuleCollection<TestBundle, object> UniqueMergeableIdsValidator =
@@ -42,7 +43,7 @@ namespace Gunter.Services
         (
             ILogger<TestLoader> logger,
             IDirectoryTree directoryTree,
-            IResourceProvider resources,
+            IResourceSquid resources,
             IPrettyJsonSerializer testFileSerializer
         )
         {

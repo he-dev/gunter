@@ -5,16 +5,22 @@ using System.Net.Http;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
+using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Reusable;
 using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
 using Reusable.Extensions;
+using Reusable.IO;
 using Reusable.IOnymous;
 using Reusable.IOnymous.Config;
+using Reusable.IOnymous.Controllers;
 using Reusable.IOnymous.Http;
+using Reusable.IOnymous.Middleware;
 using Reusable.OmniLog;
+using Reusable.OmniLog.Abstractions;
 using Reusable.Quickey;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
@@ -31,26 +37,29 @@ namespace Gunter.DependencyInjection.Modules
                 .As<IDirectoryTree>();
 
             builder
-                .Register(c =>
+                .RegisterType<MiddlewareBuilderWithAutofac>();
+
+            builder
+                .Register(ctx =>
                 {
-                    var appSettings = new JsonProvider(ProgramInfo.CurrentDirectory, "appsettings.json");
-                    var httpProvider = new HttpProvider(new HttpClient(new HttpClientHandler { UseProxy = false })
-                    {
-                        BaseAddress = new Uri(appSettings.ReadSetting(MailrConfig.BaseUri))
-                    }, ImmutableContainer.Empty.SetName(ResourceProvider.CreateTag("Mailr")));
-                    return
-                        CompositeProvider
-                            .Empty
-                            .Add(appSettings)
-                            .Add(new PhysicalFileProvider().DecorateWith(EnvironmentVariableProvider.Factory()))
-                            .Add(httpProvider);
+                    var middlewareBuilder = ctx.Resolve<MiddlewareBuilderWithAutofac>();
+                    middlewareBuilder
+                        .UseControllers
+                        (
+                            new PhysicalFileController(),
+                            new JsonConfigurationController(ProgramInfo.CurrentDirectory, "appsettings.json"),
+                            new HttpController(new HttpClient(new HttpClientHandler { UseProxy = false })
+                            {
+                                BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
+                            }, ImmutableContainer.Empty.UpdateItem(ResourceControllerProperties.Tags, tags => tags.Add("Mailr")))
+                        )
+                        .UseTelemetry(ctx.Resolve<ILogger<TelemetryMiddleware>>())
+                        .Use<EnvironmentVariableMiddleware>();
+
+                    return new ResourceSquid(middlewareBuilder.Build<ResourceContext>());
                 })
-                .As<IResourceProvider>();
-
-//            builder
-//                .RegisterType<TestFileSerializer>()
-//                .As<ITestFileSerializer>();
-
+                .As<IResourceSquid>();
+            
             builder
                 .Register(ctx =>
                 {
