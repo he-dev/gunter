@@ -34,7 +34,6 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            
             builder
                 .RegisterType<PhysicalDirectoryTree>()
                 .As<IDirectoryTree>();
@@ -43,26 +42,27 @@ namespace Gunter.DependencyInjection.Modules
                 .RegisterType<MiddlewareBuilderWithAutofac>();
 
             builder
-                .Register(ctx =>
+                .Register(componentContext =>
                 {
-                    var middlewareBuilder = ctx.Resolve<MiddlewareBuilderWithAutofac>();
-                    middlewareBuilder
-                        .UseControllers
-                        (
-                            new PhysicalFileController(),
-                            new JsonConfigurationController(ProgramInfo.CurrentDirectory, "appsettings.json"),
-                            new HttpController(new HttpClient(new HttpClientHandler { UseProxy = false })
-                            {
-                                BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
-                            }, ImmutableContainer.Empty.UpdateItem(ResourceControllerProperties.Tags, tags => tags.Add("Mailr")))
-                        )
-                        .UseTelemetry(ctx.Resolve<ILogger<TelemetryMiddleware>>())
-                        .Use<EnvironmentVariableMiddleware>();
+                    var middlewareBuilder =
+                        componentContext
+                            .Resolve<MiddlewareBuilderWithAutofac>()
+                            .UseControllers
+                            (
+                                new PhysicalFileController(),
+                                new JsonConfigurationController(ProgramInfo.CurrentDirectory, "appsettings.json"),
+                                new HttpController(new HttpClient(new HttpClientHandler { UseProxy = false })
+                                {
+                                    BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
+                                }, ImmutableContainer.Empty.UpdateItem(ResourceControllerProperties.Tags, tags => tags.Add("Mailr")))
+                            )
+                            .UseTelemetry(componentContext.Resolve<ILogger<TelemetryMiddleware>>())
+                            .UseEnvironmentVariable();
 
                     return new ResourceSquid(middlewareBuilder.Build<ResourceContext>());
                 })
                 .As<IResourceSquid>();
-            
+
             builder
                 .Register(ctx =>
                 {
