@@ -125,7 +125,7 @@ namespace Gunter.Services
                                         .AddProperties(testBundle.Variables.Flatten())
                             };
 
-                            foreach (var cmd in then)
+                            foreach (var cmd in commands)
                             {
                                 await _commandLineExecutor.ExecuteAsync(cmd, context, _commandFactory);
                             }
@@ -153,7 +153,7 @@ namespace Gunter.Services
             }
         }
 
-        private (TestResult Result, TimeSpan Elapsed, IList<string> Then) RunTest(TestCase testCase, DataTable data)
+        private (TestResult Result, TimeSpan Elapsed, IList<string> Commands) RunTest(TestCase testCase, DataTable data)
         {
             using (_logger.UseStopwatch())
             {

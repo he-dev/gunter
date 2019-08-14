@@ -100,10 +100,6 @@ namespace Gunter.Data.SqlClient
 
                 query = (await _resources.ReadTextFileAsync(path)).Format(runtimeProperties);
             }
-
-            Logger.Log(Abstraction.Layer.Database().Meta(new { CommandText = "See [Message]" }), query);
-
-            return query;
         }
     }
 }

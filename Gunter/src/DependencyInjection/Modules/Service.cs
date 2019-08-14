@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Net.Http;
 using Autofac;
 using Gunter.Data;
+using Gunter.Reporting;
 using Gunter.Services;
 using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json;
@@ -25,6 +26,7 @@ using Reusable.Quickey;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
 using Reusable.Utilities.JsonNet.DependencyInjection;
+using Module = Autofac.Module;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -32,6 +34,7 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
+            
             builder
                 .RegisterType<PhysicalDirectoryTree>()
                 .As<IDirectoryTree>();
