@@ -2,9 +2,8 @@
 using System.Configuration;
 using System.IO;
 using Microsoft.Extensions.Configuration;
-using Reusable.IOnymous;
-using Reusable.IOnymous.Config;
 using Reusable.Quickey;
+using Reusable.Translucent;
 
 namespace Gunter
 {
@@ -12,7 +11,7 @@ namespace Gunter
     [PlainSelectorFormatter]
     public class ProgramInfo
     {
-        private readonly IResourceSquid _resources;
+        private readonly IResourceRepository _resources;
 
         static ProgramInfo()
         {
@@ -23,7 +22,7 @@ namespace Gunter
                     .Build();
         }
 
-        public ProgramInfo(IResourceSquid resources)
+        public ProgramInfo(IResourceRepository resources)
         {
             _resources = resources;
         }

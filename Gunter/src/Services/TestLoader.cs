@@ -7,15 +7,16 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Data;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flawless;
 using Reusable.IO;
-using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.Translucent;
 using Reusable.Utilities.JsonNet;
 
 namespace Gunter.Services
@@ -31,7 +32,7 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
         private readonly IDirectoryTree _directoryTree;
-        private readonly IResourceSquid _resources;
+        private readonly IResourceRepository _resources;
         private readonly IPrettyJsonSerializer _testFileSerializer;
 
 //        private static readonly ValidationRuleCollection<TestBundle, object> UniqueMergeableIdsValidator =
@@ -43,7 +44,7 @@ namespace Gunter.Services
         (
             ILogger<TestLoader> logger,
             IDirectoryTree directoryTree,
-            IResourceSquid resources,
+            IResourceRepository resources,
             IPrettyJsonSerializer testFileSerializer
         )
         {
@@ -84,7 +85,9 @@ namespace Gunter.Services
 
                     try
                     {
-                        var testBundle = await LoadTestAsync(fileName);
+                        var file = await _resources.ReadTextFileAsync(fileName);
+                        var testBundle = _testFileSerializer.Deserialize<TestBundle>(file, TypeDictionary.From(TestBundle.KnownTypes));
+                        
                         if (!testBundle.Enabled)
                         {
                             _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("It's disabled."));
@@ -117,22 +120,6 @@ namespace Gunter.Services
             }
 
             return testBundles;
-        }
-
-        [ItemNotNull]
-        private async Task<TestBundle> LoadTestAsync(string fileName)
-        {
-            var file = await _resources.GetFileAsync(fileName, MimeType.Plain);
-            if (!file.Exists)
-            {
-                throw DynamicException.Create("FileNotFound", $"Test file '{fileName}' does not exist.");
-            }
-
-            using (var memoryStream = new MemoryStream())
-            {
-                await file.CopyToAsync(memoryStream);
-                return await _testFileSerializer.DeserializeAsync<TestBundle>(memoryStream.Rewind(), TypeDictionary.From(TestBundle.KnownTypes));
-            }
         }
     }
 }

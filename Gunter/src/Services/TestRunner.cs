@@ -13,7 +13,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Reusable;
 using Reusable.Commander;
 using Reusable.Exceptionize;
-using Reusable.IOnymous;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
@@ -101,7 +100,7 @@ namespace Gunter.Services
                                 cache.Set(current.dataSource.Id, logView = await current.dataSource.GetDataAsync(testBundleRuntimeVariables));
                             }
 
-                            var (result, runElapsed, then) = RunTest(current.testCase, logView.Data);
+                            var (result, runElapsed, commands) = RunTest(current.testCase, logView.Data);
 
                             var context = new TestContext
                             {

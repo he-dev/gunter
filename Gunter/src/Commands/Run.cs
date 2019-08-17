@@ -11,10 +11,9 @@ using JetBrains.Annotations;
 using Reusable.Commander;
 using Reusable.Commander.Annotations;
 using Reusable.Data.Annotations;
-using Reusable.IOnymous;
-using Reusable.IOnymous.Config;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Quickey;
+using Reusable.Translucent;
 
 namespace Gunter.Commands
 {
@@ -24,7 +23,7 @@ namespace Gunter.Commands
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
         private readonly ITestRunner _testRunner;
-        private readonly IResourceSquid _resources;
+        private readonly IResourceRepository _resources;
 
         public Run
         (
@@ -32,7 +31,7 @@ namespace Gunter.Commands
             ITestLoader testLoader,
             ITestComposer testComposer,
             ITestRunner testRunner,
-            IResourceSquid resources
+            IResourceRepository resources
         )
             : base(logger)
         {

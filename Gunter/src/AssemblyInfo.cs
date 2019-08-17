@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Gunter;
 using Gunter.Reporting;
-using Reusable.IOnymous;
 
 [assembly:InternalsVisibleTo("Gunter.Tests")]
 

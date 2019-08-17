@@ -17,13 +17,12 @@ using Newtonsoft.Json;
 using Reusable;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
-using Reusable.IOnymous;
-using Reusable.IOnymous.Config;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Quickey;
 using Reusable.Reflection;
+using Reusable.Translucent;
 
 namespace Gunter.Data.SqlClient
 {
@@ -31,12 +30,12 @@ namespace Gunter.Data.SqlClient
     [UsedImplicitly]
     public class TableOrView : Log
     {
-        private readonly IResourceSquid _resources;
+        private readonly IResourceRepository _resources;
 
         public TableOrView
         (
             ILogger<TableOrView> logger,
-            IResourceSquid resources
+            IResourceRepository resources
         ) : base(logger)
         {
             _resources = resources;
@@ -100,6 +99,8 @@ namespace Gunter.Data.SqlClient
 
                 query = (await _resources.ReadTextFileAsync(path)).Format(runtimeProperties);
             }
+
+            return query;
         }
     }
 }

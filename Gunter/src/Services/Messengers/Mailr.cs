@@ -7,12 +7,10 @@ using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
 using Reusable.Extensions;
-using Reusable.IOnymous;
-using Reusable.IOnymous.Config;
-using Reusable.IOnymous.Http;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
+using Reusable.Translucent;
 using Reusable.Utilities.Mailr;
 using Reusable.Utilities.Mailr.Models;
 
@@ -22,12 +20,12 @@ namespace Gunter.Services.Messengers
     [PublicAPI]
     public class Mailr : Messenger
     {
-        private readonly IResourceSquid _resources;
+        private readonly IResourceRepository _resources;
 
         public Mailr
         (
             ILogger<Mailr> logger,
-            IResourceSquid resources
+            IResourceRepository resources
         ) : base(logger)
         {
             _resources = resources;

@@ -12,12 +12,11 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Reusable;
 using Reusable.Commander;
-using Reusable.IOnymous;
-using Reusable.IOnymous.Config;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Quickey;
+using Reusable.Translucent;
 
 namespace Gunter
 {
@@ -28,7 +27,7 @@ namespace Gunter
         private readonly IContainer _container;
         private readonly ILogger _logger;
         private readonly ICommandExecutor _commandExecutor;
-        private readonly IResourceSquid _resources;
+        private readonly IResourceRepository _resources;
         private readonly ICommandFactory _commandFactory;
 
         public Program(IContainer container)
@@ -37,7 +36,7 @@ namespace Gunter
             _logger = container.Resolve<ILogger<Program>>();
             _commandExecutor = container.Resolve<ICommandExecutor>();
             _commandFactory = container.Resolve<ICommandFactory>();
-            _resources = container.Resolve<IResourceSquid>();
+            _resources = container.Resolve<IResourceRepository>();
 
             var location = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             Directory.SetCurrentDirectory(location);

@@ -15,17 +15,17 @@ using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
 using Reusable.Extensions;
 using Reusable.IO;
-using Reusable.IOnymous;
-using Reusable.IOnymous.Config;
-using Reusable.IOnymous.Controllers;
-using Reusable.IOnymous.Http;
-using Reusable.IOnymous.Middleware;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Quickey;
+using Reusable.Translucent;
+using Reusable.Translucent.Controllers;
+using Reusable.Translucent.Middleware;
+using Reusable.Utilities.Autofac;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
 using Reusable.Utilities.JsonNet.DependencyInjection;
+using IServiceProvider = System.IServiceProvider;
 using Module = Autofac.Module;
 
 namespace Gunter.DependencyInjection.Modules
@@ -42,26 +42,12 @@ namespace Gunter.DependencyInjection.Modules
                 .RegisterType<MiddlewareBuilderWithAutofac>();
 
             builder
-                .Register(componentContext =>
-                {
-                    var middlewareBuilder =
-                        componentContext
-                            .Resolve<MiddlewareBuilderWithAutofac>()
-                            .UseControllers
-                            (
-                                new PhysicalFileController(),
-                                new JsonConfigurationController(ProgramInfo.CurrentDirectory, "appsettings.json"),
-                                new HttpController(new HttpClient(new HttpClientHandler { UseProxy = false })
-                                {
-                                    BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
-                                }, ImmutableContainer.Empty.UpdateItem(ResourceControllerProperties.Tags, tags => tags.Add("Mailr")))
-                            )
-                            .UseTelemetry(componentContext.Resolve<ILogger<TelemetryMiddleware>>())
-                            .UseEnvironmentVariable();
+                .RegisterType<AutofacServiceProvider>()
+                .As<IServiceProvider>();
 
-                    return new ResourceSquid(middlewareBuilder.Build<ResourceContext>());
-                })
-                .As<IResourceSquid>();
+            builder
+                .RegisterType<ResourceRepository<GunterResourceSetup>>()
+                .As<IResourceRepository>();
 
             builder
                 .Register(ctx =>
@@ -113,6 +99,28 @@ namespace Gunter.DependencyInjection.Modules
 
             builder
                 .RegisterModule(new CommanderModule(commands));
+        }
+    }
+
+    internal class GunterResourceSetup
+    {
+        public void ConfigureServices(IResourceControllerBuilder controller)
+        {
+            controller.AddPhysicalFiles();
+            controller.AddJsonFile(ProgramInfo.CurrentDirectory, "appsettings.json");
+            controller.AddHttp(new HttpClient(new HttpClientHandler { UseProxy = false })
+            {
+                BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
+            }, ImmutableContainer.Empty.UpdateItem(ResourceController.Tags, tags => tags.Add("Mailr")));
+        }
+
+        public void Configure(IResourceRepositoryBuilder repository)
+        {
+            repository
+                .UseTelemetry(repository.ServiceProvider.Resolve<ILogger<TelemetryMiddleware>>())
+                .UseEnvironmentVariables()
+                .UseMiddleware<ResourceExistsValidationMiddleware>()
+                .UseMiddleware<SettingFormatValidationMiddleware>();
         }
     }
 }
