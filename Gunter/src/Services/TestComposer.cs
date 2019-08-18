@@ -69,14 +69,14 @@ namespace Gunter.Services
 
                 bundle.Tests = executableTests.ToList();
 
-                if (TryCompose(bundle, (IGrouping<TestBundleType, TestBundle>)bundleGroups[TestBundleType.Partial], out var composition))
+                if (TryCompose(bundle, bundleGroups[TestBundleType.Partial], out var composition))
                 {
                     yield return composition;
                 }
             }
         }
 
-        private bool TryCompose(TestBundle testBundle, IGrouping<TestBundleType, TestBundle> partials, out TestBundle composition)
+        private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partials, out TestBundle composition)
         {
             composition = default;
             using (_logger.UseScope(correlationHandle: "Merge"))
@@ -97,7 +97,7 @@ namespace Gunter.Services
             }
         }
 
-        private TestBundle Merge(TestBundle regular, IGrouping<TestBundleType, TestBundle> partials)
+        private TestBundle Merge(TestBundle regular, IEnumerable<TestBundle> partials)
         {
             var mergeableTestBundleProperties =
                 typeof(TestBundle)
@@ -150,7 +150,7 @@ namespace Gunter.Services
                             var otherValue = mergeableProperty.GetValue(other);
                             if (otherValue is null && mergeableProperty.GetCustomAttribute<MergeableAttribute>().Required)
                             {
-                                throw DynamicException.Create($"{mergeableProperty.Name}Null", $"Mergeable property value must not be null.");
+                                throw DynamicException.Create($"PropertyNull", $"Mergeable property '{mergeableProperty.Name}' must not be null.");
                             }
 
                             var newValue = default(object);

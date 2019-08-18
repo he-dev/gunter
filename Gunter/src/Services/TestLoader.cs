@@ -66,16 +66,20 @@ namespace Gunter.Services
 
             var testBundles = new List<TestBundle>();
 
-            foreach (var fileName in testFiles)
+            foreach (var fullName in testFiles)
             {
                 using (_logger.UseScope(correlationHandle: "LoadTestFile"))
                 using (_logger.UseStopwatch())
                 {
-                    _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fileName }));
+                    _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
+
+                    var fileName = Path.GetFileName(fullName);
+                    var isTemplate = fileName.StartsWith("_");
 
                     var canLoad =
+                        isTemplate ||
                         includeFileNames is null ||
-                        includeFileNames.Any(includeFileName => SoftString.Comparer.Equals(includeFileName, Path.GetFileNameWithoutExtension(fileName)));
+                        includeFileNames.Any(includeFileName => SoftString.Comparer.Equals(includeFileName, Path.GetFileNameWithoutExtension(fullName)));
 
                     if (!canLoad)
                     {
@@ -85,9 +89,9 @@ namespace Gunter.Services
 
                     try
                     {
-                        var file = await _resources.ReadTextFileAsync(fileName);
+                        var file = await _resources.ReadTextFileAsync(fullName);
                         var testBundle = _testFileSerializer.Deserialize<TestBundle>(file, TypeDictionary.From(TestBundle.KnownTypes));
-                        
+
                         if (!testBundle.Enabled)
                         {
                             _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("It's disabled."));
@@ -108,7 +112,7 @@ namespace Gunter.Services
                             continue;
                         }
 
-                        testBundle.FullName = fileName;
+                        testBundle.FullName = fullName;
                         testBundles.Add(testBundle);
                         _logger.Log(Abstraction.Layer.IO().Routine("LoadTestFile").Completed());
                     }

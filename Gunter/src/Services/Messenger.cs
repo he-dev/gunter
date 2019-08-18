@@ -15,14 +15,14 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
 {
-    public interface IMessenger : IMergeable
+    public interface IChannel : IMergeable
     {
         Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds);
     }
 
-    public abstract class Messenger : IMessenger
+    public abstract class Channel : IChannel
     {
-        protected Messenger([NotNull] ILogger logger)
+        protected Channel([NotNull] ILogger logger)
         {
             Logger = logger;
         }

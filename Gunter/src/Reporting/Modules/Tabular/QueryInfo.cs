@@ -5,15 +5,12 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using Gunter.Data;
-using Gunter.Services;
-using JetBrains.Annotations;
-using Reusable.Data;
 using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Reporting.Modules
+namespace Gunter.Reporting.Modules.Tabular
 {
-    public class DataSource : Module, ITabular
+    public class QueryInfo : Module, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
@@ -30,7 +27,7 @@ namespace Gunter.Reporting.Modules
         public override IModuleDto CreateDto(TestContext context)
         {
             // Initialize the data-table;
-            var section = new ModuleDto<DataSource>
+            var section = new ModuleDto<QueryInfo>
             {
                 Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create
@@ -41,9 +38,9 @@ namespace Gunter.Reporting.Modules
             };
             var table = section.Data;
 
-            table.Body.Add("Type", context.Log.GetType().Name);
-            table.Body.NewRow().Update(Columns.Property, "Query").Update(Columns.Value, context.Query, "query");
-            table.Body.Add("RowCount", context.Data.Rows.Count.ToString());
+            table.Body.Add("Type", context.Query.GetType().Name);
+            table.Body.NewRow().Update(Columns.Property, "Command").Update(Columns.Value, context.Query, "query");
+            table.Body.Add("Results", context.Data.Rows.Count.ToString());
             table.Body.Add("Elapsed", $"{RuntimeProperty.BuiltIn.TestCounter.GetDataElapsed.ToFormatString(TimespanFormat)}".Format(context.RuntimeProperties));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);

@@ -18,7 +18,7 @@ namespace Gunter.Services.Messengers
 {
     [Gunter]
     [PublicAPI]
-    public class Mailr : Messenger
+    public class Mailr : Channel
     {
         private readonly IResourceRepository _resources;
 

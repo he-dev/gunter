@@ -95,9 +95,9 @@ namespace Gunter.Services
                         _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
                         try
                         {
-                            if (!cache.TryGetValue<LogView>(current.dataSource.Id, out var logView))
+                            if (!cache.TryGetValue<Snapshot>(current.dataSource.Id, out var logView))
                             {
-                                cache.Set(current.dataSource.Id, logView = await current.dataSource.GetDataAsync(testBundleRuntimeVariables));
+                                cache.Set(current.dataSource.Id, logView = await current.dataSource.ExecuteAsync(testBundleRuntimeVariables));
                             }
 
                             var (result, runElapsed, commands) = RunTest(current.testCase, logView.Data);
@@ -107,8 +107,8 @@ namespace Gunter.Services
                                 TestBundle = testBundle,
                                 TestCase = current.testCase,
                                 //TestWhen = when,
-                                Log = current.dataSource,
-                                Query = logView.Query,
+                                Query = current.dataSource,
+                                Command = logView.Command,
                                 Data = logView.Data,
                                 Result = result,
                                 RuntimeProperties =

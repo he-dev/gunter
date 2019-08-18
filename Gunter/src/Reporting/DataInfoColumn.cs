@@ -9,7 +9,7 @@ using Reusable.Diagnostics;
 
 namespace Gunter.Reporting
 {    
-    public class ColumnMetadata : IEquatable<ColumnMetadata>
+    public class DataInfoColumn : IEquatable<DataInfoColumn>
     {
         [AutoEqualityProperty]
         [JsonRequired]
@@ -18,9 +18,6 @@ namespace Gunter.Reporting
         public SoftString Display { get; set; }
 
         public bool IsKey { get; set; }
-
-        //[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        //public IFilter Filter { get; set; } = new Unchanged();
 
         [DefaultValue(ColumnAggregate.Last)]
         public ColumnAggregate Aggregate { get; set; }
@@ -38,10 +35,10 @@ namespace Gunter.Reporting
             builder.DisplayScalar(x => x.Aggregate);
         });
 
-        public bool Equals(ColumnMetadata other) => AutoEquality<ColumnMetadata>.Comparer.Equals(this, other);
+        public bool Equals(DataInfoColumn other) => AutoEquality<DataInfoColumn>.Comparer.Equals(this, other);
 
-        public override bool Equals(object obj) => obj is ColumnMetadata columnOption && Equals(columnOption);
+        public override bool Equals(object obj) => obj is DataInfoColumn columnOption && Equals(columnOption);
 
-        public override int GetHashCode() => AutoEquality<ColumnMetadata>.Comparer.GetHashCode(this);        
+        public override int GetHashCode() => AutoEquality<DataInfoColumn>.Comparer.GetHashCode(this);        
     }
 }

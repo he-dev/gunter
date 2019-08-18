@@ -1,19 +1,11 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Globalization;
-using System.Linq;
-using Gunter.Annotations;
+﻿using System.ComponentModel;
 using Gunter.Data;
-using Gunter.Services;
-using JetBrains.Annotations;
-using Reusable.Data;
 using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Reporting.Modules
+namespace Gunter.Reporting.Modules.Tabular
 {
-    public class TestCase : Module, ITabular
+    public class TestInfo : Module, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
@@ -25,7 +17,7 @@ namespace Gunter.Reporting.Modules
 
         public override IModuleDto CreateDto(TestContext context)
         {
-            var section = new ModuleDto<TestCase>
+            var section = new ModuleDto<TestInfo>
             {
                 Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create
@@ -48,12 +40,11 @@ namespace Gunter.Reporting.Modules
                 .Update(Columns.Property, "Then")
                 .Update(Columns.Value, context.TestCase.When[context.Result]);
             section.Data.Body.NewRow()
-                .Update(Columns.Property, "Elapsed")
-                .Update(Columns.Value, $"{RuntimeProperty.BuiltIn.TestCounter.AssertElapsed.ToFormatString(TimespanFormat)}".Format(context.RuntimeProperties));
-            section.Data.Body.NewRow()
                 .Update(Columns.Property, nameof(Gunter.Data.TestCase.Tags))
                 .Update(Columns.Value, context.TestCase.Tags);
-            //.Update(Columns.Value, $"[{string.Join(", ", context.TestCase.Tags.Select(p => $"'{p}'"))}]");
+            section.Data.Body.NewRow()
+                .Update(Columns.Property, "Elapsed")
+                .Update(Columns.Value, $"{RuntimeProperty.BuiltIn.TestCounter.AssertElapsed.ToFormatString(TimespanFormat)}".Format(context.RuntimeProperties));
 
             return section;
         }

@@ -9,9 +9,9 @@ namespace Gunter.Data
         public TestCase TestCase { get; set; }
         //public TestWhen TestWhen { get; set; }
         public DataTable Data { get; set; }
-        public ILog Log { get; set; }
+        public IQuery Query { get; set; }
         public RuntimePropertyProvider RuntimeProperties { get; set; }
-        public string Query { get; set; }
+        public string Command { get; set; }
         public TestResult Result { get; set; }
     }
 }

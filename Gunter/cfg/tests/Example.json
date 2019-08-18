@@ -9,16 +9,16 @@
       }
     }
   ],
-  "Logs": [
+  "Queries": [
     {
       "$g": "TableOrView",
-      "Id": "everything",
-      "Merge": "_Gunter#everything"
+      "Id": "mssql-everything",
+      "Merge": "_Gunter#mssql-everything"
     },
     {
       "$g": "TableOrView",
-      "Id": "empty",
-      "Merge": "_Gunter#empty"
+      "Id": "mssql-empty",
+      "Merge": "_Gunter#mssql-empty"
     }
   ],
   "Tests": [
@@ -28,12 +28,12 @@
       "Level": "Fatal",
       "Message": "There is no data.",
       "Check": [
-        "empty"
+        "mssql-empty"
       ],
       "Assert": "Count([_id]) > 0",
       "When": {
         "Failed": [
-          "send -report full -use default-email",
+          "send -report full -channel email",
           "halt"
         ]
       },
@@ -47,12 +47,12 @@
       "Level": "Information",
       "Message": "There is some data.",
       "Check": [
-        "everything"
+        "mssql-everything"
       ],
       "Assert": "Count([_id]) = 5",
       "When": {
         "Passed": [
-          "send -report full -use default-email",
+          "send -report full -channel email",
           "halt"
         ]
       },
@@ -61,27 +61,27 @@
       ]
     },
     {
-      "Id": "must-not-run",
+      "Id": "does-not-run",
       "Enabled": false,
       "Level": "Error",
       "Message": "This test must not run.",
       "Check": [
-        "everything"
+        "mssql-everything"
       ],
       "Assert": "Count([_id]) = 0",
       "When": {
         "Failed": [
-          "send -report full -use default-email",
+          "send -report full -channel email",
           "halt"
         ]
       },
       "Tags": []
     }
   ],
-  "Messengers": [
+  "Channels": [
     {
       "$g": "Mailr",
-      "Id": "default-email",
+      "Id": "email",
       "To": [
         "gunter@test.com"
       ],
@@ -91,7 +91,7 @@
   "Reports": [
     {
       "Id": "full",
-      "Merge": "_Gunter"
+      "Merge": "_Gunter#mssql"
     }
   ]
 }

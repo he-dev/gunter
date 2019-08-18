@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Data;
 using System.IO;
 using Gunter.Reporting;
+using Gunter.Reporting.Modules.Tabular;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
@@ -27,9 +28,9 @@ namespace Gunter.Data
             typeof(Gunter.Services.Messengers.Mailr),
             typeof(Gunter.Reporting.Modules.Level),
             typeof(Gunter.Reporting.Modules.Greeting),
-            typeof(Gunter.Reporting.Modules.TestCase),
-            typeof(Gunter.Reporting.Modules.DataSource),
-            typeof(Gunter.Reporting.Modules.DataSummary),
+            typeof(TestInfo),
+            typeof(QueryInfo),
+            typeof(DataInfo),
             typeof(Gunter.Reporting.Formatters.TimeSpan),
         };
         
@@ -40,13 +41,13 @@ namespace Gunter.Data
         public List<StaticPropertyCollection> Variables { get; set; } = new List<StaticPropertyCollection>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<ILog> Logs { get; set; } = new List<ILog>();
+        public List<IQuery> Queries { get; set; } = new List<IQuery>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<TestCase> Tests { get; set; } = new List<TestCase>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<IMessenger> Messengers { get; set; } = new List<IMessenger>();
+        public List<IChannel> Channels { get; set; } = new List<IChannel>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IReport> Reports { get; set; } = new List<IReport>();
@@ -73,9 +74,9 @@ namespace Gunter.Data
         public IEnumerator<IEnumerable<IMergeable>> GetEnumerator()
         {
             yield return Variables;
-            yield return Logs;
+            yield return Queries;
             yield return Tests;
-            yield return Messengers;
+            yield return Channels;
             yield return Reports;
         }
 

@@ -1,27 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Linq.Custom;
-using System.Text;
-using System.Text.RegularExpressions;
 using Gunter.Data;
 using Gunter.Extensions;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Collections;
-using Reusable.Data;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
-using Reusable.Reflection;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Reporting.Modules
+namespace Gunter.Reporting.Modules.Tabular
 {
     [PublicAPI]
-    public class DataSummary : Module, ITabular
+    public class DataInfo : Module, ITabular
     {
         private static readonly IEqualityComparer<IEnumerable<object>> GroupKeyEqualityComparer =
             EqualityComparerFactory<IEnumerable<object>>.Create(
@@ -48,7 +41,7 @@ namespace Gunter.Reporting.Modules
 
         [NotNull]
         [ItemCanBeNull]
-        public List<ColumnMetadata> Columns { get; set; } = new List<ColumnMetadata>();
+        public List<DataInfoColumn> Columns { get; set; } = new List<DataInfoColumn>();
 
         public override IModuleDto CreateDto(TestContext context)
         {
@@ -58,14 +51,14 @@ namespace Gunter.Reporting.Modules
             // Use all columns by default if none-specified.
             if (!Columns.Any())
             {
-                columns = context.Data.Columns.Cast<DataColumn>().Select(c => new ColumnMetadata
+                columns = context.Data.Columns.Cast<DataColumn>().Select(c => new DataInfoColumn
                 {
                     Select = c.ColumnName,
                     Aggregate = ColumnAggregate.Last
                 }).ToList();
             }
 
-            var section = new ModuleDto<DataSummary>
+            var section = new ModuleDto<DataInfo>
             {
                 Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))).ToArray()))
@@ -86,7 +79,6 @@ namespace Gunter.Reporting.Modules
 
             foreach (var row in aggregatedRows)
             {
-                //section.Data.Body.Add(row);
                 var newRow = section.Data.Body.NewRow();
                 foreach (var (column, value) in row)
                 {
@@ -100,14 +92,14 @@ namespace Gunter.Reporting.Modules
             return section;
         }
 
-        private IEnumerable<string> StringifyColumnOption(ColumnMetadata column)
+        private IEnumerable<string> StringifyColumnOption(DataInfoColumn column)
         {
             if (column.IsKey) yield return "Key";
             //if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
             yield return column.Aggregate.ToString();
         }
 
-        private object Aggregate(ColumnMetadata column, IEnumerable<DataRow> rowGroup)
+        private object Aggregate(DataInfoColumn column, IEnumerable<DataRow> rowGroup)
         {
             try
             {
@@ -137,7 +129,7 @@ namespace Gunter.Reporting.Modules
         /// <summary>
         /// Creates a group-key for the specified row.
         /// </summary>
-        public static IEnumerable<object> GroupKey(this DataRow dataRow, IEnumerable<ColumnMetadata> keyColumns)
+        public static IEnumerable<object> GroupKey(this DataRow dataRow, IEnumerable<DataInfoColumn> keyColumns)
         {
             // Get key values and apply their filters.
             //return keyColumns.Select(column => column.Filter.Apply(dataRow[column.Name.ToString()]));

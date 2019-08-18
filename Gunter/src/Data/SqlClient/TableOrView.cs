@@ -28,7 +28,7 @@ namespace Gunter.Data.SqlClient
 {
     [PublicAPI]
     [UsedImplicitly]
-    public class TableOrView : Log
+    public class TableOrView : Query
     {
         private readonly IResourceRepository _resources;
 
@@ -47,9 +47,9 @@ namespace Gunter.Data.SqlClient
 
         [NotNull]
         [Mergeable(Required = true)]
-        public string Query { get; set; }
+        public string Command { get; set; }
 
-        protected override async Task<LogView> GetDataAsyncInternal(RuntimePropertyProvider runtimeProperties)
+        protected override async Task<Snapshot> ExecuteAsyncInternal(RuntimePropertyProvider runtimeProperties)
         {
             if (ConnectionString is null) throw new InvalidOperationException($"{nameof(TableOrView)} #{Id.ToString()} requires a connection-string.");
 
@@ -71,11 +71,11 @@ namespace Gunter.Data.SqlClient
                         dataTable.Load(dataReader);
 
                         Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count }));
-                        Logger.Log(Abstraction.Layer.Database().Routine(nameof(GetDataAsync)).Completed());
+                        Logger.Log(Abstraction.Layer.Database().Routine(nameof(ExecuteAsync)).Completed());
 
-                        return new LogView
+                        return new Snapshot
                         {
-                            Query = cmd.CommandText,
+                            Command = cmd.CommandText,
                             Data = dataTable,
                         };
                     }
@@ -87,7 +87,7 @@ namespace Gunter.Data.SqlClient
         {
             // language=regexp
             const string fileSchemePattern = "^file:///";
-            var query = Query.Format(runtimeProperties);
+            var query = Command.Format(runtimeProperties);
             if (Regex.IsMatch(query, fileSchemePattern))
             {
                 var path = Regex.Replace(query, fileSchemePattern, string.Empty);

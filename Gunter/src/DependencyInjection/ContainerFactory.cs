@@ -15,9 +15,9 @@ namespace Gunter.DependencyInjection
 {
     public static class ContainerFactory
     {
-        public static IContainer CreateContainer() => CreateContainer(InitializeLogging(), _ => { });
+        public static IContainer CreateContainer() => CreateContainer(InitializeLogging());
 
-        public static IContainer CreateContainer(ILoggerFactory loggerFactory, Action<ContainerBuilder> configureContainer)
+        public static IContainer CreateContainer(ILoggerFactory loggerFactory, Action<ContainerBuilder> configureContainer = default)
         {
             try
             {

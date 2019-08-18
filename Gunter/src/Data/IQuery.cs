@@ -21,19 +21,19 @@ namespace Gunter.Data
 {
     [UsedImplicitly]
     [PublicAPI]
-    public interface ILog : IMergeable
+    public interface IQuery : IMergeable
     {
         [CanBeNull, ItemNotNull]
         IList<IDataFilter> Filters { get; set; }
 
         [ItemNotNull]
-        Task<LogView> GetDataAsync(RuntimePropertyProvider runtimeProperties);
+        Task<Snapshot> ExecuteAsync(RuntimePropertyProvider runtimeProperties);
     }
 
     [Gunter]
-    public abstract class Log : ILog
+    public abstract class Query : IQuery
     {
-        protected Log(ILogger logger) => Logger = logger;
+        protected Query(ILogger logger) => Logger = logger;
 
         protected ILogger Logger { get; }
 
@@ -45,15 +45,15 @@ namespace Gunter.Data
         [Mergeable]
         public IList<IDataFilter> Filters { get; set; }
 
-        public async Task<LogView> GetDataAsync(RuntimePropertyProvider runtimeProperties)
+        public async Task<Snapshot> ExecuteAsync(RuntimePropertyProvider runtimeProperties)
         {
-            using (Logger.UseScope(correlationHandle: nameof(Log)))
+            using (Logger.UseScope(correlationHandle: nameof(Query)))
             using (Logger.UseStopwatch())
             {
                 Logger.Log(Abstraction.Layer.Service().Meta(new { DataSourceId = Id.ToString() }));
                 try
                 {
-                    var result = await GetDataAsyncInternal(runtimeProperties);
+                    var result = await ExecuteAsyncInternal(runtimeProperties);
                     result.GetDataElapsed = Logger.Stopwatch().Elapsed;
 
                     using (Logger.UseStopwatch())
@@ -75,13 +75,13 @@ namespace Gunter.Data
             }
         }
 
-        protected abstract Task<LogView> GetDataAsyncInternal(RuntimePropertyProvider runtimeProperties);
+        protected abstract Task<Snapshot> ExecuteAsyncInternal(RuntimePropertyProvider runtimeProperties);
     }
 
-    public class LogView : IDisposable
+    public class Snapshot : IDisposable
     {
         [NotNull]
-        public string Query { get; set; }
+        public string Command { get; set; }
         
         [CanBeNull]
         public DataTable Data { get; set; }

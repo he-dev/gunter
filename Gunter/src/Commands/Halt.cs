@@ -10,11 +10,11 @@ using Reusable.OmniLog.Abstractions;
 namespace Gunter.Commands
 {
     [Tags("h")]
-    internal class Halt : Command<CommandLine, TestContext>
+    internal class Halt : Command<CommandLineBase, TestContext>
     {
         public Halt(ILogger<Halt> logger) : base(logger) { }
 
-        protected override Task ExecuteAsync(CommandLine commandLine, TestContext context, CancellationToken cancellationToken)
+        protected override Task ExecuteAsync(CommandLineBase commandLine, TestContext context, CancellationToken cancellationToken)
         {
             throw new OperationCanceledException();
         }

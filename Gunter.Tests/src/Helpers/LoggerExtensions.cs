@@ -4,12 +4,13 @@ using System.Linq;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Abstractions.Data;
 
 namespace Gunter.Tests.Helpers
 {
     internal static class LoggerExtensions
     {
-        public static IEnumerable<T> Exceptions<T>(this IEnumerable<ILog> logs) where T : Exception
+        public static IEnumerable<T> Exceptions<T>(this IEnumerable<LogEntry> logs) where T : Exception
         {
             return
                 logs

@@ -18,13 +18,20 @@
     <None Remove="cfg\Example.json" />
     <None Remove="cfg\Example.sql" />
     <None Remove="cfg\_Gunter.json" />
+    <None Include="..\Gunter\cfg\tests\Example.json">
+      <Link>cfg\tests\Example.json</Link>
+    </None>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.9.2" />
     <PackageReference Include="Dapper" Version="1.50.7" />
     <PackageReference Include="JustMock" Version="2019.2.508.1" />
-<!--    <PackageReference Include="XUnit" Version="2.4.1" />-->
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,7 +48,14 @@
 
   <ItemGroup>
     <None Remove="sql\seed-test-data.sql" />
-    <EmbeddedResource Include="sql\seed-test-data.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="res\sql\seed-test-data.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="res" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,9 +64,6 @@
     </Content>
     <Content Include="..\Gunter\cfg\tests\Example.everything.sql">
       <Link>cfg\tests\Example.everything.sql</Link>
-    </Content>
-    <Content Include="..\Gunter\cfg\tests\Example.json">
-      <Link>cfg\tests\Example.json</Link>
     </Content>
     <Content Include="..\Gunter\cfg\tests\_Gunter.json">
       <Link>cfg\tests\_Gunter.json</Link>

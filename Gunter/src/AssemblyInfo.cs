@@ -13,4 +13,4 @@ using Gunter.Reporting;
 //[assembly: SettingProvider(SettingNameStrength.Low, nameof(AppSettingProvider), Prefix = "app")]
 //[assembly: SettingProvider(SettingNameStrength.Low, nameof(InMemoryProvider))]
 
-[assembly: DebuggerDisplay("{DebuggerDisplay(),nq}", Target = typeof(ColumnMetadata))]
+[assembly: DebuggerDisplay("{DebuggerDisplay(),nq}", Target = typeof(DataInfoColumn))]

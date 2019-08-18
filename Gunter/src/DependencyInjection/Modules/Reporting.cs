@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Gunter.Reporting;
+using Gunter.Reporting.Modules.Tabular;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -7,10 +8,10 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<Gunter.Reporting.Modules.TestCase>();
-            builder.RegisterType<Gunter.Reporting.Modules.DataSource>();
-            builder.RegisterType<Gunter.Reporting.Modules.DataSummary>();
-            builder.RegisterType<Gunter.Reporting.Modules.TestCase>().AsSelf();
+            builder.RegisterType<TestInfo>();
+            builder.RegisterType<QueryInfo>();
+            builder.RegisterType<DataInfo>();
+            builder.RegisterType<TestInfo>().AsSelf();
             builder.RegisterType<Gunter.Reporting.Report>().AsSelf();
             builder.RegisterType<Gunter.Reporting.Report>().As<IReport>();//.AsSelf();
         }

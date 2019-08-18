@@ -8,20 +8,20 @@
       }
     }
   ],
-  "Logs": [
+  "Queries": [
     {
       "$g": "TableOrView",
-      "Id": "everything",
+      "Id": "mssql-everything",
       "ConnectionString": "{TestDb}",
-      "Query": "file:///{TestBundle.FileName}.everything.sql",
+      "Command": "file:///{TestBundle.FileName}.everything.sql",
       "Filters": [
         {
           "$g": "GetJsonValue",
           "Columns": [
             {
-              "From": "_json",
+              "From": "_string_json",
               "Select": "$.Name",
-              "Attach": "_name",
+              "Attach": "_string_json_name",
               "Default": "Unknown"
             }
           ]
@@ -30,8 +30,8 @@
           "$g": "GetFirstLine",
           "Columns": [
             {
-              "From": "_text",
-              "Attach": "_text-first-line"
+              "From": "_string_text",
+              "Attach": "_string_text_first_line"
             }
           ]
         }
@@ -39,22 +39,22 @@
     },
     {
       "$g": "TableOrView",
-      "Id": "empty",
+      "Id": "mssql-empty",
       "ConnectionString": "{TestDb}",
-      "Query": "file:///{TestBundle.FileName}.empty.sql"
+      "Command": "file:///{TestBundle.FileName}.empty.sql"
     }
   ],
   "Tests": [],
-  "Messengers": [
+  "Channels": [
     {
       "$g": "Mailr",
-      "Id": "default-email",
+      "Id": "email",
       "Theme": "default"
     }
   ],
   "Reports": [
     {
-      "Id": "full",
+      "Id": "mssql",
       "Title": "Glitch alert [{TestCase.Level}]",
       "Modules": [
         {
@@ -66,65 +66,65 @@
           "Text": "{TestCase.Message}"
         },
         {
-          "$g": "TestCase",
-          "Heading": "Test case"
+          "$g": "TestInfo",
+          "Heading": "Test"
         },
         {
-          "$g": "DataSource",
-          "Heading": "Data-source"
+          "$g": "QueryInfo",
+          "Heading": "Query"
         },
         {
-          "$g": "DataSummary",
-          "Heading": "Default data summary",
+          "$g": "DataInfo",
+          "Heading": "Default columns",
           "Columns": [
             {
-              "Select": "_text"
+              "Select": "_string_text"
             },
             {
-              "Select": "_json"
+              "Select": "_string_json"
             },
             {
-              "Select": "_misc"
+              "Select": "_string_misc"
             },
             {
-              "Select": "_flag"
+              "Select": "_bit"
             },
             {
-              "Select": "_count"
+              "Select": "_int"
             },
             {
-              "Select": "_elapsed"
+              "Select": "_float"
             },
             {
-              "Select": "_price"
+              "Select": "_decimal"
             },
             {
-              "Select": "_timestamp"
+              "Select": "_datetime2"
             }
           ]
         },
         {
-          "$g": "DataSummary",
-          "Heading": "Custom data summary",
+          "$g": "DataInfo",
+          "Heading": "Custom columns",
           "Columns": [
             {
-              "Select": "_text",
-              "Display": "_text-renamed"
+              "Select": "_string_text",
+              "Display": "_string_text_renamed"
             },
             {
-              "Select": "_text-first-line",
+              "Select": "_string_text_first_line",
               "IsKey": true
             },
             {
-              "Select": "_count",
+              "Select": "_int",
               "Aggregate": "Sum"
             },
             {
-              "Select": "_elapsed",
+              "Select": "_float",
               "Aggregate": "Average"
             },
             {
-              "Select": "_price",
+              "Select": "_decimal",
               "Aggregate": "Max"
             }
           ]
