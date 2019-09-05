@@ -54,9 +54,9 @@ namespace Gunter.DependencyInjection.Modules
                 {
                     return new PrettyJsonSerializer(ctx.Resolve<IContractResolver>(), serializer =>
                     {
-                        serializer.Converters.Add(new LambdaJsonConverter<LogLevel>
+                        serializer.Converters.Add(new LambdaJsonConverter<Option<LogLevel>>
                         {
-                            ReadJsonCallback = LogLevel.FromName
+                            ReadJsonCallback = Option<LogLevel>.Parse
                         });
                         serializer.Converters.Add(new JsonStringConverter());
                         serializer.DefaultValueHandling = DefaultValueHandling.Populate;

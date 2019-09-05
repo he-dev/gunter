@@ -11,6 +11,7 @@ using Gunter.Reporting;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Data;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 
@@ -38,7 +39,7 @@ namespace Gunter.Data
         public bool Enabled { get; set; }
 
         [Mergeable]
-        public LogLevel Level { get; set; } = LogLevel.Warning;
+        public Option<LogLevel> Level { get; set; } = LogLevel.Warning;
 
         [Mergeable]
         public string Message { get; set; }
