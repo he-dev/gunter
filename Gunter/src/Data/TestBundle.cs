@@ -9,6 +9,7 @@ using System.IO;
 using Gunter.Reporting;
 using Gunter.Reporting.Modules.Tabular;
 using Gunter.Services;
+using Gunter.Services.Channels;
 using JetBrains.Annotations;
 using Reusable;
 
@@ -25,7 +26,7 @@ namespace Gunter.Data
             typeof(Gunter.Data.SqlClient.TableOrView),
             typeof(Gunter.Services.DataFilters.GetJsonValue),
             typeof(Gunter.Services.DataFilters.GetFirstLine),
-            typeof(Gunter.Services.Messengers.Mailr),
+            typeof(Mailr),
             typeof(Gunter.Reporting.Modules.Level),
             typeof(Gunter.Reporting.Modules.Greeting),
             typeof(TestInfo),
