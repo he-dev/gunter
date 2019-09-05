@@ -48,6 +48,9 @@ namespace Gunter.Data.SqlClient
         [NotNull]
         [Mergeable(Required = true)]
         public string Command { get; set; }
+        
+        [Mergeable]
+        public int Timeout { get; set; }
 
         protected override async Task<Snapshot> ExecuteAsyncInternal(RuntimePropertyProvider runtimeProperties)
         {
@@ -64,6 +67,7 @@ namespace Gunter.Data.SqlClient
                 {
                     cmd.CommandText = query;
                     cmd.CommandType = CommandType.Text;
+                    cmd.CommandTimeout = Timeout > 0 ? Timeout : cmd.CommandTimeout;
 
                     using (var dataReader = await cmd.ExecuteReaderAsync())
                     {

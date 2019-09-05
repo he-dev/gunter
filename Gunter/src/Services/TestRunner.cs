@@ -172,7 +172,7 @@ namespace Gunter.Services
                 return
                     testCase.When.TryGetValue(testResult, out var then)
                         ? (testResult, assertElapsed, then)
-                        : (testResult, assertElapsed, default);
+                        : (testResult, assertElapsed, new List<string>());
             }
         }
     }
