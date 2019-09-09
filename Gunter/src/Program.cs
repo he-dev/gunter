@@ -62,7 +62,7 @@ namespace Gunter
                 using (var program = Create())
                 {
                     program.LogHallo();
-                    await program.RunAsync();
+                    await program.RunAsync(args);
                     program.LogGoodBye();
                 }
 
