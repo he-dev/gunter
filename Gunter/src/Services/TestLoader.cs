@@ -6,11 +6,6 @@ using System.Threading.Tasks;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.Collections;
-using Reusable.Data;
-using Reusable.Exceptionize;
-using Reusable.Extensions;
-using Reusable.Flawless;
 using Reusable.IO;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
@@ -68,8 +63,7 @@ namespace Gunter.Services
 
             foreach (var fullName in testFiles)
             {
-                using (_logger.UseScope(correlationHandle: "LoadTestFile"))
-                using (_logger.UseStopwatch())
+                using (_logger.BeginScope().WithCorrelationHandle("LoadTestFile").UseStopwatch())
                 {
                     _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
 

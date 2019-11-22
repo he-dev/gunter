@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Gunter.Data;
-using JetBrains.Annotations;
-using Reusable;
 
 namespace Gunter.Extensions
 {

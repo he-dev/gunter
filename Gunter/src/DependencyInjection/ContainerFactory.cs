@@ -6,10 +6,8 @@ using Reusable.Exceptionize;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Abstractions.Data;
-using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.Rx;
 using Reusable.OmniLog.Rx.ConsoleRenderers;
-using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.DependencyInjection
 {
@@ -60,20 +58,18 @@ namespace Gunter.DependencyInjection
                             ("Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"]),
                             ("Product", ProgramInfo.FullName))
                         .UseScalar(new Reusable.OmniLog.Scalars.Timestamp<DateTimeUtc>())
-                        .UseStopwatch()
                         .UseLambda()
-                        .UseCorrelation()
+                        .UseScope()
                         .UseBuilder()
                         .UseOneToMany()
                         .UseMapper()
                         .UseSerializer()
                         .UseRename(
                             (LogEntry.Names.Scope, "Scope"),
-                            (LogEntry.Names.Object, "Identifier"),
+                            (LogEntry.Names.SnapshotName, "Identifier"),
                             (LogEntry.Names.Snapshot, "Snapshot"))
                         .UseFallback(
                             (LogEntry.Names.Level, LogLevel.Information))
-                        .UseBuffer()
                         .UseEcho(
                             new NLogRx(), 
                             new ConsoleRx

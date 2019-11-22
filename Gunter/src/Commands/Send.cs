@@ -6,7 +6,6 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Commander;
-using Reusable.Commander.Annotations;
 using Reusable.Data.Annotations;
 using Reusable.Exceptionize;
 using Reusable.OmniLog.Abstractions;

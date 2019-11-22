@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using Gunter.Annotations;
+﻿using Gunter.Annotations;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Newtonsoft.Json;

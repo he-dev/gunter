@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
-using Gunter.Data.SqlClient;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -47,16 +45,15 @@ namespace Gunter.Data
 
         public async Task<Snapshot> ExecuteAsync(RuntimePropertyProvider runtimeProperties)
         {
-            using (Logger.UseScope(correlationHandle: nameof(Query)))
-            using (Logger.UseStopwatch())
+            using (Logger.BeginScope().WithCorrelationHandle("ExecuteQuery").UseStopwatch())
             {
-                Logger.Log(Abstraction.Layer.Service().Meta(new { DataSourceId = Id.ToString() }));
+                Logger.Log(Abstraction.Layer.Service().Subject(new { DataSourceId = Id.ToString() }));
                 try
                 {
                     var result = await ExecuteAsyncInternal(runtimeProperties);
                     result.GetDataElapsed = Logger.Stopwatch().Elapsed;
 
-                    using (Logger.UseStopwatch())
+                    using (Logger.BeginScope().WithCorrelationHandle("ExecuteFilters").UseStopwatch())
                     {
                         foreach (var dataFilter in Filters ?? Enumerable.Empty<IDataFilter>())
                         {

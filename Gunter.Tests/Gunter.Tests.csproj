@@ -29,7 +29,7 @@
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="Dapper" Version="1.50.7" />
-    <PackageReference Include="JustMock" Version="2019.2.620.1" />
+    <PackageReference Include="JustMock" Version="2019.3.910.4" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>

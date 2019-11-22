@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Gunter.Data;
 using Newtonsoft.Json;
 using System.Collections;
 using System.ComponentModel;
-using System.Data;
 using System.IO;
 using Gunter.Reporting;
 using Gunter.Reporting.Modules.Tabular;

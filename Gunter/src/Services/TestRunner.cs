@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Caching.Memory;
-using Reusable;
 using Reusable.Commander;
 using Reusable.Exceptionize;
 using Reusable.OmniLog;
@@ -82,15 +79,13 @@ namespace Gunter.Services
                     .AddObjects(new object[] { testBundle })
                     .AddProperties(testBundle.Variables.Flatten());
 
-            using (_logger.UseScope(correlationHandle: "ProcessTestBundle"))
-            using (_logger.UseStopwatch())
+            using (_logger.BeginScope().WithCorrelationHandle("ProcessTestBundle").UseStopwatch())
             using (var cache = new MemoryCache(new MemoryCacheOptions()))
             {
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestFileName = testBundle.FileName }));
                 foreach (var current in tests)
                 {
-                    using (_logger.UseScope(correlationHandle: "ProcessTestCase"))
-                    using (_logger.UseStopwatch())
+                    using (_logger.BeginScope().WithCorrelationHandle("ProcessTestCase").UseStopwatch())
                     {
                         _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
                         try
@@ -154,7 +149,7 @@ namespace Gunter.Services
 
         private (TestResult Result, TimeSpan Elapsed, IList<string> Commands) RunTest(TestCase testCase, DataTable data)
         {
-            using (_logger.UseStopwatch())
+            using (_logger.BeginScope().WithCorrelationHandle("RunTest").UseStopwatch())
             {
                 if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
                 {

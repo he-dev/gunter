@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Linq.Custom;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.DependencyInjection;
-using Gunter.Services;
-using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
-using Reusable;
 using Reusable.Commander;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.Quickey;
 using Reusable.Translucent;
 
 namespace Gunter
@@ -79,15 +73,24 @@ namespace Gunter
 
         private void LogGoodBye() => _logger.Log(Abstraction.Layer.Service().Routine(nameof(Main)).Completed(), l => l.Message("See ya!"));
 
-        public async Task RunAsync()
-        {
-            var defaultTestsDirectoryName = await _resources.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
-            var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName);
-            await RunAsync($"run -path \"{defaultPath}\"");
-        }
+//        public async Task RunAsync()
+//        {
+//            var defaultTestsDirectoryName = await _resources.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
+//            var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName);
+//            await RunAsync($"run -path \"{defaultPath}\"");
+//        }
 
         public async Task RunAsync(params string[] args)
         {
+            // The first argument is the exe.
+            args = args.Skip(1).ToArray();
+            if (!args.Any())
+            {
+                var defaultTestsDirectoryName = await _resources.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
+                var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName);
+                args = new[] { "run", "-path", $"\"{defaultPath}\"" };
+            }
+
             await _commandExecutor.ExecuteAsync<object>(args.Join(" "), default, _commandFactory);
         }
 

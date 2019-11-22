@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Reporting;
 using JetBrains.Annotations;
@@ -43,8 +42,7 @@ namespace Gunter.Services
 
             foreach (var report in reports)
             {
-                using (Logger.UseScope(correlationHandle: "PublishReport"))
-                using (Logger.UseStopwatch())
+                using (Logger.BeginScope().WithCorrelationHandle("PublishReport").UseStopwatch())
                 {
                     Logger.Log(Abstraction.Layer.Service().Meta(new { ReportId = report.Id }));
                     try

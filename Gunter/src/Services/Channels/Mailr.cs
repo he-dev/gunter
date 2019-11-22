@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Data;
@@ -68,7 +69,11 @@ namespace Gunter.Services.Channels
             }, "EmailInfo"));
 
             var testResultPath = await _resources.ReadSettingAsync(MailrConfig.TestResultPath);
-            await _resources.SendEmailAsync(testResultPath, new UserAgent(ProgramInfo.Name, ProgramInfo.Version), email, "Mailr");
+            await _resources.SendEmailAsync(testResultPath, email, http =>
+            {
+                http.UserAgent = new ProductInfoHeaderValue(ProgramInfo.Name, ProgramInfo.Version);
+                http.ControllerTags.Add("Mailr");
+            });
         }
     }
 }

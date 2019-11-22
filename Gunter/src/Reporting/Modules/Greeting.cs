@@ -1,5 +1,4 @@
 using Gunter.Data;
-using Gunter.Services;
 using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules

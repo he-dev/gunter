@@ -1,29 +1,21 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Linq.Custom;
-using System.Linq.Expressions;
 using System.Reflection;
 using Autofac;
-using Autofac.Features.Indexed;
 using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Extensions;
 using JetBrains.Annotations;
 using Reusable;
-using Reusable.Collections;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
-using Reusable.Flawless;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
-using Reusable.Reflection;
 
 namespace Gunter.Services
 {
@@ -79,8 +71,7 @@ namespace Gunter.Services
         private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partials, out TestBundle composition)
         {
             composition = default;
-            using (_logger.UseScope(correlationHandle: "Merge"))
-            using (_logger.UseStopwatch())
+            using (_logger.BeginScope().WithCorrelationHandle("MergeTests").UseStopwatch())
             {
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = testBundle.Name.ToString() }));
                 try
@@ -135,7 +126,7 @@ namespace Gunter.Services
                         var mergeId = mergeable.Merge.Id ?? mergeable.Id;
                         other = partialTestBundleValue.Where(x => x.Id == mergeId).SingleOrThrow
                         (
-                            onEmpty: () => DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{mergeId}'.")
+                            onEmpty: () => DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{mergeId}' of '{mergeable.GetType().ToPrettyString()}' with the id '{mergeable.Id}'.")
                         );
                     }
 

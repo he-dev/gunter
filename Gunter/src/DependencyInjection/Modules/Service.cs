@@ -1,25 +1,18 @@
 using System;
 using System.Collections.Immutable;
-using System.Configuration;
 using System.Net.Http;
 using Autofac;
 using Gunter.Data;
-using Gunter.Reporting;
 using Gunter.Services;
-using Microsoft.Extensions.FileProviders;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Reusable;
-using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
-using Reusable.Extensions;
 using Reusable.IO;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
-using Reusable.Quickey;
 using Reusable.Translucent;
-using Reusable.Translucent.Controllers;
 using Reusable.Translucent.Middleware;
 using Reusable.Utilities.Autofac;
 using Reusable.Utilities.JsonNet;
@@ -104,23 +97,19 @@ namespace Gunter.DependencyInjection.Modules
 
     internal class GunterResourceSetup
     {
-        public void ConfigureServices(IResourceControllerBuilder controller)
+        public void ConfigureResources(IResourceCollection controller)
         {
-            controller.AddPhysicalFiles();
-            controller.AddJsonFile(ProgramInfo.CurrentDirectory, "appsettings.json");
-            controller.AddHttp(new HttpClient(new HttpClientHandler { UseProxy = false })
-            {
-                BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
-            }, ImmutableContainer.Empty.UpdateItem(ResourceController.Tags, tags => tags.Add("Mailr")));
+            controller.AddPhysicalFile(default);
+            controller.AddJsonFile(default, ProgramInfo.CurrentDirectory, "appsettings.json");
+            controller.AddHttp(default, new HttpClient(new HttpClientHandler { UseProxy = false }) { BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"]) }, http => { http.Tags.Add("Mailr"); });
         }
 
-        public void Configure(IResourceRepositoryBuilder repository)
+        public void ConfigurePipeline(IPipelineBuilder<ResourceContext> pipeline, IServiceProvider serviceProvider)
         {
-            repository
-                .UseTelemetry(repository.ServiceProvider.Resolve<ILogger<TelemetryMiddleware>>())
-                .UseEnvironmentVariables()
-                .UseMiddleware<ResourceExistsValidationMiddleware>()
-                .UseMiddleware<SettingFormatValidationMiddleware>();
+            pipeline
+                .UseTelemetry(serviceProvider.Resolve<ILogger<TelemetryMiddleware>>())
+                .UseEnvironmentVariable()
+                .UseMiddleware<ResourceExistsValidationMiddleware>();
         }
     }
 }
