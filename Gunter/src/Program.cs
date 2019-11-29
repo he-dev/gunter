@@ -91,7 +91,7 @@ namespace Gunter
                 args = new[] { "run", "-path", $"\"{defaultPath}\"" };
             }
 
-            await _commandExecutor.ExecuteAsync<object>(args.Join(" "), default, _commandFactory);
+            await _commandExecutor.ExecuteAsync<object>(args.Join(" "));
         }
 
         public void Dispose() => _container.Dispose();

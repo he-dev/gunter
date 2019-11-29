@@ -13,7 +13,7 @@ using Reusable.Translucent;
 namespace Gunter.Commands
 {
     [Tags("b")]
-    internal class Run : Command<Run.CommandLine, object>
+    internal class Run : Command<Run.Parameter>
     {
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
@@ -36,35 +36,33 @@ namespace Gunter.Commands
             _resources = resources;
         }
 
-        protected override async Task ExecuteAsync(CommandLine commandLine, object context, CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(Parameter parameter, CancellationToken cancellationToken)
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var defaultPath = Path.Combine(currentDirectory, _resources.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
-            var bundles = await _testLoader.LoadTestsAsync(commandLine.Path ?? defaultPath, commandLine.Files);
+            var bundles = await _testLoader.LoadTestsAsync(parameter.Path ?? defaultPath, parameter.Files);
             var testFilter = new TestFilter
             {
-                Path = commandLine.Path ?? defaultPath,
+                Path = parameter.Path ?? defaultPath,
                 //Files = commandLine.Files,
-                Tests = commandLine.Tests,
-                Tags = commandLine.Tags
+                Tests = parameter.Tests,
+                Tags = parameter.Tags
             };
             var compositions = _testComposer.ComposeTests(bundles, testFilter);
             await _testRunner.RunAsync(compositions);
         }
 
         [UsedImplicitly]
-        public class CommandLine : CommandLineBase
+        public class Parameter : CommandParameter
         {
-            public CommandLine(CommandLineDictionary arguments) : base(arguments) { }
+            public string Path { get; set; }
 
-            public string Path => GetArgument(() => Path);
+            public IList<string> Files { get; set; }
 
-            public IList<string> Files => GetArgument(() => Files);
+            public IList<string> Tests { get; set; }
 
-            public IList<string> Tests => GetArgument(() => Tests);
-
-            public IList<string> Tags => GetArgument(() => Tags);
+            public IList<string> Tags { get; set; }
         }
     }
 }

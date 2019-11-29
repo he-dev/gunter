@@ -6,6 +6,7 @@ using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Commander;
+using Reusable.Commander.Annotations;
 using Reusable.Data.Annotations;
 using Reusable.Exceptionize;
 using Reusable.OmniLog.Abstractions;
@@ -13,36 +14,38 @@ using Reusable.OmniLog.Abstractions;
 namespace Gunter.Commands
 {
     [Tags("s")]
-    internal class Send : Command<Send.CommandLine, TestContext>
+    internal class Send : Command<Send.Parameter>
     {
         public Send(ILogger<Send> logger) : base(logger) { }
 
-        protected override async Task ExecuteAsync(CommandLine commandLine, TestContext context, CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(Parameter parameter, CancellationToken cancellationToken)
         {
             var messenger =
-                context
+                parameter
+                    .TestContext
                     .TestBundle
                     .Channels
-                    .Where(m => m.Id.Equals(commandLine.Channel))
+                    .Where(m => m.Id.Equals(parameter.Channel))
                     .SingleOrThrow
                     (
-                        onEmpty: () => DynamicException.Create("MessengerNotFound", $"Could not find messenger '{commandLine.Channel}'.")
+                        onEmpty: () => DynamicException.Create("MessengerNotFound", $"Could not find messenger '{parameter.Channel}'.")
                     );
 
             // ReSharper disable once PossibleNullReferenceException - messenger won't be null
-            await messenger.SendAsync(context, new SoftString[] { commandLine.Report });
+            await messenger.SendAsync(parameter.TestContext, new SoftString[] { parameter.Report });
         }
 
         [UsedImplicitly]
-        public class CommandLine : CommandLineBase
+        public class Parameter : CommandParameter
         {
-            public CommandLine(CommandLineDictionary arguments) : base(arguments) { }
-
             [Tags("R")]
-            public string Report => GetArgument(() => Report);
+            public string Report { get; set; }
 
             [Tags("C")]
-            public string Channel => GetArgument(() => Channel);
+            public string Channel { get; set; }
+
+            [Context]
+            public TestContext TestContext { get; set; }
         }
     }
 }

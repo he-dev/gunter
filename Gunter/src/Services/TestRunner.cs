@@ -30,20 +30,17 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
         private readonly ICommandExecutor _commandLineExecutor;
-        private readonly ICommandFactory _commandFactory;
         private readonly RuntimePropertyProvider _runtimePropertyProvider;
 
         public TestRunner
         (
             ILogger<TestRunner> logger,
             ICommandExecutor commandLineExecutor,
-            ICommandFactory commandFactory,
             RuntimePropertyProvider runtimePropertyProvider
         )
         {
             _logger = logger;
             _commandLineExecutor = commandLineExecutor;
-            _commandFactory = commandFactory;
             _runtimePropertyProvider = runtimePropertyProvider;
         }
 
@@ -121,7 +118,7 @@ namespace Gunter.Services
 
                             foreach (var cmd in commands)
                             {
-                                await _commandLineExecutor.ExecuteAsync(cmd, context, _commandFactory);
+                                await _commandLineExecutor.ExecuteAsync(cmd, context);
                             }
 
                             _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Completed());
@@ -156,7 +153,7 @@ namespace Gunter.Services
                     throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
                 }
 
-                var assertElapsed = _logger.Stopwatch().Elapsed;
+                var assertElapsed = _logger.Scope().Stopwatch().Elapsed;
                 var testResult =
                     result
                         ? TestResult.Passed

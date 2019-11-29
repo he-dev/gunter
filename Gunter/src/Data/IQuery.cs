@@ -51,7 +51,7 @@ namespace Gunter.Data
                 try
                 {
                     var result = await ExecuteAsyncInternal(runtimeProperties);
-                    result.GetDataElapsed = Logger.Stopwatch().Elapsed;
+                    result.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
 
                     using (Logger.BeginScope().WithCorrelationHandle("ExecuteFilters").UseStopwatch())
                     {
@@ -60,7 +60,7 @@ namespace Gunter.Data
                             dataFilter.Execute(result.Data);
                         }
 
-                        result.FilterDataElapsed = Logger.Stopwatch().Elapsed;
+                        result.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
                     }
 
                     return result;

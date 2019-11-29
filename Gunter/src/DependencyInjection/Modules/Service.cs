@@ -7,6 +7,7 @@ using Gunter.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Reusable;
+using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
 using Reusable.IO;
@@ -83,15 +84,13 @@ namespace Gunter.DependencyInjection.Modules
                 .RegisterType<RuntimePropertyProvider>()
                 .AsSelf();
 
-            var commands =
-                ImmutableList<CommandModule>
-                    .Empty
-                    .Add<Commands.Run>()
-                    .Add<Commands.Send>()
-                    .Add<Commands.Halt>();
-
             builder
-                .RegisterModule(new CommanderModule(commands));
+                .RegisterModule(new CommanderModule
+                {
+                    Command.Registration<Commands.Run>(),
+                    Command.Registration<Commands.Send>(),
+                    Command.Registration<Commands.Halt>(),
+                });
         }
     }
 
