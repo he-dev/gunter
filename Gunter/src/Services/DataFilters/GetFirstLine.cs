@@ -13,9 +13,8 @@ namespace Gunter.Services.DataFilters
     [Gunter]
     public class GetFirstLine : IDataFilter
     {
-        [NotNull, ItemNotNull]
         [JsonProperty(Required = Required.Always)]
-        public IList<GetFirstLineColumn> Columns { get; set; }
+        public List<GetFirstLineColumn>? Columns { get; set; }
 
         public void Execute(DataTable dataTable)
         {
@@ -48,20 +47,15 @@ namespace Gunter.Services.DataFilters
             }
         }
 
-        [CanBeNull]
-        private static string GetFirstLineInternal(object data)
+        private static string? GetFirstLineInternal(object data)
         {
-            switch (data)
+            return data switch
             {
-                case null:
-                case DBNull _: return default;
-                case string value:
-                    return
-                        string.IsNullOrEmpty(value)
-                            ? default
-                            : value.Split(new[] { "\r\n", "\r" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-                default: throw new ArgumentException($"Invalid data type. Expected {typeof(string).Name} but found {data.GetType().Name}.");
-            }
+                null => default,
+                DBNull _ => default,
+                string value => (string.IsNullOrEmpty(value) ? default : value.Split(new[] { "\r\n", "\r" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()),
+                _ => throw new ArgumentException($"Invalid data type. Expected {typeof(string).Name} but found {data.GetType().Name}.")
+            };
         }
     }
 

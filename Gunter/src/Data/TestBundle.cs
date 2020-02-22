@@ -19,17 +19,17 @@ namespace Gunter.Data
     {
         public const string PartialPrefix = "_";
         
-        public static readonly IEnumerable<Type> KnownTypes = new[]
+        public static readonly IEnumerable<Type> SectionTypes = new[]
         {
             typeof(Gunter.Data.SqlClient.TableOrView),
             typeof(Gunter.Services.DataFilters.GetJsonValue),
             typeof(Gunter.Services.DataFilters.GetFirstLine),
-            typeof(Mailr),
+            typeof(Gunter.Services.Channels.Mailr),
             typeof(Gunter.Reporting.Modules.Level),
             typeof(Gunter.Reporting.Modules.Greeting),
-            typeof(TestInfo),
-            typeof(QueryInfo),
-            typeof(DataInfo),
+            typeof(Gunter.Reporting.Modules.Tabular.TestInfo),
+            typeof(Gunter.Reporting.Modules.Tabular.QueryInfo),
+            typeof(Gunter.Reporting.Modules.Tabular.DataInfo),
             typeof(Gunter.Reporting.Formatters.TimeSpan),
         };
         
@@ -54,10 +54,10 @@ namespace Gunter.Data
         [JsonIgnore]
         public string FullName { get; set; }
 
-        [NotNull, JsonIgnore]
+        [JsonIgnore]
         public string DirectoryName => Path.GetDirectoryName(FullName);
 
-        [NotNull, JsonIgnore]
+        [JsonIgnore]
         public SoftString FileName => Path.GetFileNameWithoutExtension(FullName);
 
         [JsonIgnore]

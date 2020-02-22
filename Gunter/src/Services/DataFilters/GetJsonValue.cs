@@ -14,9 +14,8 @@ namespace Gunter.Services.DataFilters
     [UsedImplicitly]
     public class GetJsonValue : IDataFilter
     {
-        [NotNull, ItemNotNull]
         [JsonProperty(Required = Required.Always)]
-        public IList<GetJsonValueColumn> Columns { get; set; }
+        public IList<GetJsonValueColumn>? Columns { get; set; }
 
         public void Execute(DataTable dataTable)
         {
@@ -56,12 +55,12 @@ namespace Gunter.Services.DataFilters
             }
 
             var jToken = JToken.Parse(value).SelectToken(path);
-            switch (jToken)
+            return jToken switch
             {
-                case null: return defaultValue;
-                case JValue jValue: return jValue.Value;
-                default: return defaultValue;
-            }
+                null => defaultValue,
+                JValue jValue => jValue.Value,
+                _ => defaultValue
+            };
         }
     }
 

@@ -8,7 +8,6 @@ using Autofac;
 using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Extensions;
-using JetBrains.Annotations;
 using Reusable;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
@@ -21,12 +20,7 @@ namespace Gunter.Services
 {
     internal interface ITestComposer
     {
-        [NotNull, ItemNotNull]
-        IEnumerable<TestBundle> ComposeTests
-        (
-            [NotNull, ItemNotNull] IEnumerable<TestBundle> bundles,
-            [NotNull] TestFilter testFilter
-        );
+        IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, TestFilter testFilter);
     }
 
     internal class TestComposer : ITestComposer
@@ -46,11 +40,6 @@ namespace Gunter.Services
 
             foreach (var bundle in bundleGroups[TestBundleType.Regular])
             {
-//                if (!testFilter.Files.IsNullOr(names => names.Select(SoftString.Create).Contains(bundle.Name)))
-//                {
-//                    continue;
-//                }
-
                 var executableTests =
                     from test in bundle.Tests
                     where
@@ -115,7 +104,7 @@ namespace Gunter.Services
                 foreach (var mergeable in testBundlePropertyValue)
                 {
                     var other = default(IMergeable);
-                    if (!(mergeable.Merge is null))
+                    if (mergeable.Merge is {})
                     {
                         var partialTestBundle = partials.Where(p => p.Name == mergeable.Merge.Name).SingleOrThrow
                         (
@@ -144,25 +133,13 @@ namespace Gunter.Services
                                 throw DynamicException.Create($"PropertyNull", $"Mergeable property '{mergeableProperty.Name}' must not be null.");
                             }
 
-                            var newValue = default(object);
-                            switch (currentValue)
+                            var newValue = currentValue switch
                             {
-                                case IEnumerable<SoftString> x when otherValue is IEnumerable<SoftString> y:
-                                    newValue = x.Union(y).ToList();
-                                    break;
-
-                                case IEnumerable<KeyValuePair<SoftString, object>> x when otherValue is IEnumerable<KeyValuePair<SoftString, object>> y:
-                                    newValue = x.Union(y).ToDictionary(p => p.Key, p => p.Value);
-                                    break;
-
-                                case null:
-                                    newValue = otherValue;
-                                    break;
-
-                                default:
-                                    newValue = currentValue;
-                                    break;
-                            }
+                                IEnumerable<SoftString> x when otherValue is IEnumerable<SoftString> y => x.Union(y).ToList(),
+                                IEnumerable<KeyValuePair<SoftString, object>> x when otherValue is IEnumerable<KeyValuePair<SoftString, object>> y => x.Union(y).ToDictionary(p => p.Key, p => p.Value),
+                                null => otherValue,
+                                _ => currentValue
+                            };
 
                             mergeableProperty.SetValue(newMergeable, newValue);
                         }

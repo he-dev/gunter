@@ -21,15 +21,15 @@ namespace Gunter.Services.Channels
     [PublicAPI]
     public class Mailr : Channel
     {
-        private readonly IResourceRepository _resources;
+        private readonly IResource _resource;
 
         public Mailr
         (
             ILogger<Mailr> logger,
-            IResourceRepository resources
+            IResource resource
         ) : base(logger)
         {
-            _resources = resources;
+            _resource = resource;
         }
 
         [Mergeable]
@@ -68,8 +68,8 @@ namespace Gunter.Services.Channels
                 Modules = modules.Select(m => m.Name)
             }, "EmailInfo"));
 
-            var testResultPath = await _resources.ReadSettingAsync(MailrConfig.TestResultPath);
-            await _resources.SendEmailAsync(testResultPath, email, http =>
+            var testResultPath = await _resource.ReadSettingAsync(MailrConfig.TestResultPath);
+            await _resource.SendEmailAsync(testResultPath, email, http =>
             {
                 http.UserAgent = new ProductInfoHeaderValue(ProgramInfo.Name, ProgramInfo.Version);
                 http.ControllerTags.Add("Mailr");

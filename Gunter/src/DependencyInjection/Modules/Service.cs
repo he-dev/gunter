@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Immutable;
 using System.Net.Http;
 using Autofac;
 using Gunter.Data;
@@ -10,16 +9,19 @@ using Reusable;
 using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
+using Reusable.Extensions;
 using Reusable.IO;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Translucent;
+using Reusable.Translucent.Abstractions;
+using Reusable.Translucent.Controllers;
 using Reusable.Translucent.Middleware;
+using Reusable.Translucent.Middleware.ResourceValidator;
 using Reusable.Utilities.Autofac;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
 using Reusable.Utilities.JsonNet.DependencyInjection;
-using IServiceProvider = System.IServiceProvider;
 using Module = Autofac.Module;
 
 namespace Gunter.DependencyInjection.Modules
@@ -40,8 +42,31 @@ namespace Gunter.DependencyInjection.Modules
                 .As<IServiceProvider>();
 
             builder
-                .RegisterType<ResourceRepository<GunterResourceSetup>>()
-                .As<IResourceRepository>();
+                .Register(ctx =>
+                {
+                    return new Resource(new IResourceMiddleware[]
+                    {
+                        new ResourceTelemetry(ctx.Resolve<ILogger<ResourceTelemetry>>()),
+                        new EnvironmentVariableResourceMiddleware(),
+                        new ResourceValidation(new CompositeResourceValidator
+                        {
+                            new RequiredResourceExists()
+                        }),
+                        new ResourceSearch(new IResourceController[]
+                        {
+                            new PhysicalFileResourceController(),
+                            new JsonFileController(ProgramInfo.CurrentDirectory, "appsettings.json"),
+                            new HttpController
+                            (
+                                new HttpClient(new HttpClientHandler { UseProxy = false })
+                                {
+                                    BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
+                                }
+                            ).Pipe(x => x.Tags.Add("Mailr")),
+                        }),
+                    });
+                })
+                .As<IResource>();
 
             builder
                 .Register(ctx =>
@@ -91,24 +116,6 @@ namespace Gunter.DependencyInjection.Modules
                     Command.Registration<Commands.Send>(),
                     Command.Registration<Commands.Halt>(),
                 });
-        }
-    }
-
-    internal class GunterResourceSetup
-    {
-        public void ConfigureResources(IResourceCollection controller)
-        {
-            controller.AddPhysicalFile(default);
-            controller.AddJsonFile(default, ProgramInfo.CurrentDirectory, "appsettings.json");
-            controller.AddHttp(default, new HttpClient(new HttpClientHandler { UseProxy = false }) { BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"]) }, http => { http.Tags.Add("Mailr"); });
-        }
-
-        public void ConfigurePipeline(IPipelineBuilder<ResourceContext> pipeline, IServiceProvider serviceProvider)
-        {
-            pipeline
-                .UseTelemetry(serviceProvider.Resolve<ILogger<TelemetryMiddleware>>())
-                .UseEnvironmentVariable()
-                .UseMiddleware<ResourceExistsValidationMiddleware>();
         }
     }
 }

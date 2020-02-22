@@ -21,17 +21,17 @@ namespace Gunter.Reporting
         [DefaultValue(ColumnAggregate.Last)]
         public ColumnAggregate Aggregate { get; set; }
 
-        public IFormatter Formatter { get; set; }
+        public IFormatter? Formatter { get; set; }
 
         // Not using IList because it's not compatible with the params argument
         public string[] Styles { get; set; }
 
         private string DebuggerDisplay() => this.ToDebuggerDisplayString(builder =>
         {
-            builder.DisplayScalar(x => x.Select);
-            builder.DisplayScalar(x => IsKey);
+            builder.DisplaySingle(x => x.Select);
+            builder.DisplaySingle(x => IsKey);
             //builder.DisplayMember(x => Filter);
-            builder.DisplayScalar(x => x.Aggregate);
+            builder.DisplaySingle(x => x.Aggregate);
         });
 
         public bool Equals(DataInfoColumn other) => AutoEquality<DataInfoColumn>.Comparer.Equals(this, other);

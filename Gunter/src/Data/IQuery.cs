@@ -21,8 +21,8 @@ namespace Gunter.Data
     [PublicAPI]
     public interface IQuery : IMergeable
     {
-        [CanBeNull, ItemNotNull]
-        IList<IDataFilter> Filters { get; set; }
+        [ItemNotNull]
+        IList<IDataFilter>? Filters { get; set; }
 
         [ItemNotNull]
         Task<Snapshot> ExecuteAsync(RuntimePropertyProvider runtimeProperties);
@@ -41,7 +41,7 @@ namespace Gunter.Data
         public Merge Merge { get; set; }
 
         [Mergeable]
-        public IList<IDataFilter> Filters { get; set; }
+        public IList<IDataFilter>? Filters { get; set; }
 
         public async Task<Snapshot> ExecuteAsync(RuntimePropertyProvider runtimeProperties)
         {
@@ -50,20 +50,10 @@ namespace Gunter.Data
                 Logger.Log(Abstraction.Layer.Service().Subject(new { DataSourceId = Id.ToString() }));
                 try
                 {
-                    var result = await ExecuteAsyncInternal(runtimeProperties);
-                    result.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
-
-                    using (Logger.BeginScope().WithCorrelationHandle("ExecuteFilters").UseStopwatch())
-                    {
-                        foreach (var dataFilter in Filters ?? Enumerable.Empty<IDataFilter>())
-                        {
-                            dataFilter.Execute(result.Data);
-                        }
-
-                        result.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
-                    }
-
-                    return result;
+                    var snapshot = await GetDataAsync(runtimeProperties);
+                    snapshot.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
+                    
+                    return ApplyFilters(snapshot);
                 }
                 catch (Exception inner)
                 {
@@ -72,16 +62,32 @@ namespace Gunter.Data
             }
         }
 
-        protected abstract Task<Snapshot> ExecuteAsyncInternal(RuntimePropertyProvider runtimeProperties);
+        private Snapshot ApplyFilters(Snapshot snapshot)
+        {
+            if (Filters is {} filters)
+            {
+                using (Logger.BeginScope().WithCorrelationHandle("ExecuteFilters").UseStopwatch())
+                {
+                    foreach (var dataFilter in filters)
+                    {
+                        dataFilter.Execute(snapshot.Data);
+                    }
+
+                    snapshot.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
+                }
+            }
+
+            return snapshot;
+        }
+
+        protected abstract Task<Snapshot> GetDataAsync(RuntimePropertyProvider runtimeProperties);
     }
 
     public class Snapshot : IDisposable
     {
-        [NotNull]
         public string Command { get; set; }
         
-        [CanBeNull]
-        public DataTable Data { get; set; }
+        public DataTable? Data { get; set; }
 
         public TimeSpan GetDataElapsed { get; set; }
 

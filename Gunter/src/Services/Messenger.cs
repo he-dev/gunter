@@ -31,7 +31,7 @@ namespace Gunter.Services
         [JsonRequired]
         public SoftString Id { get; set; }
 
-        public Merge Merge { get; set; }
+        public Merge? Merge { get; set; }
 
         public async Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds)
         {

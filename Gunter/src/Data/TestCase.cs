@@ -21,11 +21,7 @@ namespace Gunter.Data
 
         public delegate TestCase Factory();
 
-        public TestCase(Factory factory)
-        {
-            Debug.Assert(factory.IsNotNull());
-            _factory = factory;
-        }
+        public TestCase(Factory factory) => _factory = factory;
 
         public SoftString Id { get; set; }
 
@@ -42,7 +38,7 @@ namespace Gunter.Data
 
         [JsonProperty("Check", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergeable]
-        public IList<SoftString> DataSourceIds { get; set; } = new List<SoftString>();
+        public List<SoftString> DataSourceIds { get; set; } = new List<SoftString>();
 
         [Mergeable]
         public string Filter { get; set; }
@@ -51,23 +47,23 @@ namespace Gunter.Data
         public string Assert { get; set; }
 
         // Gets or sets commands that should be executed upon the specified test-result.
-        public IDictionary<TestResult, IList<string>> When { get; set; }
+        public IDictionary<TestResult, List<string>> When { get; set; }
 
         //[JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergeable]
-        public IList<SoftString> Tags { get; set; } = new List<SoftString>();
+        public List<SoftString> Tags { get; set; } = new List<SoftString>();
     }
 
     public static class TestCaseExtensions
     {
         public static IEnumerable<IQuery> DataSources(this TestCase testCase, TestBundle testBundle)
         {
-            return
-            (
+            var dataSourceIds =
                 from id in testCase.DataSourceIds
                 join ds in testBundle.Queries on id equals ds.Id
-                select ds
-            ).Distinct();
+                select ds;
+
+            return dataSourceIds.Distinct();
         }
 
         public static bool IsNullOr<T>(this IEnumerable<T> source, Predicate<IEnumerable<T>> predicate)
@@ -79,7 +75,6 @@ namespace Gunter.Data
     public class TestWhen
     {
         [JsonProperty("Send", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [CanBeNull]
-        public IEnumerable<SoftString> MessengerIds { get; set; }
+        public IEnumerable<SoftString>? MessengerIds { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace Gunter.Reporting.Formatters
         [DefaultValue(TimeSpanValueType.Milliseconds)]
         public TimeSpanValueType Type { get; set; }
 
-        public string Apply(object value)
+        public string Apply(object? value)
         {
             return
                 value is null

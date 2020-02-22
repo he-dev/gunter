@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Custom;
 using System.Threading.Tasks;
 using Gunter.Data;
 using JetBrains.Annotations;
 using Reusable;
+using Reusable.Extensions;
 using Reusable.IO;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
@@ -19,7 +21,7 @@ namespace Gunter.Services
     internal interface ITestLoader
     {
         [ItemNotNull]
-        Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName, IList<string> includeFileNames);
+        IAsyncEnumerable<TestBundle> LoadTestsAsync(string testDirectoryName, List<string> includeFileNames);
     }
 
     [UsedImplicitly]
@@ -27,29 +29,24 @@ namespace Gunter.Services
     {
         private readonly ILogger _logger;
         private readonly IDirectoryTree _directoryTree;
-        private readonly IResourceRepository _resources;
+        private readonly IResource _resource;
         private readonly IPrettyJsonSerializer _testFileSerializer;
-
-//        private static readonly ValidationRuleCollection<TestBundle, object> UniqueMergeableIdsValidator =
-//            ValidationRuleCollection
-//                .For<TestBundle>()
-//                .Accept(b => b.When(x => x.All(mergeables => mergeables.GroupBy(m => m.Id).All(g => g.Count() == 1))).Message("All mergable items must have unique ids."));
 
         public TestLoader
         (
             ILogger<TestLoader> logger,
             IDirectoryTree directoryTree,
-            IResourceRepository resources,
+            IResource resource,
             IPrettyJsonSerializer testFileSerializer
         )
         {
             _logger = logger;
             _directoryTree = directoryTree;
-            _resources = resources;
+            _resource = resource;
             _testFileSerializer = testFileSerializer;
         }
 
-        public async Task<IList<TestBundle>> LoadTestsAsync(string testDirectoryName, IList<string> includeFileNames)
+        public async IAsyncEnumerable<TestBundle> LoadTestsAsync(string testDirectoryName, List<string> includeFileNames)
         {
             _logger.Log(Abstraction.Layer.IO().Meta(new { TestDirectoryName = testDirectoryName }));
 
@@ -59,65 +56,72 @@ namespace Gunter.Services
                     .WhereFiles(@"\.json$")
                     .SelectMany(node => node.FileNames.Select(fileName => Path.Combine(node.DirectoryName, fileName)));
 
-            var testBundles = new List<TestBundle>();
+            //var testBundles = new List<TestBundle>();
 
             foreach (var fullName in testFiles)
             {
-                using (_logger.BeginScope().WithCorrelationHandle("LoadTestFile").UseStopwatch())
+                using var _ = _logger.BeginScope().WithCorrelationHandle("LoadTestFile").UseStopwatch();
+
+                _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
+
+                var isPartial = Path.GetFileName(fullName).StartsWith(TestBundle.PartialPrefix);
+                var canLoad = isPartial || includeFileNames.EmptyOr(x => Path.GetFileNameWithoutExtension(fullName).In(x, SoftString.Comparer));
+
+                if (!canLoad)
                 {
-                    _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
+                    _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("Excluded by filter."));
+                    continue;
+                }
 
-                    var fileName = Path.GetFileName(fullName);
-                    var isTemplate = fileName.StartsWith("_");
-
-                    var canLoad =
-                        isTemplate ||
-                        includeFileNames is null ||
-                        includeFileNames.Any(includeFileName => SoftString.Comparer.Equals(includeFileName, Path.GetFileNameWithoutExtension(fullName)));
-
-                    if (!canLoad)
-                    {
-                        _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("Excluded by filter."));
-                        continue;
-                    }
-
-                    try
-                    {
-                        var file = await _resources.ReadTextFileAsync(fullName);
-                        var testBundle = _testFileSerializer.Deserialize<TestBundle>(file, TypeDictionary.From(TestBundle.KnownTypes));
-
-                        if (!testBundle.Enabled)
-                        {
-                            _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("It's disabled."));
-                            continue;
-                        }
-
-                        var duplicateIds =
-                            from mergables in testBundle
-                            from mergable in mergables
-                            group mergable by mergable.Id into g
-                            where g.Count() > 1
-                            select g;
-
-                        duplicateIds = duplicateIds.ToList();
-                        if (duplicateIds.Any())
-                        {
-                            _logger.Log(Abstraction.Layer.IO().Meta(duplicateIds.Select(g => g.Key.ToString()), "DuplicateIds").Error());
-                            continue;
-                        }
-
-                        testBundle.FullName = fullName;
-                        testBundles.Add(testBundle);
-                        _logger.Log(Abstraction.Layer.IO().Routine("LoadTestFile").Completed());
-                    }
-                    catch (Exception inner)
-                    {
-                        _logger.Log(Abstraction.Layer.IO().Routine("LoadTestFile").Faulted(inner));
-                    }
+                if (await LoadTestAsync(fullName) is {} testBundle)
+                {
+                    yield return testBundle;
                 }
             }
+        }
 
-            return testBundles;
+        private async Task<TestBundle?> LoadTestAsync(string fullName)
+        {
+            try
+            {
+                var file = await _resource.ReadTextFileAsync(fullName);
+                var testBundle = _testFileSerializer.Deserialize<TestBundle>(file, TypeDictionary.From(TestBundle.SectionTypes)).Pipe(x => x.FullName = fullName);
+
+                if (testBundle.Enabled)
+                {
+                    var duplicateIds =
+                        from section in testBundle
+                        from item in section
+                        group item by item.Id into g
+                        where g.Count() > 1
+                        select g;
+
+                    duplicateIds = duplicateIds.ToList();
+                    if (duplicateIds.Any())
+                    {
+                        _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("It contains duplicate ids."));
+                        _logger.Log(Abstraction.Layer.IO().Meta(duplicateIds.Select(g => g.Key.ToString()), "DuplicateIds").Error());
+                    }
+                    else
+                    {
+                        return testBundle;
+                    }
+                }
+                else
+                {
+                    _logger.Log(Abstraction.Layer.IO().Flow().Decision("Skip test file.").Because("It's disabled."));
+                }
+            }
+            catch (Exception inner)
+            {
+                _logger.Log(Abstraction.Layer.IO().Routine("LoadTestFile").Faulted(inner));
+            }
+            finally
+            {
+                _logger.Log(Abstraction.Layer.IO().Routine("LoadTestFile").Completed());
+            }
+
+            return default;
         }
     }
 }

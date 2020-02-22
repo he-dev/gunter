@@ -9,7 +9,6 @@ namespace Gunter.Data
         [JsonRequired]
         SoftString Id { get; set; }
         
-        [CanBeNull]
-        Merge Merge { get; set; }
+        Merge? Merge { get; set; }
     }
 }

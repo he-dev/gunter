@@ -6,10 +6,9 @@ using Reusable.Translucent;
 namespace Gunter
 {
     [UseScheme("app"), UseMember]
-    [PlainSelectorFormatter]
     public class ProgramInfo
     {
-        private readonly IResourceRepository _resources;
+        private readonly IResource _resource;
 
         static ProgramInfo()
         {
@@ -20,9 +19,9 @@ namespace Gunter
                     .Build();
         }
 
-        public ProgramInfo(IResourceRepository resources)
+        public ProgramInfo(IResource resource)
         {
-            _resources = resources;
+            _resource = resource;
         }
 
         public static IConfiguration Configuration { get; }
@@ -35,12 +34,11 @@ namespace Gunter
 
         public static string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
-        public string Environment => _resources.ReadSetting(() => Environment);
+        public string Environment => _resource.ReadSetting(() => Environment);
     }
 
     [UseScheme("app"), UseMember]
     [TrimEnd("Config")]
-    [PlainSelectorFormatter]
     public class ProgramConfig : SelectorBuilder<ProgramConfig>
     {
         public static Selector<string> Environment = Select(() => Environment);
@@ -50,7 +48,6 @@ namespace Gunter
 
     [UseScheme("mailr"), UseMember]
     [TrimEnd("Config")]
-    [PlainSelectorFormatter]
     public class MailrConfig : SelectorBuilder<MailrConfig>
     {
         public static Selector<string> BaseUri = Select(() => BaseUri);

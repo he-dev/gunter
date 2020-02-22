@@ -22,7 +22,7 @@ namespace Gunter.Reporting.Modules.Tabular
                 (keys) => keys.CalcHashCode()
             );
 
-        private delegate object AggregateCallback([NotNull, ItemCanBeNull] IEnumerable<object> values);
+        private delegate object? AggregateCallback(IEnumerable<object?> values);
 
         private static readonly Dictionary<ColumnAggregate, AggregateCallback> Aggregates = new Dictionary<ColumnAggregate, AggregateCallback>
         {
@@ -41,7 +41,7 @@ namespace Gunter.Reporting.Modules.Tabular
 
         [NotNull]
         [ItemCanBeNull]
-        public List<DataInfoColumn> Columns { get; set; } = new List<DataInfoColumn>();
+        public List<DataInfoColumn?> Columns { get; set; } = new List<DataInfoColumn?>();
 
         public override IModuleDto CreateDto(TestContext context)
         {
@@ -94,9 +94,7 @@ namespace Gunter.Reporting.Modules.Tabular
 
         private IEnumerable<string> StringifyColumnOption(DataInfoColumn column)
         {
-            if (column.IsKey) yield return "Key";
-            //if (column.Filter != null && !(column.Filter is Unchanged)) yield return column.Filter.GetType().Name;
-            yield return column.Aggregate.ToString();
+            yield return column.IsKey ? "Key" : column.Aggregate.ToString();
         }
 
         private object Aggregate(DataInfoColumn column, IEnumerable<DataRow> rowGroup)
@@ -105,22 +103,17 @@ namespace Gunter.Reporting.Modules.Tabular
             {
                 var aggregate = Aggregates[column.Aggregate];
                 var values = rowGroup.Values((string)column.Select).NotDBNull();
-                var value = aggregate(values);
-                if (value is null)
+                if (aggregate(values) is {} value)
                 {
-                    return default;
-                }
-                else
-                {
-                    //value = column.Filter is null ? value : column.Filter.Apply(value);
-                    value = column.Formatter?.Apply(value) ?? value;
-                    return value;
+                    return column.Formatter?.Apply(value) ?? value;
                 }
             }
             catch (Exception inner)
             {
                 throw DynamicException.Create("Aggregate", $"Could not aggregate '{column.Select.ToString()}'.", inner);
             }
+
+            return default;
         }
     }
 

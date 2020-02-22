@@ -19,10 +19,7 @@ namespace Gunter.Services
 {
     public interface ITestRunner
     {
-        Task RunAsync
-        (
-            [NotNull, ItemNotNull] IEnumerable<TestBundle> testBundles
-        );
+        Task RunAsync(IEnumerable<TestBundle> testBundles);
     }
 
     [UsedImplicitly]
@@ -76,96 +73,91 @@ namespace Gunter.Services
                     .AddObjects(new object[] { testBundle })
                     .AddProperties(testBundle.Variables.Flatten());
 
-            using (_logger.BeginScope().WithCorrelationHandle("ProcessTestBundle").UseStopwatch())
-            using (var cache = new MemoryCache(new MemoryCacheOptions()))
+            using var testBundleScope = _logger.BeginScope().WithCorrelationHandle("ProcessTestBundle").UseStopwatch();
+            using var cache = new MemoryCache(new MemoryCacheOptions());
+
+            _logger.Log(Abstraction.Layer.Service().Meta(new { TestFileName = testBundle.FileName }));
+            foreach (var current in tests)
             {
-                _logger.Log(Abstraction.Layer.Service().Meta(new { TestFileName = testBundle.FileName }));
-                foreach (var current in tests)
+                using var testCaseScope = _logger.BeginScope().WithCorrelationHandle("ProcessTestCase").UseStopwatch();
+                _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
+                try
                 {
-                    using (_logger.BeginScope().WithCorrelationHandle("ProcessTestCase").UseStopwatch())
+                    if (!cache.TryGetValue<Snapshot>(current.dataSource.Id, out var logView))
                     {
-                        _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
-                        try
-                        {
-                            if (!cache.TryGetValue<Snapshot>(current.dataSource.Id, out var logView))
-                            {
-                                cache.Set(current.dataSource.Id, logView = await current.dataSource.ExecuteAsync(testBundleRuntimeVariables));
-                            }
-
-                            var (result, runElapsed, commands) = RunTest(current.testCase, logView.Data);
-
-                            var context = new TestContext
-                            {
-                                TestBundle = testBundle,
-                                TestCase = current.testCase,
-                                //TestWhen = when,
-                                Query = current.dataSource,
-                                Command = logView.Command,
-                                Data = logView.Data,
-                                Result = result,
-                                RuntimeProperties =
-                                    _runtimePropertyProvider
-                                        .AddObjects(
-                                            testBundle,
-                                            current.testCase,
-                                            new TestCounter
-                                            {
-                                                GetDataElapsed = logView.GetDataElapsed,
-                                                RunTestElapsed = runElapsed
-                                            })
-                                        .AddProperties(testBundle.Variables.Flatten())
-                            };
-
-                            foreach (var cmd in commands)
-                            {
-                                await _commandLineExecutor.ExecuteAsync(cmd, context);
-                            }
-
-                            _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Completed());
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            break;
-                        }
-                        catch (DynamicException ex) when (ex.NameMatches("^DataSource"))
-                        {
-                            _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Faulted(), ex);
-                            // It'd be pointless to continue when there is no data.
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Faulted(), ex);
-                        }
+                        cache.Set(current.dataSource.Id, logView = await current.dataSource.ExecuteAsync(testBundleRuntimeVariables));
                     }
-                }
 
-                _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Completed());
+                    var (result, runElapsed, commands) = RunTest(current.testCase, logView.Data);
+
+                    var context = new TestContext
+                    {
+                        TestBundle = testBundle,
+                        TestCase = current.testCase,
+                        Query = current.dataSource,
+                        Command = logView.Command,
+                        Data = logView.Data,
+                        Result = result,
+                        RuntimeProperties =
+                            _runtimePropertyProvider
+                                .AddObjects(
+                                    testBundle,
+                                    current.testCase,
+                                    new TestCounter
+                                    {
+                                        GetDataElapsed = logView.GetDataElapsed,
+                                        RunTestElapsed = runElapsed
+                                    })
+                                .AddProperties(testBundle.Variables.Flatten())
+                    };
+
+                    foreach (var cmd in commands)
+                    {
+                        await _commandLineExecutor.ExecuteAsync(cmd, context);
+                    }
+
+                    _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Completed());
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (DynamicException ex) when (ex.NameMatches("^DataSource"))
+                {
+                    _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Faulted(), ex);
+                    // It'd be pointless to continue when there is no data.
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Faulted(), ex);
+                }
             }
+
+            _logger.Log(Abstraction.Layer.Business().Routine(_logger.Scope().CorrelationHandle.ToString()).Completed());
         }
 
-        private (TestResult Result, TimeSpan Elapsed, IList<string> Commands) RunTest(TestCase testCase, DataTable data)
+        private (TestResult Result, TimeSpan Elapsed, List<string> Commands) RunTest(TestCase testCase, DataTable data)
         {
-            using (_logger.BeginScope().WithCorrelationHandle("RunTest").UseStopwatch())
+            using var _ = _logger.BeginScope().WithCorrelationHandle("RunTest").UseStopwatch();
+
+            if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
             {
-                if (!(data.Compute(testCase.Assert, testCase.Filter) is bool result))
-                {
-                    throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
-                }
-
-                var assertElapsed = _logger.Scope().Stopwatch().Elapsed;
-                var testResult =
-                    result
-                        ? TestResult.Passed
-                        : TestResult.Failed;
-
-                _logger.Log(Abstraction.Layer.Service().Meta(new { TestResult = testResult }));
-
-                return
-                    testCase.When.TryGetValue(testResult, out var then)
-                        ? (testResult, assertElapsed, then)
-                        : (testResult, assertElapsed, new List<string>());
+                throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
             }
+
+            var assertElapsed = _logger.Scope().Stopwatch().Elapsed;
+            var testResult =
+                result
+                    ? TestResult.Passed
+                    : TestResult.Failed;
+
+            _logger.Log(Abstraction.Layer.Service().Meta(new { TestResult = testResult }));
+
+            return
+                testCase.When.TryGetValue(testResult, out var then)
+                    ? (testResult, assertElapsed, then)
+                    : (testResult, assertElapsed, new List<string>());
         }
     }
 }

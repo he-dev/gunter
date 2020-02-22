@@ -5,7 +5,6 @@ namespace Gunter.Reporting
     [UsedImplicitly, PublicAPI]
     public interface IFormatter
     {
-        [CanBeNull]
-        string Apply(object value);
+        string? Apply(object? value);
     }
 }

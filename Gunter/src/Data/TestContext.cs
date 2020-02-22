@@ -7,7 +7,6 @@ namespace Gunter.Data
     {
         public TestBundle TestBundle { get; set; }
         public TestCase TestCase { get; set; }
-        //public TestWhen TestWhen { get; set; }
         public DataTable Data { get; set; }
         public IQuery Query { get; set; }
         public RuntimePropertyProvider RuntimeProperties { get; set; }

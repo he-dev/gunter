@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Gunter.Data;
@@ -18,7 +19,7 @@ namespace Gunter.Commands
         private readonly ITestLoader _testLoader;
         private readonly ITestComposer _testComposer;
         private readonly ITestRunner _testRunner;
-        private readonly IResourceRepository _resources;
+        private readonly IResource _resource;
 
         public Run
         (
@@ -26,22 +27,22 @@ namespace Gunter.Commands
             ITestLoader testLoader,
             ITestComposer testComposer,
             ITestRunner testRunner,
-            IResourceRepository resources
+            IResource resource
         )
             : base(logger)
         {
             _testLoader = testLoader;
             _testComposer = testComposer;
             _testRunner = testRunner;
-            _resources = resources;
+            _resource = resource;
         }
 
         protected override async Task ExecuteAsync(Parameter parameter, CancellationToken cancellationToken)
         {
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-            var defaultPath = Path.Combine(currentDirectory, _resources.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
+            var defaultPath = Path.Combine(currentDirectory, _resource.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
-            var bundles = await _testLoader.LoadTestsAsync(parameter.Path ?? defaultPath, parameter.Files);
+            var bundles = await _testLoader.LoadTestsAsync(parameter.Path ?? defaultPath, parameter.Files).ToListAsync(cancellationToken);
             var testFilter = new TestFilter
             {
                 Path = parameter.Path ?? defaultPath,
@@ -57,12 +58,9 @@ namespace Gunter.Commands
         public class Parameter : CommandParameter
         {
             public string Path { get; set; }
-
-            public IList<string> Files { get; set; }
-
-            public IList<string> Tests { get; set; }
-
-            public IList<string> Tags { get; set; }
+            public List<string> Files { get; set; } = new List<string>();
+            public List<string> Tests { get; set; } = new List<string>();
+            public List<string> Tags { get; set; } = new List<string>();
         }
     }
 }
