@@ -22,24 +22,16 @@ namespace Gunter
         private readonly ILogger _logger;
         private readonly ICommandExecutor _commandExecutor;
         private readonly IResource _resource;
-        private readonly ICommandFactory _commandFactory;
 
         public Program(IContainer container)
         {
             _container = container;
             _logger = container.Resolve<ILogger<Program>>();
             _commandExecutor = container.Resolve<ICommandExecutor>();
-            _commandFactory = container.Resolve<ICommandFactory>();
             _resource = container.Resolve<IResource>();
 
             var location = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             Directory.SetCurrentDirectory(location);
-
-            var configuration =
-                new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json")
-                    .Build();
         }
 
         public static Program Create() => new Program(CreateContainer());
@@ -88,7 +80,7 @@ namespace Gunter
             {
                 var defaultTestsDirectoryName = await _resource.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
                 var defaultPath = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName);
-                args = new[] { "run", "-path", $"\"{defaultPath}\"" };
+                args = new[] { "run", "--path", $"\"{defaultPath}\"" };
             }
 
             await _commandExecutor.ExecuteAsync<object>(args.Join(" "));

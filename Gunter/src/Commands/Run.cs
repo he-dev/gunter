@@ -29,7 +29,6 @@ namespace Gunter.Commands
             ITestRunner testRunner,
             IResource resource
         )
-            : base(logger)
         {
             _testLoader = testLoader;
             _testComposer = testComposer;

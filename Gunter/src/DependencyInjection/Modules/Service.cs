@@ -110,12 +110,12 @@ namespace Gunter.DependencyInjection.Modules
                 .AsSelf();
 
             builder
-                .RegisterModule(new CommanderModule
+                .RegisterModule(new CommandModule(builder =>
                 {
-                    Command.Registration<Commands.Run>(),
-                    Command.Registration<Commands.Send>(),
-                    Command.Registration<Commands.Halt>(),
-                });
+                    builder.Register<Commands.Run>();
+                    builder.Register<Commands.Send>();
+                    builder.Register<Commands.Halt>();
+                }));
         }
     }
 }

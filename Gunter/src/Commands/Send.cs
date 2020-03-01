@@ -16,7 +16,7 @@ namespace Gunter.Commands
     [Tags("s")]
     internal class Send : Command<Send.Parameter>
     {
-        public Send(ILogger<Send> logger) : base(logger) { }
+        public Send(ILogger<Send> logger) { }
 
         protected override async Task ExecuteAsync(Parameter parameter, CancellationToken cancellationToken)
         {

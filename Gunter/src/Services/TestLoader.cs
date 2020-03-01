@@ -20,7 +20,6 @@ namespace Gunter.Services
 {
     internal interface ITestLoader
     {
-        [ItemNotNull]
         IAsyncEnumerable<TestBundle> LoadTestsAsync(string testDirectoryName, List<string> includeFileNames);
     }
 
@@ -52,9 +51,9 @@ namespace Gunter.Services
 
             var testFiles =
                 _directoryTree
-                    .Walk(testDirectoryName, PhysicalDirectoryTree.MaxDepth(1), PhysicalDirectoryTree.IgnoreExceptions)
+                    .Walk(testDirectoryName, DirectoryTreePredicates.MaxDepth(1), PhysicalDirectoryTree.IgnoreExceptions)
                     .WhereFiles(@"\.json$")
-                    .SelectMany(node => node.FileNames.Select(fileName => Path.Combine(node.DirectoryName, fileName)));
+                    .FullNames();
 
             //var testBundles = new List<TestBundle>();
 
