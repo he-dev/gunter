@@ -12,6 +12,7 @@ using Gunter.Data;
 using Gunter.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable;
+using Reusable.Commander;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
@@ -33,7 +34,7 @@ namespace Gunter
 
         public bool CanLoad { get; set; }
 
-        public bool IsPartial => Path.GetFileName(Name).StartsWith(TestBundle.TemplatePrefix);
+        public bool IsTemplate => Path.GetFileName(Name).StartsWith(TestBundle.TemplatePrefix);
 
         public TestBundleType Type =>
             Name is null
@@ -47,23 +48,25 @@ namespace Gunter
     {
         internal class SessionWorkflow : Workflow<SessionContext>
         {
-            public static SessionWorkflow Create(IServiceProvider serviceProvider) => new SessionWorkflow
+            private SessionWorkflow(IServiceProvider serviceProvider) : base(serviceProvider) { }
+
+            public static SessionWorkflow Create(IServiceProvider serviceProvider) => new SessionWorkflow(serviceProvider)
             {
                 new FindProjects(serviceProvider),
-                new LoadProjects(),
-                new RunProjects
+                new LoadProjects(serviceProvider),
+                new ProcessProjects(serviceProvider)
                 {
                     ForEachProject =
                     {
-                        new RunProject
+                        new ProcessProject(serviceProvider)
                         {
                             ForEachTest =
                             {
-                                new CreateRuntimeProperties(),
-                                new GetData(),
-                                new FilterData(),
-                                new RunTest(),
-                                new PublishTestResult()
+                                new CreateRuntimeProperties(serviceProvider),
+                                new GetData(serviceProvider),
+                                new FilterData(serviceProvider),
+                                new EvaluateData(serviceProvider),
+                                new ProcessCommands(serviceProvider)
                             }
                         }
                     }
@@ -147,6 +150,8 @@ namespace Gunter
 
         internal class LoadProjects : Step<SessionContext>
         {
+            public LoadProjects(IServiceProvider serviceProvider) : base(serviceProvider) { }
+
             [Service]
             public ILogger<FindProjects> Logger { get; set; }
 
@@ -158,7 +163,7 @@ namespace Gunter
 
             public override async Task ExecuteAsync(SessionContext context)
             {
-                foreach (var testFile in context.TestFiles.Where(tf => tf.IsPartial || tf.CanLoad))
+                foreach (var testFile in context.TestFiles.Where(tf => tf.IsTemplate || tf.CanLoad))
                 {
                     //using var _ = _logger.BeginScope().WithCorrelationHandle("LoadTestFile").UseStopwatch();
 
@@ -235,19 +240,28 @@ namespace Gunter
 
             public TimeSpan FilterDataElapsed { get; set; }
 
+            public TimeSpan EvaluateDataElapsed { get; set; }
+
             public RuntimePropertyProvider Properties { get; set; }
+
+            public TestResult Result { get; set; } = TestResult.Undefined;
 
             public void Dispose() => QueryResult?.Dispose();
         }
 
-        internal class RunProjects : Step<SessionContext>
+        internal class ProcessProjects : Step<SessionContext>
         {
+            public ProcessProjects(IServiceProvider serviceProvider) : base(serviceProvider)
+            {
+                ForEachProject = new Workflow<ProjectContext>(serviceProvider);
+            }
+
             [Service]
             public ILogger<FindProjects> Logger { get; set; }
 
             public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount * 2;
 
-            public Workflow<ProjectContext> ForEachProject { get; set; } = new Workflow<ProjectContext>();
+            public Workflow<ProjectContext> ForEachProject { get; set; }
 
             public override async Task ExecuteAsync(SessionContext context)
             {
@@ -282,18 +296,37 @@ namespace Gunter
             }
         }
 
-        internal class RunProject : Step<ProjectContext>
+        internal class ProcessProject : Step<ProjectContext>
         {
-            public Workflow<TestContext> ForEachTest { get; set; } = new Workflow<TestContext>();
-
-            public override Task ExecuteAsync(ProjectContext context)
+            public ProcessProject(IServiceProvider serviceProvider) : base(serviceProvider)
             {
-                throw new NotImplementedException();
+                ForEachTest = new Workflow<TestContext>(serviceProvider);
+            }
+
+            public Workflow<TestContext> ForEachTest { get; set; }
+
+            public override async Task ExecuteAsync(ProjectContext context)
+            {
+                foreach (var testContext in context.TestContexts)
+                {
+                    try
+                    {
+                        await ForEachTest.ExecuteAsync(testContext);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // log
+                    }
+                }
+
+                await ExecuteNextAsync(context);
             }
         }
 
         internal class CreateRuntimeProperties : Step<TestContext>
         {
+            public CreateRuntimeProperties(IServiceProvider serviceProvider) : base(serviceProvider) { }
+
             public override async Task ExecuteAsync(TestContext context)
             {
                 var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.TestBundle.Variables.Flatten());
@@ -306,6 +339,8 @@ namespace Gunter
 
         internal class GetData : Step<TestContext>
         {
+            public GetData(IServiceProvider serviceProvider) : base(serviceProvider) { }
+
             [Service]
             public ILogger<GetData> Logger { get; set; }
 
@@ -332,6 +367,8 @@ namespace Gunter
 
         internal class FilterData : Step<TestContext>
         {
+            public FilterData(IServiceProvider serviceProvider) : base(serviceProvider) { }
+
             [Service]
             public ILogger<FilterData> Logger { get; set; }
 
@@ -352,19 +389,55 @@ namespace Gunter
             }
         }
 
-        internal class RunTest : Step<TestContext>
+        internal class EvaluateData : Step<TestContext>
         {
-            public override Task ExecuteAsync(TestContext context)
+            public EvaluateData(IServiceProvider serviceProvider) : base(serviceProvider) { }
+
+            [Service]
+            public ILogger<EvaluateData> Logger { get; set; }
+
+            public override async Task ExecuteAsync(TestContext context)
             {
-                throw new NotImplementedException();
+                using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(EvaluateData)).UseStopwatch();
+
+                if (context.QueryResult.Data.Compute(context.TestCase.Assert, context.TestCase.Filter) is bool success)
+                {
+                    context.EvaluateDataElapsed = Logger.Scope().Stopwatch().Elapsed;
+                    context.Result = success switch
+                    {
+                        true => TestResult.Passed,
+                        false => TestResult.Failed
+                    };
+
+                    Logger.Log(Abstraction.Layer.Service().Meta(new { TestResult = context.Result }));
+                }
+                else
+                {
+                    throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
+                }
+
+                await ExecuteNextAsync(context);
             }
         }
 
-        internal class PublishTestResult : Step<TestContext>
+        internal class ProcessCommands : Step<TestContext>
         {
-            public override Task ExecuteAsync(TestContext context)
+            public ProcessCommands(IServiceProvider serviceProvider) : base(serviceProvider) { }
+
+            [Service]
+            public ILogger<EvaluateData> Logger { get; set; }
+
+            [Service]
+            public ICommandExecutor CommandExecutor { get; set; }
+
+            public override async Task ExecuteAsync(TestContext context)
             {
-                throw new NotImplementedException();
+                foreach (var commandLine in context.TestCase.When.TryGetValue(context.Result, out var then) ? then : Enumerable.Empty<string>())
+                {
+                    await CommandExecutor.ExecuteAsync(commandLine, context);
+                }
+
+                await ExecuteNextAsync(context);
             }
         }
     }

@@ -2,7 +2,7 @@
 {
     public enum TestResult
     {
-        None,
+        Undefined,
         Passed,
         Failed,
     }
