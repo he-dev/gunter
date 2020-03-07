@@ -4,6 +4,6 @@ namespace Gunter.Data
     {
         Unknown,
         Regular,
-        Partial,
+        Template,
     }
 }

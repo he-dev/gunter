@@ -15,7 +15,7 @@ namespace Gunter.Data
 {
     [Gunter]
     [PublicAPI]
-    public class TestCase : IMergeable
+    public class TestCase : IPartial, IChild<TestBundle>
     {
         private readonly Factory _factory;
 
@@ -23,6 +23,8 @@ namespace Gunter.Data
 
         public TestCase(Factory factory) => _factory = factory;
 
+        public TestBundle Parent { get; }
+        
         public SoftString Id { get; set; }
 
         public Merge Merge { get; set; }
@@ -31,7 +33,7 @@ namespace Gunter.Data
         public bool Enabled { get; set; }
 
         [Mergeable]
-        public Option<LogLevel> Level { get; set; } = LogLevel.Warning;
+        public LogLevel Level { get; set; } = LogLevel.Warning;
 
         [Mergeable]
         public string Message { get; set; }
@@ -52,18 +54,19 @@ namespace Gunter.Data
         //[JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         [Mergeable]
         public List<SoftString> Tags { get; set; } = new List<SoftString>();
+
     }
 
     public static class TestCaseExtensions
     {
-        public static IEnumerable<IQuery> DataSources(this TestCase testCase, TestBundle testBundle)
+        public static IEnumerable<IQuery> Queries(this TestCase testCase, TestBundle testBundle)
         {
-            var dataSourceIds =
+            var dataSources =
                 from id in testCase.DataSourceIds
                 join ds in testBundle.Queries on id equals ds.Id
                 select ds;
 
-            return dataSourceIds.Distinct();
+            return dataSources.Distinct();
         }
 
         public static bool IsNullOr<T>(this IEnumerable<T> source, Predicate<IEnumerable<T>> predicate)

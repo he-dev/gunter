@@ -46,6 +46,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\reusable\Reusable.Flowingo\Reusable.Flowingo.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.OneTo1\Reusable.OneTo1.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Core\Reusable.Core.csproj" />
     <ProjectReference Include="..\..\Reusable\Reusable.Commander\Reusable.Commander.csproj" />
@@ -66,6 +67,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.9.4" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Dapper" Version="1.50.7" />
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />

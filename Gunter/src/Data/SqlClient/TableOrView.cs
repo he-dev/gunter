@@ -21,11 +21,7 @@ namespace Gunter.Data.SqlClient
     {
         private readonly IResource _resource;
 
-        public TableOrView
-        (
-            ILogger<TableOrView> logger,
-            IResource resource
-        ) : base(logger)
+        public TableOrView(IResource resource)
         {
             _resource = resource;
         }
@@ -35,20 +31,19 @@ namespace Gunter.Data.SqlClient
 
         [Mergeable(Required = true)]
         public string Command { get; set; }
-        
+
         [Mergeable]
         public int Timeout { get; set; }
 
-        protected override async Task<Snapshot> GetDataAsync(RuntimePropertyProvider runtimeProperties)
+        public override async Task<QueryResult> ExecuteAsync(RuntimePropertyProvider runtimeProperties)
         {
             if (ConnectionString is null) throw new InvalidOperationException($"{nameof(TableOrView)} #{Id.ToString()} requires a connection-string.");
 
             var query = await GetQueryAsync(runtimeProperties);
 
             using var conn = new SqlConnection(ConnectionString.Format(runtimeProperties));
-            Logger.Log(Abstraction.Layer.Database().Meta(new { conn.ConnectionString }));
 
-            conn.Open();
+            await conn.OpenAsync();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = query;
             cmd.CommandType = CommandType.Text;
@@ -57,11 +52,8 @@ namespace Gunter.Data.SqlClient
             using var dataReader = await cmd.ExecuteReaderAsync();
             var dataTable = new DataTable();
             dataTable.Load(dataReader);
-
-            Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = dataTable.Rows.Count, ColumnCount = dataTable.Columns.Count }));
-            Logger.Log(Abstraction.Layer.Database().Routine(nameof(ExecuteAsync)).Completed());
-
-            return new Snapshot
+            
+            return new QueryResult
             {
                 Command = cmd.CommandText,
                 Data = dataTable,

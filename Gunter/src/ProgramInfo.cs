@@ -37,6 +37,11 @@ namespace Gunter
         public string Environment => _resource.ReadSetting(() => Environment);
     }
 
+    public class RuntimeInfo
+    {
+        
+    }
+
     [UseScheme("app"), UseMember]
     [TrimEnd("Config")]
     public class ProgramConfig : SelectorBuilder<ProgramConfig>

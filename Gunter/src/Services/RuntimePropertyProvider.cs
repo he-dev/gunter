@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Gunter.Data;
 using JetBrains.Annotations;
@@ -11,26 +12,16 @@ namespace Gunter.Services
     [PublicAPI]
     public class RuntimePropertyProvider
     {
-        private readonly IImmutableList<object> _objects;
         private readonly IImmutableList<IProperty> _properties;
+        private readonly IImmutableList<object> _objects;
 
         public RuntimePropertyProvider
         (
-            IEnumerable<IProperty> knownProperties,
-            ProgramInfo programInfo
-        )
-        {
-            _properties = ImmutableList<IProperty>.Empty.AddRange(knownProperties);
-            _objects = ImmutableList<object>.Empty.Add(programInfo);
-        }
-
-        private RuntimePropertyProvider
-        (
-            IImmutableList<IProperty> properties,
+            IImmutableList<IProperty> knownProperties,
             IImmutableList<object> objects
         )
         {
-            _properties = properties;
+            _properties = knownProperties;
             _objects = objects;
         }
 
@@ -48,8 +39,8 @@ namespace Gunter.Services
                     value = staticProperty.GetValue(default);
                     return true;
 
-                case InstanceProperty instanceProperty when !(instanceProperty.ObjectType is null):
-                    if (_objects.SingleOrDefault(o => instanceProperty.ObjectType.IsInstanceOfType(o)) is var obj && obj is null)
+                case InstanceProperty instanceProperty when instanceProperty.SourceType is {}:
+                    if (_objects.SingleOrDefault(o => instanceProperty.SourceType.IsInstanceOfType(o)) is var obj && obj is null)
                     {
                         value = default;
                         return false;
@@ -65,25 +56,11 @@ namespace Gunter.Services
             }
         }
 
-        public RuntimePropertyProvider AddObjects(IEnumerable<object> objects)
-        {
-            return new RuntimePropertyProvider
-            (
-                _properties,
-                _objects.AddRange(objects)
-            );
-        }
+        [DebuggerStepThrough]
+        public RuntimePropertyProvider AddObject(object obj) => new RuntimePropertyProvider(_properties, _objects.Add(obj));
 
-        public RuntimePropertyProvider AddObjects(params object[] objects) => AddObjects(objects.AsEnumerable());
-
-        public RuntimePropertyProvider AddProperties(IEnumerable<IProperty> properties)
-        {
-            return new RuntimePropertyProvider
-            (
-                _properties.AddRange(properties),
-                _objects
-            );
-        }
+        [DebuggerStepThrough]
+        public RuntimePropertyProvider AddProperty(IProperty property) => new RuntimePropertyProvider(_properties.Add(property), _objects);
 
         public static implicit operator TryGetValueCallback(RuntimePropertyProvider provider)
         {

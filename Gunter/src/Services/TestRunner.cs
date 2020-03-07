@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Custom;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Gunter.Data;
@@ -65,7 +66,7 @@ namespace Gunter.Services
         {
             var tests =
                 from testCase in testBundle.Tests
-                from dataSource in testCase.DataSources(testBundle)
+                from dataSource in testCase.Queries(testBundle)
                 select (testCase, dataSource);
 
             var testBundleRuntimeVariables =
@@ -83,7 +84,7 @@ namespace Gunter.Services
                 _logger.Log(Abstraction.Layer.Service().Meta(new { TestCaseId = current.testCase.Id }));
                 try
                 {
-                    if (!cache.TryGetValue<Snapshot>(current.dataSource.Id, out var logView))
+                    if (!cache.TryGetValue<QueryResult>(current.dataSource.Id, out var logView))
                     {
                         cache.Set(current.dataSource.Id, logView = await current.dataSource.ExecuteAsync(testBundleRuntimeVariables));
                     }
@@ -99,16 +100,14 @@ namespace Gunter.Services
                         Data = logView.Data,
                         Result = result,
                         RuntimeProperties =
-                            _runtimePropertyProvider
+                            testBundleRuntimeVariables
                                 .AddObjects(
-                                    testBundle,
                                     current.testCase,
                                     new TestCounter
                                     {
                                         GetDataElapsed = logView.GetDataElapsed,
                                         RunTestElapsed = runElapsed
                                     })
-                                .AddProperties(testBundle.Variables.Flatten())
                     };
 
                     foreach (var cmd in commands)

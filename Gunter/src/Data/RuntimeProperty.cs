@@ -12,29 +12,27 @@ namespace Gunter.Data
     public interface IProperty : IEquatable<IProperty>
     {
         //[AutoEqualityProperty]
-        [CanBeNull]
-        Type ObjectType { get; }
-
-        [NotNull]
+        Type? SourceType { get; }
+        
         [AutoEqualityProperty]
         SoftString Name { get; }
 
-        object GetValue(object obj);
+        object? GetValue(object? obj);
     }
 
     public abstract class RuntimeProperty : IProperty
     {
-        protected RuntimeProperty([CanBeNull] Type objectType, [NotNull] SoftString name)
+        protected RuntimeProperty(Type? sourceType, string name)
         {
-            ObjectType = objectType;
+            SourceType = sourceType;
             Name = name;
         }
 
-        public Type ObjectType { get; }
+        public Type? SourceType { get; }
 
         public SoftString Name { get; }
 
-        public abstract object GetValue(object obj);
+        public abstract object? GetValue(object? obj);
 
         #region IEquatable
 
@@ -89,25 +87,19 @@ namespace Gunter.Data
 
     internal class InstanceProperty : RuntimeProperty
     {
-        private readonly Func<object, object> _getValue;
+        private readonly Func<object, object?> _getValue;
 
         public InstanceProperty
         (
-            [NotNull] Type objectType,
-            [NotNull] SoftString name,
-            [NotNull] Func<object, object> getValue
-        ) : base(objectType, name)
+            Type sourceType,
+            string name,
+            Func<object, object?> getValue
+        ) : base(sourceType, name)
         {
             _getValue = getValue;
         }
-
-
-        public override object GetValue(object obj) => _getValue(obj);
-
-        public bool Matches(Type type)
-        {
-            return type == ObjectType || type.IsAssignableFrom(ObjectType);
-        }
+        
+        public override object? GetValue(object? obj) => _getValue(obj);
     }
 
     [PublicAPI]
@@ -116,14 +108,14 @@ namespace Gunter.Data
     {
         private readonly object _value;
 
-        public StaticProperty(SoftString name, object value) : base(null, name)
+        public StaticProperty(string name, object value) : base(default, name)
         {
             _value = value;
         }
 
-        public override object GetValue(object obj) => _value;
+        public override object GetValue(object? obj) => _value;
 
-        public static implicit operator StaticProperty(KeyValuePair<SoftString, object> kvp) => new StaticProperty(kvp.Key, kvp.Value);
+        public static implicit operator StaticProperty(KeyValuePair<string, object> kvp) => new StaticProperty(kvp.Key, kvp.Value);
 
         //public static implicit operator KeyValuePair<SoftString, object>(StaticProperty tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
     }

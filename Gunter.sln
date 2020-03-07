@@ -67,6 +67,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reusable.Translucent.http",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reusable.Utilities.Autofac", "..\Reusable\Reusable.Utilities.Autofac\Reusable.Utilities.Autofac.csproj", "{D73A7338-E20A-4967-B53E-FFEA2C16288B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reusable.Flowingo", "..\reusable\Reusable.Flowingo\Reusable.Flowingo.csproj", "{0027247F-0A84-464F-9BE9-728E5D31FCB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +183,10 @@ Global
 		{D73A7338-E20A-4967-B53E-FFEA2C16288B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D73A7338-E20A-4967-B53E-FFEA2C16288B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D73A7338-E20A-4967-B53E-FFEA2C16288B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0027247F-0A84-464F-9BE9-728E5D31FCB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0027247F-0A84-464F-9BE9-728E5D31FCB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0027247F-0A84-464F-9BE9-728E5D31FCB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0027247F-0A84-464F-9BE9-728E5D31FCB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -213,6 +219,7 @@ Global
 		{92EA8039-F9D1-4977-8DDD-A92694347486} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
 		{62EA256E-75C8-4B6D-AC36-43262F149B77} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
 		{D73A7338-E20A-4967-B53E-FFEA2C16288B} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
+		{0027247F-0A84-464F-9BE9-728E5D31FCB1} = {E6444249-74BF-4645-AA64-C185A6F02CC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40AC697F-CF2A-4003-98FC-F63F214F68C3}

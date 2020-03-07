@@ -8,7 +8,7 @@ namespace Gunter.DependencyInjection.Modules
         {
             builder.RegisterType<Gunter.Data.TestBundle>();
             builder.RegisterType<Gunter.Data.TestCase>();
-            builder.RegisterType<Gunter.Data.StaticPropertyCollection>();
+            builder.RegisterType<Gunter.Data.PropertyCollection>();
             builder.RegisterType<Gunter.Data.SqlClient.TableOrView>();
         }
     }

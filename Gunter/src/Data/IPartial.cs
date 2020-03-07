@@ -4,7 +4,7 @@ using Reusable;
 
 namespace Gunter.Data
 {
-    public interface IMergeable
+    public interface IPartial
     {
         [JsonRequired]
         SoftString Id { get; set; }

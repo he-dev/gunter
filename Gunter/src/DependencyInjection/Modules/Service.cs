@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using Autofac;
 using Gunter.Data;
@@ -34,12 +35,12 @@ namespace Gunter.DependencyInjection.Modules
                 .RegisterType<PhysicalDirectoryTree>()
                 .As<IDirectoryTree>();
 
-            builder
-                .RegisterType<MiddlewareBuilderWithAutofac>();
+            // builder
+            //     .RegisterType<MiddlewareBuilderWithAutofac>();
 
-            builder
-                .RegisterType<AutofacServiceProvider>()
-                .As<IServiceProvider>();
+            // builder
+            //     .RegisterType<AutofacServiceProvider>()
+            //     .As<IServiceProvider>();
 
             builder
                 .Register(ctx =>
@@ -83,8 +84,8 @@ namespace Gunter.DependencyInjection.Modules
                 })
                 .As<IPrettyJsonSerializer>();
 
-            builder
-                .RegisterInstance(RuntimeProperty.BuiltIn.Enumerate());
+            // builder
+            //     .RegisterInstance(RuntimeProperty.BuiltIn.Enumerate());
 
             builder
                 .RegisterModule<JsonContractResolverModule>();
@@ -107,6 +108,7 @@ namespace Gunter.DependencyInjection.Modules
 
             builder
                 .RegisterType<RuntimePropertyProvider>()
+                .WithParameter(new TypedParameter(typeof(IEnumerable<IProperty>), RuntimeProperty.BuiltIn.Enumerate()))
                 .AsSelf();
 
             builder

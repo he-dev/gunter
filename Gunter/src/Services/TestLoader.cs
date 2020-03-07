@@ -63,7 +63,7 @@ namespace Gunter.Services
 
                 _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
 
-                var isPartial = Path.GetFileName(fullName).StartsWith(TestBundle.PartialPrefix);
+                var isPartial = Path.GetFileName(fullName).StartsWith(TestBundle.TemplatePrefix);
                 var canLoad = isPartial || includeFileNames.EmptyOr(x => Path.GetFileNameWithoutExtension(fullName).In(x, SoftString.Comparer));
 
                 if (!canLoad)

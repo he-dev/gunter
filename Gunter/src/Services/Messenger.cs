@@ -14,7 +14,7 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
 {
-    public interface IChannel : IMergeable
+    public interface IChannel : IPartial
     {
         Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds);
     }

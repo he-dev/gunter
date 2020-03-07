@@ -8,6 +8,7 @@ using Gunter.Reporting;
 using Gunter.Reporting.Modules.Tabular;
 using Gunter.Services;
 using Gunter.Services.Channels;
+using Gunter.Workflows;
 using JetBrains.Annotations;
 using Reusable;
 
@@ -15,9 +16,9 @@ namespace Gunter.Data
 {
     [PublicAPI]
     [JsonObject]
-    public class TestBundle : IEnumerable<IEnumerable<IMergeable>>
+    public class  TestBundle : IEnumerable<IEnumerable<IPartial>>
     {
-        public const string PartialPrefix = "_";
+        public const string TemplatePrefix = "_";
         
         public static readonly IEnumerable<Type> SectionTypes = new[]
         {
@@ -37,7 +38,7 @@ namespace Gunter.Data
         public bool Enabled { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<StaticPropertyCollection> Variables { get; set; } = new List<StaticPropertyCollection>();
+        public List<PropertyCollection> Variables { get; set; } = new List<PropertyCollection>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IQuery> Queries { get; set; } = new List<IQuery>();
@@ -50,7 +51,7 @@ namespace Gunter.Data
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<IReport> Reports { get; set; } = new List<IReport>();
-
+        
         [JsonIgnore]
         public string FullName { get; set; }
 
@@ -61,16 +62,13 @@ namespace Gunter.Data
         public SoftString FileName => Path.GetFileNameWithoutExtension(FullName);
 
         [JsonIgnore]
+        public TestFile TestFile { get; set; }
+        
+        [JsonIgnore]
         public SoftString Name => Path.GetFileNameWithoutExtension(FileName.ToString());
+        
 
-        public TestBundleType Type =>
-            FullName is null
-                ? TestBundleType.Unknown
-                : Path.GetFileName(FullName).StartsWith(PartialPrefix)
-                    ? TestBundleType.Partial
-                    : TestBundleType.Regular;
-
-        public IEnumerator<IEnumerable<IMergeable>> GetEnumerator()
+        public IEnumerator<IEnumerable<IPartial>> GetEnumerator()
         {
             yield return Variables;
             yield return Queries;
@@ -80,5 +78,10 @@ namespace Gunter.Data
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    public interface IChild<out TParent>
+    {
+        TParent Parent { get; }
     }
 }
