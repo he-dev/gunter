@@ -8,7 +8,7 @@ using Reusable;
 
 namespace Gunter.Reporting
 {
-    public interface IReport : IPartial
+    public interface IReport : IModel
     {
         string Title { get; set; }
 

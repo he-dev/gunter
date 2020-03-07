@@ -20,7 +20,7 @@ namespace Gunter.Services
 {
     internal interface ITestLoader
     {
-        IAsyncEnumerable<TestBundle> LoadTestsAsync(string testDirectoryName, List<string> includeFileNames);
+        IAsyncEnumerable<Specification> LoadTestsAsync(string testDirectoryName, List<string> includeFileNames);
     }
 
     [UsedImplicitly]
@@ -45,7 +45,7 @@ namespace Gunter.Services
             _testFileSerializer = testFileSerializer;
         }
 
-        public async IAsyncEnumerable<TestBundle> LoadTestsAsync(string testDirectoryName, List<string> includeFileNames)
+        public async IAsyncEnumerable<Specification> LoadTestsAsync(string testDirectoryName, List<string> includeFileNames)
         {
             _logger.Log(Abstraction.Layer.IO().Meta(new { TestDirectoryName = testDirectoryName }));
 
@@ -63,7 +63,7 @@ namespace Gunter.Services
 
                 _logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
 
-                var isPartial = Path.GetFileName(fullName).StartsWith(TestBundle.TemplatePrefix);
+                var isPartial = Path.GetFileName(fullName).StartsWith(Specification.TemplatePrefix);
                 var canLoad = isPartial || includeFileNames.EmptyOr(x => Path.GetFileNameWithoutExtension(fullName).In(x, SoftString.Comparer));
 
                 if (!canLoad)
@@ -79,12 +79,12 @@ namespace Gunter.Services
             }
         }
 
-        private async Task<TestBundle?> LoadTestAsync(string fullName)
+        private async Task<Specification?> LoadTestAsync(string fullName)
         {
             try
             {
                 var file = await _resource.ReadTextFileAsync(fullName);
-                var testBundle = _testFileSerializer.Deserialize<TestBundle>(file, TypeDictionary.From(TestBundle.SectionTypes)).Pipe(x => x.FullName = fullName);
+                var testBundle = _testFileSerializer.Deserialize<Specification>(file, TypeDictionary.From(Specification.SectionTypes)).Pipe(x => x.FullName = fullName);
 
                 if (testBundle.Enabled)
                 {

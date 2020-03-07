@@ -8,7 +8,7 @@ using Reusable;
 namespace Gunter.Data
 {
     [JsonObject]
-    public class PropertyCollection : IEnumerable<IProperty>, IPartial
+    public class PropertyCollection : IEnumerable<IProperty>, IModel
     {
         public SoftString Id { get; set; }
 

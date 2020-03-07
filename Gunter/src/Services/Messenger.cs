@@ -14,7 +14,7 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
 {
-    public interface IChannel : IPartial
+    public interface IChannel : IModel
     {
         Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds);
     }
@@ -37,7 +37,7 @@ namespace Gunter.Services
         {
             var reports =
                 from id in reportIds
-                join report in context.TestBundle.Reports on id equals report.Id
+                join report in context.Specification.Reports on id equals report.Id
                 select report;
 
             foreach (var report in reports)

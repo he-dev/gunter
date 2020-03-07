@@ -20,7 +20,7 @@ namespace Gunter.Services
 {
     public interface ITestRunner
     {
-        Task RunAsync(IEnumerable<TestBundle> testBundles);
+        Task RunAsync(IEnumerable<Specification> testBundles);
     }
 
     [UsedImplicitly]
@@ -42,9 +42,9 @@ namespace Gunter.Services
             _runtimePropertyProvider = runtimePropertyProvider;
         }
 
-        public async Task RunAsync(IEnumerable<TestBundle> testBundles)
+        public async Task RunAsync(IEnumerable<Specification> testBundles)
         {
-            var actions = new ActionBlock<TestBundle>
+            var actions = new ActionBlock<Specification>
             (
                 RunAsync,
                 new ExecutionDataflowBlockOptions
@@ -62,22 +62,22 @@ namespace Gunter.Services
             await actions.Completion;
         }
 
-        private async Task RunAsync(TestBundle testBundle)
+        private async Task RunAsync(Specification specification)
         {
             var tests =
-                from testCase in testBundle.Tests
-                from dataSource in testCase.Queries(testBundle)
+                from testCase in specification.Tests
+                from dataSource in testCase.Queries(specification)
                 select (testCase, dataSource);
 
             var testBundleRuntimeVariables =
                 _runtimePropertyProvider
-                    .AddObjects(new object[] { testBundle })
-                    .AddProperties(testBundle.Variables.Flatten());
+                    .AddObjects(new object[] { specification })
+                    .AddProperties(specification.Variables.Flatten());
 
             using var testBundleScope = _logger.BeginScope().WithCorrelationHandle("ProcessTestBundle").UseStopwatch();
             using var cache = new MemoryCache(new MemoryCacheOptions());
 
-            _logger.Log(Abstraction.Layer.Service().Meta(new { TestFileName = testBundle.FileName }));
+            _logger.Log(Abstraction.Layer.Service().Meta(new { TestFileName = specification.FileName }));
             foreach (var current in tests)
             {
                 using var testCaseScope = _logger.BeginScope().WithCorrelationHandle("ProcessTestCase").UseStopwatch();
@@ -93,7 +93,7 @@ namespace Gunter.Services
 
                     var context = new TestContext
                     {
-                        TestBundle = testBundle,
+                        Specification = specification,
                         TestCase = current.testCase,
                         Query = current.dataSource,
                         Command = logView.Command,

@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Gunter.Data;
+using Gunter.Data.SqlClient;
 using Gunter.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable;
@@ -34,12 +35,12 @@ namespace Gunter
 
         public bool CanLoad { get; set; }
 
-        public bool IsTemplate => Path.GetFileName(Name).StartsWith(TestBundle.TemplatePrefix);
+        public bool IsTemplate => Path.GetFileName(Name).StartsWith(Specification.TemplatePrefix);
 
         public TestBundleType Type =>
             Name is null
                 ? TestBundleType.Unknown
-                : Path.GetFileName(Name).StartsWith(TestBundle.TemplatePrefix)
+                : Path.GetFileName(Name).StartsWith(Specification.TemplatePrefix)
                     ? TestBundleType.Template
                     : TestBundleType.Regular;
     }
@@ -63,7 +64,13 @@ namespace Gunter
                             ForEachTest =
                             {
                                 new CreateRuntimeProperties(serviceProvider),
-                                new GetData(serviceProvider),
+                                new GetData(serviceProvider)
+                                {
+                                    Providers =
+                                    {
+                                        new GetDataFromTableOrView(default)
+                                    }
+                                },
                                 new FilterData(serviceProvider),
                                 new EvaluateData(serviceProvider),
                                 new ProcessCommands(serviceProvider)
@@ -82,12 +89,12 @@ namespace Gunter
 
             public List<TestFile> TestFiles { get; set; } = new List<TestFile>();
 
-            public List<TestBundle> TestBundles { get; set; } = new List<TestBundle>();
+            public List<Specification> TestBundles { get; set; } = new List<Specification>();
         }
 
         public static class Partial
         {
-            public static TResult Read<T, TResult>(this T partial, Func<T, TResult> selector, IEnumerable<TestBundle> partials) where T : IPartial
+            public static TResult Read<T, TResult>(this T partial, Func<T, TResult> selector, IEnumerable<Specification> partials) where T : IModel
             {
                 if (selector(partial) is {} result)
                 {
@@ -176,12 +183,12 @@ namespace Gunter
                 }
             }
 
-            private async Task<TestBundle?> LoadTestAsync(string fullName)
+            private async Task<Specification?> LoadTestAsync(string fullName)
             {
                 try
                 {
                     var file = await Resource.ReadTextFileAsync(fullName);
-                    var testBundle = TestFileSerializer.Deserialize<TestBundle>(file, TypeDictionary.From(TestBundle.SectionTypes)).Pipe(x => x.FullName = fullName);
+                    var testBundle = TestFileSerializer.Deserialize<Specification>(file, TypeDictionary.From(Specification.SectionTypes)).Pipe(x => x.FullName = fullName);
 
                     if (testBundle.Enabled)
                     {
@@ -223,12 +230,14 @@ namespace Gunter
 
         internal class ProjectContext
         {
-            public List<TestContext> TestContexts { get; set; } = new List<TestContext>();
+            public List<TestContext> Tests { get; set; } = new List<TestContext>();
+
+            public List<Specification> Templates { get; set; } = new List<Specification>();
         }
 
         internal class TestContext : IDisposable
         {
-            public TestBundle TestBundle { get; set; }
+            public Specification Specification { get; set; }
 
             public TestCase TestCase { get; set; }
 
@@ -271,13 +280,15 @@ namespace Gunter
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism }
                 );
 
+                var projects = context.TestBundles.ToLookup(p => p.TestFile.Type);
+
                 var projectGroups =
-                    from testBundle in context.TestBundles
+                    from testBundle in projects[TestBundleType.Regular]
                     from testCase in testBundle.Tests
                     from query in testCase.Queries(testBundle)
                     group new TestContext
                     {
-                        TestBundle = testBundle,
+                        Specification = testBundle,
                         TestCase = testCase,
                         Query = query
                     } by testBundle.Name into projectGroup
@@ -287,12 +298,14 @@ namespace Gunter
                 {
                     await actions.SendAsync(new ProjectContext
                     {
-                        TestContexts = projectGroup.ToList()
+                        Tests = projectGroup.ToList(),
+                        Templates = projects[TestBundleType.Template].ToList()
                     });
                 }
 
                 actions.Complete();
                 await actions.Completion;
+                await ExecuteNextAsync(context);
             }
         }
 
@@ -307,7 +320,7 @@ namespace Gunter
 
             public override async Task ExecuteAsync(ProjectContext context)
             {
-                foreach (var testContext in context.TestContexts)
+                foreach (var testContext in context.Tests)
                 {
                     try
                     {
@@ -329,8 +342,8 @@ namespace Gunter
 
             public override async Task ExecuteAsync(TestContext context)
             {
-                var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.TestBundle.Variables.Flatten());
-                var objects = new object[] { context.TestBundle, context.TestCase };
+                var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.Specification.Variables.Flatten());
+                var objects = new object[] { context.Specification, context.TestCase };
                 context.Properties = new RuntimePropertyProvider(properties.ToImmutableList(), objects.ToImmutableList());
 
                 await ExecuteNextAsync(context);
@@ -347,13 +360,26 @@ namespace Gunter
             [Service]
             public IMemoryCache Cache { get; set; }
 
+            public List<IGetDataFrom> Providers { get; set; } = new List<IGetDataFrom>();
+
             public override async Task ExecuteAsync(TestContext context)
             {
                 using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(GetData)).UseStopwatch();
                 Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Id }));
                 try
                 {
-                    context.QueryResult = await Cache.GetOrCreateAsync($"{context.TestBundle.Name}.{context.Query.Id}", async entry => await context.Query.ExecuteAsync(context.Properties));
+                    context.QueryResult = await Cache.GetOrCreateAsync($"{context.Specification.Name}.{context.Query.Id}", async entry =>
+                    {
+                        foreach (var getDataFrom in Providers)
+                        {
+                            if (await getDataFrom.ExecuteAsync(context.Query, context.Properties) is {} result)
+                            {
+                                return result;
+                            }
+                        }
+
+                        return default;
+                    });
                     context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
                     Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.QueryResult.Data.Rows.Count, ColumnCount = context.QueryResult.Data.Columns.Count }));
                     await ExecuteNextAsync(context);

@@ -19,13 +19,9 @@ namespace Gunter.Data
 {
     [UsedImplicitly]
     [PublicAPI]
-    public interface IQuery : IPartial
+    public interface IQuery : IModel
     {
-        [ItemNotNull]
-        IList<IDataFilter>? Filters { get; set; }
-
-        [ItemNotNull]
-        Task<QueryResult> ExecuteAsync(RuntimePropertyProvider runtimeProperties);
+        List<IDataFilter>? Filters { get; set; }
     }
 
     [Gunter]
@@ -37,9 +33,12 @@ namespace Gunter.Data
         public Merge Merge { get; set; }
 
         [Mergeable]
-        public IList<IDataFilter>? Filters { get; set; }
-
-        public abstract Task<QueryResult> ExecuteAsync(RuntimePropertyProvider runtimeProperties);
+        public List<IDataFilter>? Filters { get; set; } = new List<IDataFilter>?();
+    }
+    
+    public interface IGetDataFrom
+    {
+        Task<QueryResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties);
     }
 
     public class QueryResult : IDisposable

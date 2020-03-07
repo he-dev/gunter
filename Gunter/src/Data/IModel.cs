@@ -4,11 +4,11 @@ using Reusable;
 
 namespace Gunter.Data
 {
-    public interface IPartial
+    public interface IModel
     {
         [JsonRequired]
-        SoftString Id { get; set; }
-        
-        Merge? Merge { get; set; }
+        SoftString Id { get; }
+
+        Merge? Merge { get; }
     }
 }

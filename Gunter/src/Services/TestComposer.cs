@@ -20,7 +20,7 @@ namespace Gunter.Services
 {
     internal interface ITestComposer
     {
-        IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, TestFilter testFilter);
+        IEnumerable<Specification> ComposeTests(IEnumerable<Specification> bundles, TestFilter testFilter);
     }
 
     internal class TestComposer : ITestComposer
@@ -34,7 +34,7 @@ namespace Gunter.Services
             _componentContext = componentContext;
         }
 
-        public IEnumerable<TestBundle> ComposeTests(IEnumerable<TestBundle> bundles, TestFilter testFilter)
+        public IEnumerable<Specification> ComposeTests(IEnumerable<Specification> bundles, TestFilter testFilter)
         {
             var bundleGroups = bundles.ToLookup(b => b.TestFile.Type);
 
@@ -57,15 +57,15 @@ namespace Gunter.Services
             }
         }
 
-        private bool TryCompose(TestBundle testBundle, IEnumerable<TestBundle> partials, out TestBundle composition)
+        private bool TryCompose(Specification specification, IEnumerable<Specification> partials, out Specification composition)
         {
             composition = default;
             using (_logger.BeginScope().WithCorrelationHandle("MergeTests").UseStopwatch())
             {
-                _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = testBundle.Name.ToString() }));
+                _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = specification.Name.ToString() }));
                 try
                 {
-                    composition = Merge(testBundle, partials);
+                    composition = Merge(specification, partials);
                     _logger.Log(Abstraction.Layer.Service().Routine(nameof(TryCompose)).Completed());
                     return true;
                 }
@@ -77,14 +77,14 @@ namespace Gunter.Services
             }
         }
 
-        private TestBundle Merge(TestBundle regular, IEnumerable<TestBundle> partials)
+        private Specification Merge(Specification regular, IEnumerable<Specification> partials)
         {
             var mergeableTestBundleProperties =
-                typeof(TestBundle)
+                typeof(Specification)
                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(p => p.CanWrite);
 
-            var newTestBundle = _componentContext.Resolve<TestBundle>();
+            var newTestBundle = _componentContext.Resolve<Specification>();
 
             foreach (var testBundleProperty in mergeableTestBundleProperties)
             {
@@ -92,18 +92,18 @@ namespace Gunter.Services
                 testBundleProperty.SetValue(newTestBundle, testBundleProperty.GetValue(regular));
 
                 // Ignore non-mergeable properties.
-                if (!typeof(IEnumerable<IPartial>).IsAssignableFrom(testBundleProperty.PropertyType))
+                if (!typeof(IEnumerable<IModel>).IsAssignableFrom(testBundleProperty.PropertyType))
                 {
                     continue;
                 }
 
-                var testBundlePropertyValue = (IEnumerable<IPartial>)testBundleProperty.GetValue(regular);
+                var testBundlePropertyValue = (IEnumerable<IModel>)testBundleProperty.GetValue(regular);
                 var testBundlePropertyConstructor = testBundleProperty.PropertyType.GetConstructor(Type.EmptyTypes) ?? throw new NotSupportedException();
                 var newTestBundlePropertyValue = testBundlePropertyConstructor.Invoke(null);
 
                 foreach (var mergeable in testBundlePropertyValue)
                 {
-                    var other = default(IPartial);
+                    var other = default(IModel);
                     if (mergeable.Merge is {})
                     {
                         var partialTestBundle = partials.Where(p => p.Name == mergeable.Merge.Name).SingleOrThrow
@@ -111,7 +111,7 @@ namespace Gunter.Services
                             onEmpty: () => DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{mergeable.Merge.Name}'.")
                         );
 
-                        var partialTestBundleValue = (IEnumerable<IPartial>)testBundleProperty.GetValue(partialTestBundle);
+                        var partialTestBundleValue = (IEnumerable<IModel>)testBundleProperty.GetValue(partialTestBundle);
                         var mergeId = mergeable.Merge.Id ?? mergeable.Id;
                         other = partialTestBundleValue.Where(x => x.Id == mergeId).SingleOrThrow
                         (
@@ -119,7 +119,7 @@ namespace Gunter.Services
                         );
                     }
 
-                    var newMergeable = (IPartial)_componentContext.Resolve(mergeable.GetType());
+                    var newMergeable = (IModel)_componentContext.Resolve(mergeable.GetType());
 
                     foreach (var mergeableProperty in mergeable.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.CanWrite))
                     {

@@ -1,13 +1,15 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gunter.Annotations;
+using Gunter.Data.Abstractions;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Extensions;
+using Reusable.Flowingo;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
@@ -15,17 +17,20 @@ using Reusable.Translucent;
 
 namespace Gunter.Data.SqlClient
 {
+    public interface ITableOrView : IQuery
+    {
+        string ConnectionString { get; }
+
+        string Command { get; }
+
+        int Timeout { get; }
+    }
+
+
     [PublicAPI]
     [UsedImplicitly]
     public class TableOrView : Query
     {
-        private readonly IResource _resource;
-
-        public TableOrView(IResource resource)
-        {
-            _resource = resource;
-        }
-
         [Mergeable(Required = true)]
         public string ConnectionString { get; set; }
 
@@ -34,25 +39,54 @@ namespace Gunter.Data.SqlClient
 
         [Mergeable]
         public int Timeout { get; set; }
+    }
 
-        public override async Task<QueryResult> ExecuteAsync(RuntimePropertyProvider runtimeProperties)
+    public class TableOrViewUnion : Union<ITableOrView>, ITableOrView
+    {
+        public TableOrViewUnion(ITableOrView model, IEnumerable<Specification> templates) : base(model, templates) { }
+
+        public string ConnectionString => GetValue(x => x.ConnectionString, x => x is {});
+
+        public string Command => GetValue(x => x.Command, x => x is {});
+
+        public int Timeout => GetValue(x => x.Timeout, x => x > 0);
+        
+        public List<IDataFilter> Filters { get; set; } = new List<IDataFilter>();
+    }
+
+    public class GetDataFromTableOrView : IGetDataFrom
+    {
+        public GetDataFromTableOrView(IResource resource)
         {
-            if (ConnectionString is null) throw new InvalidOperationException($"{nameof(TableOrView)} #{Id.ToString()} requires a connection-string.");
+            Resource = resource;
+        }
 
-            var query = await GetQueryAsync(runtimeProperties);
+        private IResource Resource { get; }
 
-            using var conn = new SqlConnection(ConnectionString.Format(runtimeProperties));
+        public async Task<QueryResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties)
+        {
+            return
+                query is ITableOrView tableOrView
+                    ? await ExecuteAsync(tableOrView, runtimeProperties)
+                    : default;
+        }
+
+        private async Task<QueryResult> ExecuteAsync(ITableOrView view, RuntimePropertyProvider runtimeProperties)
+        {
+            var commandText = await GetCommandTextAsync(view, runtimeProperties);
+
+            using var conn = new SqlConnection(view.ConnectionString.Format(runtimeProperties));
 
             await conn.OpenAsync();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = query;
+            cmd.CommandText = commandText;
             cmd.CommandType = CommandType.Text;
-            cmd.CommandTimeout = Timeout > 0 ? Timeout : cmd.CommandTimeout;
+            cmd.CommandTimeout = view.Timeout > 0 ? view.Timeout : cmd.CommandTimeout;
 
             using var dataReader = await cmd.ExecuteReaderAsync();
             var dataTable = new DataTable();
             dataTable.Load(dataReader);
-            
+
             return new QueryResult
             {
                 Command = cmd.CommandText,
@@ -60,24 +94,24 @@ namespace Gunter.Data.SqlClient
             };
         }
 
-        private async Task<string> GetQueryAsync(RuntimePropertyProvider runtimeProperties)
+        private async Task<string> GetCommandTextAsync(ITableOrView view, RuntimePropertyProvider runtimeProperties)
         {
             // language=regexp
             const string fileSchemePattern = "^file:///";
-            var query = Command.Format(runtimeProperties);
-            if (Regex.IsMatch(query, fileSchemePattern))
+            var commandText = view.Command.Format(runtimeProperties);
+            if (Regex.IsMatch(commandText, fileSchemePattern))
             {
-                var path = Regex.Replace(query, fileSchemePattern, string.Empty);
+                var path = Regex.Replace(commandText, fileSchemePattern, string.Empty);
                 if (!Path.IsPathRooted(path))
                 {
-                    var defaultTestsDirectoryName = await _resource.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
+                    var defaultTestsDirectoryName = await Resource.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
                     path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path).Format(runtimeProperties);
                 }
 
-                query = (await _resource.ReadTextFileAsync(path)).Format(runtimeProperties);
+                commandText = (await Resource.ReadTextFileAsync(path)).Format(runtimeProperties);
             }
 
-            return query;
+            return commandText;
         }
     }
 }
