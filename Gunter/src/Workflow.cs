@@ -11,7 +11,9 @@ using System.Threading.Tasks.Dataflow;
 using Gunter.Data;
 using Gunter.Data.SqlClient;
 using Gunter.Services;
+using Gunter.Services.Channels;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -78,7 +80,7 @@ namespace Gunter
 
             public HashSet<string> TestFileNames { get; set; } = new HashSet<string>(SoftString.Comparer);
 
-            public List<TheoryFile> TestFiles { get; set; } = new List<TheoryFile>();
+            public List<Theory> TestFiles { get; set; } = new List<Theory>();
         }
 
         public class TestFilter
@@ -151,19 +153,19 @@ namespace Gunter
 
             private JsonSerializer JsonSerializer { get; }
 
-            public TheoryFile Invoke(string prettyJson)
+            public Theory Invoke(string prettyJson)
             {
-                var normalJson = PrettyJson.Read(prettyJson, TypeDictionary.From(TheoryFile.SectionTypes));
-                return normalJson.ToObject<TheoryFile>(JsonSerializer);
+                var normalJson = PrettyJson.Read(prettyJson, TypeDictionary.From(Theory.SectionTypes));
+                return normalJson.ToObject<Theory>(JsonSerializer);
             }
 
-            private class TestFileConverter : CustomCreationConverter<TheoryFile>
+            private class TestFileConverter : CustomCreationConverter<Theory>
             {
                 public string FileName { get; set; }
 
-                public override TheoryFile Create(Type objectType)
+                public override Theory Create(Type objectType)
                 {
-                    return new TheoryFile
+                    return new Theory
                     {
                         FullName = FileName
                     };
@@ -202,7 +204,7 @@ namespace Gunter
                 }
             }
 
-            private async Task<TheoryFile?> LoadTestFileAsync(string name)
+            private async Task<Theory?> LoadTestFileAsync(string name)
             {
                 try
                 {
@@ -252,17 +254,15 @@ namespace Gunter
             public ITheory Theory { get; set; }
         }
 
-        internal class TestContext : IDisposable
+        public class TestContext : IDisposable
         {
-            public string Name { get; set; }
-            
-            public List<IProperty> Variables { get; set; }
+            public ITheory Theory { get; set; }
 
             public ITestCase TestCase { get; set; }
 
             public IQuery Query { get; set; }
 
-            public QueryResult? QueryResult { get; set; }
+            public GetDataResult? GetDataResult { get; set; }
 
             public TimeSpan GetDataElapsed { get; set; }
 
@@ -274,7 +274,7 @@ namespace Gunter
 
             public TestResult Result { get; set; } = TestResult.Undefined;
 
-            public void Dispose() => QueryResult?.Dispose();
+            public void Dispose() => GetDataResult?.Dispose();
         }
 
         internal class ProcessTheories : Step<SessionContext>
@@ -340,6 +340,7 @@ namespace Gunter
                     {
                         await ForEachTestCase.ExecuteAsync(new TestContext
                         {
+                            Theory = context.Theory,
                             TestCase = testCase,
                             Query = query
                         });
@@ -360,8 +361,8 @@ namespace Gunter
 
             public override async Task ExecuteAsync(TestContext context)
             {
-                var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.Variables);
-                var objects = new object[] { context.TestFile, context.TestCase };
+                var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.Theory.Properties.Flatten());
+                var objects = new object[] { context.Theory, context.TestCase };
                 context.Properties = new RuntimePropertyProvider(properties.ToImmutableList(), objects.ToImmutableList());
 
                 await ExecuteNextAsync(context);
@@ -386,7 +387,7 @@ namespace Gunter
                 Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Name }));
                 try
                 {
-                    context.QueryResult = await Cache.GetOrCreateAsync($"{context.Name}.{context.Query.Name}", async entry =>
+                    context.GetDataResult = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
                     {
                         if (Options.Single(o => o.SourceType.IsInstanceOfType(context.Query)) is {} getData)
                         {
@@ -396,7 +397,7 @@ namespace Gunter
                         return default;
                     });
                     context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
-                    Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.QueryResult.Data.Rows.Count, ColumnCount = context.QueryResult.Data.Columns.Count }));
+                    Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.GetDataResult.Data.Rows.Count, ColumnCount = context.GetDataResult.Data.Columns.Count }));
                     await ExecuteNextAsync(context);
                 }
                 catch (Exception inner)
@@ -420,7 +421,7 @@ namespace Gunter
                     using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(FilterData)).UseStopwatch();
                     foreach (var dataFilter in filters)
                     {
-                        dataFilter.Execute(context.QueryResult.Data);
+                        dataFilter.Execute(context.GetDataResult.Data);
                     }
 
                     context.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
@@ -441,7 +442,7 @@ namespace Gunter
             {
                 using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(EvaluateData)).UseStopwatch();
 
-                if (context.QueryResult.Data.Compute(context.TestCase.Assert, context.TestCase.Filter) is bool success)
+                if (context.GetDataResult.Data.Compute(context.TestCase.Assert, context.TestCase.Filter) is bool success)
                 {
                     context.EvaluateDataElapsed = Logger.Scope().Stopwatch().Elapsed;
                     context.Result = success switch
@@ -477,7 +478,15 @@ namespace Gunter
             {
                 if(context.TestCase.Messages.TryGetValue(context.Result, out var messages))
                 {
-                    //await CommandExecutor.ExecuteAsync(commandLine, context);
+                    foreach (var message in messages)
+                    {
+                        switch (message)
+                        {
+                            case IEmail email:
+                                await ServiceProvider.GetRequiredService<SendEmail>().InvokeAsync(context, email);
+                                break;
+                        }
+                    }
                 }
 
                 await ExecuteNextAsync(context);

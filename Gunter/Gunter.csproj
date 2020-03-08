@@ -48,6 +48,8 @@
     <Compile Remove="src\Services\TestRunner.cs" />
     <Compile Remove="src\Services\TestLoader.cs" />
     <Compile Remove="src\Data\TestCounter.cs" />
+    <Compile Remove="src\Data\TestContext.cs" />
+    <Compile Remove="src\Commands\Send.cs" />
   </ItemGroup>
 
   <ItemGroup>

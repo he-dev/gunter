@@ -3,11 +3,11 @@ using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
 {
-    public class Signature : Module
+    public class Signature : ReportModuleFactory
     {
-        public override IModuleDto CreateDto(TestContext context)
+        public override IReportModule Create(TestContext context)
         {
-            return new ModuleDto<Signature>
+            return new ReportModule<Signature>
             {
                 Text = $"{RuntimeProperty.BuiltIn.Program.FullName}".Format(context.RuntimeProperties),
                 Ordinal = Ordinal

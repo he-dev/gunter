@@ -3,11 +3,11 @@ using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
 {
-    public class Greeting : Module
+    public class Greeting : ReportModuleFactory
     {
-        public override IModuleDto CreateDto(TestContext context)
+        public override IReportModule Create(TestContext context)
         {
-            return new ModuleDto<Greeting>
+            return new ReportModule<Greeting>
             {
                 Heading = Heading.Format(context.RuntimeProperties),
                 Text = Text.Format(context.RuntimeProperties),

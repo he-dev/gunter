@@ -2,13 +2,13 @@ using Gunter.Data;
 
 namespace Gunter.Reporting.Modules
 {
-    public class Level : Module
+    public class Level : ReportModuleFactory
     {
-        public override IModuleDto CreateDto(TestContext context)
+        public override IReportModule Create(TestContext context)
         {
             var level = context.TestCase.Level.ToString();
 
-            return new ModuleDto<Level>
+            return new ReportModule<Level>
             {
                 Text = level,
                 Ordinal = Ordinal

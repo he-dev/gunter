@@ -3,7 +3,7 @@ using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Reporting
 {
-    public interface IModuleDto
+    public interface IReportModule
     {
         string Name { get; }
         
@@ -16,7 +16,7 @@ namespace Gunter.Reporting
         HtmlTable Data { get; }
     }
 
-    public class ModuleDto<T> : IModuleDto
+    public class ReportModule<T> : IReportModule
     {
         [JsonProperty("$t")]
         public string Name => typeof(T).Name;

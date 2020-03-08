@@ -40,12 +40,12 @@ namespace Gunter.Data.SqlClient
 
         public int Timeout { get; set; }
 
-        public IModel Merge(IEnumerable<TheoryFile> templates) => new TableOrViewUnion(this, templates);
+        public IModel Merge(IEnumerable<Theory> templates) => new TableOrViewUnion(this, templates);
     }
 
     public class TableOrViewUnion : Union<ITableOrView>, ITableOrView
     {
-        public TableOrViewUnion(ITableOrView model, IEnumerable<TheoryFile> templates) : base(model, templates) { }
+        public TableOrViewUnion(ITableOrView model, IEnumerable<Theory> templates) : base(model, templates) { }
 
         public string ConnectionString => GetValue(x => x.ConnectionString, x => x is {});
 
@@ -55,7 +55,7 @@ namespace Gunter.Data.SqlClient
 
         public List<IDataFilter> Filters => GetValue(x => x.Filters, x => x?.Any() == true);
 
-        public IModel Merge(IEnumerable<TheoryFile> templates) => new TableOrViewUnion(this, templates);
+        public IModel Merge(IEnumerable<Theory> templates) => new TableOrViewUnion(this, templates);
     }
 
     public class GetDataFromTableOrView : IGetDataFrom
@@ -69,7 +69,7 @@ namespace Gunter.Data.SqlClient
 
         public Type SourceType => typeof(ITableOrView);
 
-        public async Task<QueryResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties)
+        public async Task<GetDataResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties)
         {
             return
                 query is ITableOrView tableOrView
@@ -77,7 +77,7 @@ namespace Gunter.Data.SqlClient
                     : default;
         }
 
-        private async Task<QueryResult> ExecuteAsync(ITableOrView view, RuntimePropertyProvider runtimeProperties)
+        private async Task<GetDataResult> ExecuteAsync(ITableOrView view, RuntimePropertyProvider runtimeProperties)
         {
             var commandText = await GetCommandTextAsync(view, runtimeProperties);
 
@@ -93,7 +93,7 @@ namespace Gunter.Data.SqlClient
             var dataTable = new DataTable();
             dataTable.Load(dataReader);
 
-            return new QueryResult
+            return new GetDataResult
             {
                 Command = cmd.CommandText,
                 Data = dataTable,

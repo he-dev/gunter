@@ -27,11 +27,13 @@ namespace Gunter.Data
         IEnumerable<IQuery> Queries { get; }
 
         IEnumerable<ITestCase> Tests { get; }
+        
+        IEnumerable<IReport> Reports { get; }
     }
 
     [PublicAPI]
     [JsonObject]
-    public class TheoryFile : ITheory
+    public class Theory : ITheory
     {
         public const string TemplatePrefix = "_";
 
@@ -69,7 +71,7 @@ namespace Gunter.Data
         // public List<ISend> Channels { get; set; } = new List<ISend>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<IReport> Reports { get; set; } = new List<IReport>();
+        public IEnumerable<IReport> Reports { get; set; } = new List<IReport>();
 
         [JsonIgnore]
         public string FullName { get; set; }
@@ -91,7 +93,7 @@ namespace Gunter.Data
                     ? TestFileType.Template
                     : TestFileType.Regular;
 
-        public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+        public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
 
         public IEnumerator<IModel> GetEnumerator()
         {
@@ -102,7 +104,7 @@ namespace Gunter.Data
 
         private class Union : Union<ITheory>, ITheory
         {
-            public Union(ITheory model, IEnumerable<TheoryFile> templates) : base(model, templates) { }
+            public Union(ITheory model, IEnumerable<Theory> templates) : base(model, templates) { }
 
             public bool Enabled => Model.Enabled;
 
@@ -111,8 +113,10 @@ namespace Gunter.Data
             public IEnumerable<IQuery> Queries => Model.Queries.Select(m => m is IMergeable mergeable ? mergeable.Merge(Templates) : m).Cast<IQuery>();
 
             public IEnumerable<ITestCase> Tests => Model.Tests.Select(m => m.Merge(Templates)).Cast<ITestCase>();
+            
+            public IEnumerable<IReport> Reports => Model.Reports.Select(m => m.Merge(Templates)).Cast<IReport>();
 
-            public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+            public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
 
             public IEnumerator<IModel> GetEnumerator() => Model.GetEnumerator();
 

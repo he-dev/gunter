@@ -5,7 +5,7 @@ using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Reporting.Modules.Tabular
 {
-    public class TestInfo : Module, ITabular
+    public class TestInfo : ReportModuleFactory, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
@@ -15,9 +15,9 @@ namespace Gunter.Reporting.Modules.Tabular
         [DefaultValue(@"mm\:ss\.fff")]
         public string TimespanFormat { get; set; }
 
-        public override IModuleDto CreateDto(TestContext context)
+        public override IReportModule Create(TestContext context)
         {
-            var section = new ModuleDto<TestInfo>
+            var section = new ReportModule<TestInfo>
             {
                 Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create

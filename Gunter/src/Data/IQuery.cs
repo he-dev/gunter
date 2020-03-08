@@ -30,7 +30,7 @@ namespace Gunter.Data
         [JsonRequired]
         public SoftString Name { get; set; }
 
-        public TheoryFile Parent { get; }
+        public Theory Parent { get; }
 
         public List<IDataFilter>? Filters { get; set; } = new List<IDataFilter>?();
     }
@@ -39,10 +39,10 @@ namespace Gunter.Data
     {
         Type SourceType { get; }
 
-        Task<QueryResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties);
+        Task<GetDataResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties);
     }
 
-    public class QueryResult : IDisposable
+    public class GetDataResult : IDisposable
     {
         public string Command { get; set; }
 

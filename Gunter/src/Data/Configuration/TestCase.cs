@@ -42,7 +42,7 @@ namespace Gunter.Data
 
         public TestCase(Factory factory) => _factory = factory;
 
-        public TheoryFile Parent { get; }
+        public Theory Parent { get; }
 
         public SoftString Name { get; set; }
 
@@ -68,11 +68,11 @@ namespace Gunter.Data
         //[JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public HashSet<SoftString> Tags { get; set; } = new HashSet<SoftString>();
 
-        public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+        public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
 
         private class Union : Union<ITestCase>, ITestCase
         {
-            public Union(ITestCase model, IEnumerable<TheoryFile> templates) : base(model, templates) { }
+            public Union(ITestCase model, IEnumerable<Theory> templates) : base(model, templates) { }
 
             public LogLevel Level => GetValue(x => x.Level, x => x > LogLevel.None);
 
@@ -88,17 +88,17 @@ namespace Gunter.Data
 
             public HashSet<SoftString> Tags => GetValue(x => x.Tags, x => x?.Any() == true);
 
-            public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+            public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
         }
     }
 
     public static class TestCaseExtensions
     {
-        public static IEnumerable<IQuery> Queries(this ITestCase testCase, TheoryFile theoryFile)
+        public static IEnumerable<IQuery> Queries(this ITestCase testCase, Theory theory)
         {
             var dataSources =
                 from id in testCase.QueryNames
-                join ds in theoryFile.Queries on id equals ds.Name
+                join ds in theory.Queries on id equals ds.Name
                 select ds;
 
             return dataSources.Distinct();

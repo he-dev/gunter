@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Reporting;
+using Gunter.Workflows;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
@@ -16,7 +17,7 @@ namespace Gunter.Services
 {
     public interface ISend
     {
-        Task InvokeAsync(TheoryFile theoryFile, string testCaseName, string messageName);
+        Task InvokeAsync(TestContext context, IEmail email);
     }
 
     public abstract class Send : ISend
@@ -28,7 +29,34 @@ namespace Gunter.Services
 
         protected ILogger Logger { get; }
 
-        public async Task InvokeAsync(TheoryFile theoryFile, string testCaseName, string messageName)
+        public async Task InvokeAsync(TestContext context, IEmail email)
+        {
+            var report = context.Theory.Reports.Single(r => r.Name.Equals(email.ReportName));
+
+
+            using (Logger.BeginScope().WithCorrelationHandle("PublishReport").UseStopwatch())
+            {
+                Logger.Log(Abstraction.Layer.Service().Meta(new { ReportId = report.Id }));
+                try
+                {
+                    var modules =
+                        from module in report.Modules
+                        select module.Create(context);
+
+                    //await PublishReportAsync(message, report, modules);
+                    Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Completed());
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Faulted(ex));
+                }
+            }
+        }
+    }
+
+    public class CreateReport
+    {
+        public async Task InvokeAsync(Workflows.TestContext context, string testCaseName, string messageName)
         {
             var reports =
                 from id in theoryFile.OfType<ITestCase>()
@@ -57,6 +85,6 @@ namespace Gunter.Services
             }
         }
 
-        protected abstract Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IModuleDto> modules);
+        protected abstract Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IReportModule> modules);
     }
 }

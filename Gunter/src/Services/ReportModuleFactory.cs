@@ -1,34 +1,33 @@
 ﻿using Gunter.Annotations;
 using Gunter.Data;
+using Gunter.Workflows;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Gunter.Reporting
 {
     [PublicAPI]
-    public interface IModule
+    public interface IReportModuleFactory
     {
-        [CanBeNull]
-        string Heading { get; set; }
+        string? Heading { get; set; }
 
-        [CanBeNull]
-        string Text { get; set; }
+        string? Text { get; set; }
 
         int Ordinal { get; set; }
 
-        IModuleDto CreateDto(TestContext context);
+        IReportModule Create(TestContext context);
     }
 
     [Gunter]
-    public abstract class Module : IModule
+    public abstract class ReportModuleFactory : IReportModuleFactory
     {
-        public string Heading { get; set; }
+        public string? Heading { get; set; }
 
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
         public int Ordinal { get; set; }
 
-        public abstract IModuleDto CreateDto(TestContext context);
+        public abstract IReportModule Create(TestContext context);
     }
 
     public interface ITabular
@@ -38,8 +37,6 @@ namespace Gunter.Reporting
 
         [JsonIgnore]
         bool HasFoot { get; }
-
-        //DataTable Create(TestContext context);
     }
 
     public enum TableOrientation

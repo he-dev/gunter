@@ -5,7 +5,7 @@ namespace Gunter.Data
 {
     public class TestContext
     {
-        public TheoryFile TheoryFile { get; set; }
+        public Theory Theory { get; set; }
         public TestCase TestCase { get; set; }
         public DataTable Data { get; set; }
         public IQuery Query { get; set; }

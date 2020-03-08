@@ -23,13 +23,13 @@ namespace Gunter.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+        public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
 
         private class Union : Union<IPropertyCollection>, IPropertyCollection
         {
-            public Union(IPropertyCollection model, IEnumerable<TheoryFile> templates) : base(model, templates) { }
+            public Union(IPropertyCollection model, IEnumerable<Theory> templates) : base(model, templates) { }
 
-            public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+            public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
 
             public IEnumerator<StaticProperty> GetEnumerator() => base.Model.GetEnumerator();
 

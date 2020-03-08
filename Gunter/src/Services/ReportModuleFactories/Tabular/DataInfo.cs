@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Custom;
 using Gunter.Data;
 using Gunter.Extensions;
+using Gunter.Workflows;
 using JetBrains.Annotations;
 using Reusable.Collections;
 using Reusable.Exceptionize;
@@ -14,7 +15,7 @@ using Reusable.Utilities.Mailr.Models;
 namespace Gunter.Reporting.Modules.Tabular
 {
     [PublicAPI]
-    public class DataInfo : Module, ITabular
+    public class DataInfo : ReportModuleFactory, ITabular
     {
         private static readonly IEqualityComparer<IEnumerable<object>> GroupKeyEqualityComparer =
             EqualityComparerFactory<IEnumerable<object>>.Create(
@@ -43,7 +44,7 @@ namespace Gunter.Reporting.Modules.Tabular
         [ItemCanBeNull]
         public List<DataInfoColumn?> Columns { get; set; } = new List<DataInfoColumn?>();
 
-        public override IModuleDto CreateDto(TestContext context)
+        public override IReportModule Create(TestContext context)
         {
             // Materialize it because we'll be modifying it.
             var columns = Columns.ToList();
@@ -58,7 +59,7 @@ namespace Gunter.Reporting.Modules.Tabular
                 }).ToList();
             }
 
-            var section = new ModuleDto<DataInfo>
+            var section = new ReportModule<DataInfo>
             {
                 Heading = Heading.Format(context.RuntimeProperties),
                 Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))).ToArray()))

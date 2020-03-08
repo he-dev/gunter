@@ -23,7 +23,7 @@ namespace Gunter.Commands
             var messenger =
                 parameter
                     .TestContext
-                    .TheoryFile
+                    .Theory
                     .Channels
                     .Where(m => m.Id.Equals(parameter.Channel))
                     .SingleOrThrow

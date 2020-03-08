@@ -55,8 +55,8 @@ namespace Gunter.Data
             public static class TestBundle
             {
                 //public static readonly IRuntimeVariable Name = RuntimeVariableFactory.Create<Gunter.Data.TestBundle>(x => Path.GetFileNameWithoutExtension(x.FullName));
-                public static readonly IProperty FullName = RuntimePropertyFactory.Create<Gunter.Data.TheoryFile>(x => x.FullName);
-                public static readonly IProperty FileName = RuntimePropertyFactory.Create<Gunter.Data.TheoryFile>(x => x.FileName);
+                public static readonly IProperty FullName = RuntimePropertyFactory.Create<Gunter.Data.Theory>(x => x.FullName);
+                public static readonly IProperty FileName = RuntimePropertyFactory.Create<Gunter.Data.Theory>(x => x.FileName);
             }
 
             public static class TestCase

@@ -10,13 +10,15 @@ namespace Gunter.Data
 {
     public interface IMessage : IModel { }
 
-    public interface IEmail : IMessage, IMergeable<IEmail>
+    public interface IEmail : IMessage, IMergeable
     {
         List<string> To { get; }
 
         List<string> CC { get; }
 
         string Theme { get; }
+
+        string ReportName { get; }
     }
 
     public class Email : IEmail
@@ -30,25 +32,27 @@ namespace Gunter.Data
 
         public List<string> CC { get; set; }
 
-        [JsonProperty("Reports")]
-        public List<string> ReportNames { get; set; } = new List<string>();
-
         [DefaultValue("default")]
         public string Theme { get; set; }
 
-        public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+        [JsonProperty("Report")]
+        public string ReportName { get; set; }
+
+        public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
 
         private class Union : Union<IEmail>, IEmail
         {
-            public Union(IEmail model, IEnumerable<TheoryFile> templates) : base(model, templates) { }
+            public Union(IEmail model, IEnumerable<Theory> templates) : base(model, templates) { }
 
             public List<string> To => GetValue(x => x.To, x => x?.Any() == true);
 
             public List<string> CC => GetValue(x => x.CC, x => x?.Any() == true);
 
             public string Theme => GetValue(x => x.Theme, x => x is {});
-            
-            public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+
+            public string ReportName => Model.ReportName;
+
+            public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
         }
     }
 }

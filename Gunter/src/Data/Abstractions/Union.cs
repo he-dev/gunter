@@ -8,7 +8,7 @@ namespace Gunter.Data.Abstractions
 {
     public abstract class Union<T> : IModel where T : IModel, IMergeable
     {
-        protected Union(T model, IEnumerable<TheoryFile> templates)
+        protected Union(T model, IEnumerable<Theory> templates)
         {
             Model = model;
             Templates = templates;
@@ -16,7 +16,7 @@ namespace Gunter.Data.Abstractions
 
         protected T Model { get; }
 
-        protected IEnumerable<TheoryFile> Templates { get; }
+        protected IEnumerable<Theory> Templates { get; }
 
         public SoftString Name => Model.Name;
 
