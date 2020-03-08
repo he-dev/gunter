@@ -6,17 +6,17 @@ namespace Gunter.Data
 {
     [JsonString]
     [UsedImplicitly]
-    public class Merge
+    public class TemplateSelector
     {
-        private Merge(string name, SoftString id)
+        private TemplateSelector(string templateName, string modelId)
         {
-            Name = name;
-            Id = id;
+            TemplateName = templateName;
+            ModelId = modelId;
         }
         
-        public SoftString Name { get; }
+        public SoftString TemplateName { get; }
 
-        public SoftString? Id { get; }
+        public SoftString ModelId { get; }
 
         // public static Merge Parse(string merge)
         // {
@@ -37,6 +37,6 @@ namespace Gunter.Data
         //     );
         // }
 
-        public override string ToString() => $"{Name}#{Id}";
+        public override string ToString() => $"{TemplateName}#{ModelId}";
     }
 }

@@ -12,6 +12,9 @@ using Gunter.Data;
 using Gunter.Data.SqlClient;
 using Gunter.Services;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using Reusable;
 using Reusable.Commander;
 using Reusable.Exceptionize;
@@ -26,25 +29,11 @@ using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Translucent;
 using Reusable.Utilities.JsonNet;
+using Reusable.Utilities.JsonNet.Converters;
+using IMessage = Gunter.Data.IMessage;
 
 namespace Gunter
 {
-    public class TestFile
-    {
-        public string Name { get; set; }
-
-        public bool CanLoad { get; set; }
-
-        public bool IsTemplate => Path.GetFileName(Name).StartsWith(Specification.TemplatePrefix);
-
-        public TestBundleType Type =>
-            Name is null
-                ? TestBundleType.Unknown
-                : Path.GetFileName(Name).StartsWith(Specification.TemplatePrefix)
-                    ? TestBundleType.Template
-                    : TestBundleType.Regular;
-    }
-
     namespace Workflows
     {
         internal class SessionWorkflow : Workflow<SessionContext>
@@ -53,27 +42,27 @@ namespace Gunter
 
             public static SessionWorkflow Create(IServiceProvider serviceProvider) => new SessionWorkflow(serviceProvider)
             {
-                new FindProjects(serviceProvider),
-                new LoadProjects(serviceProvider),
-                new ProcessProjects(serviceProvider)
+                new FindTestFiles(serviceProvider),
+                new LoadTestFiles(serviceProvider),
+                new ProcessTheories(serviceProvider)
                 {
-                    ForEachProject =
+                    ForEachTestFile =
                     {
-                        new ProcessProject(serviceProvider)
+                        new ProcessTheory(serviceProvider)
                         {
-                            ForEachTest =
+                            ForEachTestCase =
                             {
                                 new CreateRuntimeProperties(serviceProvider),
                                 new GetData(serviceProvider)
                                 {
-                                    Providers =
+                                    Options =
                                     {
                                         new GetDataFromTableOrView(default)
                                     }
                                 },
                                 new FilterData(serviceProvider),
                                 new EvaluateData(serviceProvider),
-                                new ProcessCommands(serviceProvider)
+                                new ProcessMessages(serviceProvider)
                             }
                         }
                     }
@@ -87,29 +76,9 @@ namespace Gunter
 
             public TestFilter TestFilter { get; set; }
 
-            public List<TestFile> TestFiles { get; set; } = new List<TestFile>();
+            public HashSet<string> TestFileNames { get; set; } = new HashSet<string>(SoftString.Comparer);
 
-            public List<Specification> TestBundles { get; set; } = new List<Specification>();
-        }
-
-        public static class Partial
-        {
-            public static TResult Read<T, TResult>(this T partial, Func<T, TResult> selector, IEnumerable<Specification> partials) where T : IModel
-            {
-                if (selector(partial) is {} result)
-                {
-                    return result;
-                }
-                else
-                {
-                    if (partials.SingleOrDefault(p => p.Name == partial.Merge.Name) is {} other)
-                    {
-                        partial = other.Flatten().OfType<T>().SingleOrDefault(p => p.Id == partial.Id);
-                    }
-
-                    return selector(partial);
-                }
-            }
+            public List<TheoryFile> TestFiles { get; set; } = new List<TheoryFile>();
         }
 
         public class TestFilter
@@ -120,19 +89,19 @@ namespace Gunter
             public List<string> Tags { get; set; } = new List<string>();
         }
 
-        internal class FindProjects : Step<SessionContext>
+        internal class FindTestFiles : Step<SessionContext>
         {
-            public FindProjects(IServiceProvider serviceProvider) : base(serviceProvider) { }
+            public FindTestFiles(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
             [Service]
-            public ILogger<FindProjects> Logger { get; set; }
+            public ILogger<FindTestFiles> Logger { get; set; }
 
             [Service]
             public IDirectoryTree DirectoryTree { get; set; }
 
             public override async Task ExecuteAsync(SessionContext context)
             {
-                context.TestFiles =
+                context.TestFileNames =
                     DirectoryTree
                         .Walk(context.TestDirectoryName, DirectoryTreePredicates.MaxDepth(1), PhysicalDirectoryTree.IgnoreExceptions)
                         .WhereFiles(@"\.json$")
@@ -147,55 +116,105 @@ namespace Gunter
                         //     context.TestFilter.FileNamePatterns.w
                         // })
                         .FullNames()
-                        .Select(n => new TestFile { Name = n })
-                        .ToList();
+                        .ToHashSet(SoftString.Comparer);
 
                 await ExecuteNextAsync(context);
             }
         }
 
-
-        internal class LoadProjects : Step<SessionContext>
+        internal class DeserializeTestFile
         {
-            public LoadProjects(IServiceProvider serviceProvider) : base(serviceProvider) { }
+            public delegate DeserializeTestFile Factory(string fileName);
+
+            public DeserializeTestFile(IPrettyJson prettyJson, IContractResolver contractResolver, string fileName)
+            {
+                PrettyJson = prettyJson;
+                JsonSerializer = new JsonSerializer
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    ObjectCreationHandling = ObjectCreationHandling.Replace,
+                    ContractResolver = contractResolver,
+                    Converters =
+                    {
+                        new StringEnumConverter(),
+                        new SoftStringConverter(),
+                        new TestFileConverter
+                        {
+                            FileName = fileName
+                        }
+                    }
+                };
+            }
+
+            private IPrettyJson PrettyJson { get; }
+
+            private JsonSerializer JsonSerializer { get; }
+
+            public TheoryFile Invoke(string prettyJson)
+            {
+                var normalJson = PrettyJson.Read(prettyJson, TypeDictionary.From(TheoryFile.SectionTypes));
+                return normalJson.ToObject<TheoryFile>(JsonSerializer);
+            }
+
+            private class TestFileConverter : CustomCreationConverter<TheoryFile>
+            {
+                public string FileName { get; set; }
+
+                public override TheoryFile Create(Type objectType)
+                {
+                    return new TheoryFile
+                    {
+                        FullName = FileName
+                    };
+                }
+            }
+        }
+
+        internal class LoadTestFiles : Step<SessionContext>
+        {
+            public LoadTestFiles(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
             [Service]
-            public ILogger<FindProjects> Logger { get; set; }
+            public ILogger<FindTestFiles> Logger { get; set; }
 
             [Service]
             public IResource Resource { get; set; }
 
             [Service]
-            public IPrettyJsonSerializer TestFileSerializer { get; set; }
+            public IPrettyJson PrettyJson { get; set; }
+
+            [Service]
+            public DeserializeTestFile.Factory TestFileSerializerFactory { get; set; }
 
             public override async Task ExecuteAsync(SessionContext context)
             {
-                foreach (var testFile in context.TestFiles.Where(tf => tf.IsTemplate || tf.CanLoad))
+                foreach (var testFileName in context.TestFileNames)
                 {
                     //using var _ = _logger.BeginScope().WithCorrelationHandle("LoadTestFile").UseStopwatch();
 
                     //_logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
 
-                    if (await LoadTestAsync(testFile.Name) is {} testBundle)
+                    if (await LoadTestFileAsync(testFileName) is {} testFile)
                     {
-                        context.TestBundles.Add(testBundle.Pipe(x => { x.TestFile = testFile; }));
+                        context.TestFiles.Add(testFile);
                     }
                 }
             }
 
-            private async Task<Specification?> LoadTestAsync(string fullName)
+            private async Task<TheoryFile?> LoadTestFileAsync(string name)
             {
                 try
                 {
-                    var file = await Resource.ReadTextFileAsync(fullName);
-                    var testBundle = TestFileSerializer.Deserialize<Specification>(file, TypeDictionary.From(Specification.SectionTypes)).Pipe(x => x.FullName = fullName);
+                    var prettyJson = await Resource.ReadTextFileAsync(name);
+                    var testFileSerializer = TestFileSerializerFactory(name);
+                    var testFile = testFileSerializer.Invoke(prettyJson);
 
-                    if (testBundle.Enabled)
+                    if (testFile.Enabled)
                     {
                         var duplicateIds =
-                            from section in testBundle
-                            from item in section
-                            group item by item.Id into g
+                            from model in testFile
+                            group model by model.Name into g
                             where g.Count() > 1
                             select g;
 
@@ -207,7 +226,7 @@ namespace Gunter
                         }
                         else
                         {
-                            return testBundle;
+                            return testFile;
                         }
                     }
                     else
@@ -228,18 +247,18 @@ namespace Gunter
             }
         }
 
-        internal class ProjectContext
+        internal class TheoryContext
         {
-            public List<TestContext> Tests { get; set; } = new List<TestContext>();
-
-            public List<Specification> Templates { get; set; } = new List<Specification>();
+            public ITheory Theory { get; set; }
         }
 
         internal class TestContext : IDisposable
         {
-            public Specification Specification { get; set; }
+            public string Name { get; set; }
+            
+            public List<IProperty> Variables { get; set; }
 
-            public TestCase TestCase { get; set; }
+            public ITestCase TestCase { get; set; }
 
             public IQuery Query { get; set; }
 
@@ -258,49 +277,38 @@ namespace Gunter
             public void Dispose() => QueryResult?.Dispose();
         }
 
-        internal class ProcessProjects : Step<SessionContext>
+        internal class ProcessTheories : Step<SessionContext>
         {
-            public ProcessProjects(IServiceProvider serviceProvider) : base(serviceProvider)
+            public ProcessTheories(IServiceProvider serviceProvider) : base(serviceProvider)
             {
-                ForEachProject = new Workflow<ProjectContext>(serviceProvider);
+                ForEachTestFile = new Workflow<TheoryContext>(serviceProvider);
             }
 
             [Service]
-            public ILogger<FindProjects> Logger { get; set; }
+            public ILogger<FindTestFiles> Logger { get; set; }
 
             public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount * 2;
 
-            public Workflow<ProjectContext> ForEachProject { get; set; }
+            public Workflow<TheoryContext> ForEachTestFile { get; set; }
 
             public override async Task ExecuteAsync(SessionContext context)
             {
-                var actions = new ActionBlock<ProjectContext>
+                var testFiles = context.TestFiles.ToLookup(p => p.Type);
+                var templates = testFiles[TestFileType.Template];
+
+                var theories =
+                    from theory in testFiles[TestFileType.Regular]
+                    select theory.Merge(templates);
+
+                var actions = new ActionBlock<TheoryContext>
                 (
-                    ForEachProject.ExecuteAsync,
+                    ForEachTestFile.ExecuteAsync,
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism }
                 );
 
-                var projects = context.TestBundles.ToLookup(p => p.TestFile.Type);
-
-                var projectGroups =
-                    from testBundle in projects[TestBundleType.Regular]
-                    from testCase in testBundle.Tests
-                    from query in testCase.Queries(testBundle)
-                    group new TestContext
-                    {
-                        Specification = testBundle,
-                        TestCase = testCase,
-                        Query = query
-                    } by testBundle.Name into projectGroup
-                    select projectGroup;
-
-                foreach (var projectGroup in projectGroups)
+                foreach (var theory in theories.Cast<ITheory>())
                 {
-                    await actions.SendAsync(new ProjectContext
-                    {
-                        Tests = projectGroup.ToList(),
-                        Templates = projects[TestBundleType.Template].ToList()
-                    });
+                    await actions.SendAsync(new TheoryContext { Theory = theory });
                 }
 
                 actions.Complete();
@@ -309,22 +317,32 @@ namespace Gunter
             }
         }
 
-        internal class ProcessProject : Step<ProjectContext>
+        internal class ProcessTheory : Step<TheoryContext>
         {
-            public ProcessProject(IServiceProvider serviceProvider) : base(serviceProvider)
+            public ProcessTheory(IServiceProvider serviceProvider) : base(serviceProvider)
             {
-                ForEachTest = new Workflow<TestContext>(serviceProvider);
+                ForEachTestCase = new Workflow<TestContext>(serviceProvider);
             }
 
-            public Workflow<TestContext> ForEachTest { get; set; }
+            public Workflow<TestContext> ForEachTestCase { get; set; }
 
-            public override async Task ExecuteAsync(ProjectContext context)
+            public override async Task ExecuteAsync(TheoryContext context)
             {
-                foreach (var testContext in context.Tests)
+                var testCases =
+                    from testCase in context.Theory.Tests
+                    from queryName in testCase.QueryNames
+                    join query in context.Theory.Queries on queryName equals query.Name
+                    select (testCase, query);
+                
+                foreach (var (testCase, query) in testCases)
                 {
                     try
                     {
-                        await ForEachTest.ExecuteAsync(testContext);
+                        await ForEachTestCase.ExecuteAsync(new TestContext
+                        {
+                            TestCase = testCase,
+                            Query = query
+                        });
                     }
                     catch (OperationCanceledException)
                     {
@@ -342,8 +360,8 @@ namespace Gunter
 
             public override async Task ExecuteAsync(TestContext context)
             {
-                var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.Specification.Variables.Flatten());
-                var objects = new object[] { context.Specification, context.TestCase };
+                var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.Variables);
+                var objects = new object[] { context.TestFile, context.TestCase };
                 context.Properties = new RuntimePropertyProvider(properties.ToImmutableList(), objects.ToImmutableList());
 
                 await ExecuteNextAsync(context);
@@ -360,22 +378,19 @@ namespace Gunter
             [Service]
             public IMemoryCache Cache { get; set; }
 
-            public List<IGetDataFrom> Providers { get; set; } = new List<IGetDataFrom>();
+            public List<IGetDataFrom> Options { get; set; } = new List<IGetDataFrom>();
 
             public override async Task ExecuteAsync(TestContext context)
             {
                 using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(GetData)).UseStopwatch();
-                Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Id }));
+                Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Name }));
                 try
                 {
-                    context.QueryResult = await Cache.GetOrCreateAsync($"{context.Specification.Name}.{context.Query.Id}", async entry =>
+                    context.QueryResult = await Cache.GetOrCreateAsync($"{context.Name}.{context.Query.Name}", async entry =>
                     {
-                        foreach (var getDataFrom in Providers)
+                        if (Options.Single(o => o.SourceType.IsInstanceOfType(context.Query)) is {} getData)
                         {
-                            if (await getDataFrom.ExecuteAsync(context.Query, context.Properties) is {} result)
-                            {
-                                return result;
-                            }
+                            return await getData.ExecuteAsync(context.Query, context.Properties);
                         }
 
                         return default;
@@ -386,7 +401,7 @@ namespace Gunter
                 }
                 catch (Exception inner)
                 {
-                    throw DynamicException.Create(GetType().ToPrettyString(), $"Error getting or processing data for query '{context.Query.Id}'.", inner);
+                    throw DynamicException.Create(GetType().ToPrettyString(), $"Error getting or processing data for query '{context.Query.Name}'.", inner);
                 }
             }
         }
@@ -446,9 +461,9 @@ namespace Gunter
             }
         }
 
-        internal class ProcessCommands : Step<TestContext>
+        internal class ProcessMessages : Step<TestContext>
         {
-            public ProcessCommands(IServiceProvider serviceProvider) : base(serviceProvider) { }
+            public ProcessMessages(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
             [Service]
             public ILogger<EvaluateData> Logger { get; set; }
@@ -456,11 +471,13 @@ namespace Gunter
             [Service]
             public ICommandExecutor CommandExecutor { get; set; }
 
+            public List<IMessage> Messages { get; set; } = new List<IMessage>();
+
             public override async Task ExecuteAsync(TestContext context)
             {
-                foreach (var commandLine in context.TestCase.When.TryGetValue(context.Result, out var then) ? then : Enumerable.Empty<string>())
+                if(context.TestCase.Messages.TryGetValue(context.Result, out var messages))
                 {
-                    await CommandExecutor.ExecuteAsync(commandLine, context);
+                    //await CommandExecutor.ExecuteAsync(commandLine, context);
                 }
 
                 await ExecuteNextAsync(context);

@@ -94,17 +94,17 @@ namespace Gunter.DependencyInjection.Modules
                 .RegisterType<RuntimePropertyNameValidator>()
                 .As<IRuntimePropertyNameValidator>();
 
-            builder
-                .RegisterType<TestLoader>()
-                .As<ITestLoader>();
+            // builder
+            //     .RegisterType<TestLoader>()
+            //     .As<ITestLoader>();
 
-            builder
-                .RegisterType<TestComposer>()
-                .As<ITestComposer>();
-
-            builder
-                .RegisterType<TestRunner>()
-                .As<ITestRunner>();
+            // builder
+            //     .RegisterType<TestComposer>()
+            //     .As<ITestComposer>();
+            //
+            // builder
+            //     .RegisterType<TestRunner>()
+            //     .As<ITestRunner>();
 
             builder
                 .RegisterType<RuntimePropertyProvider>()

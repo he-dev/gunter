@@ -43,6 +43,11 @@
 
   <ItemGroup>
     <Compile Remove="noop" />
+    <Compile Remove="src\Annotations\MergeableAttribute.cs" />
+    <Compile Remove="src\Services\TestComposer.cs" />
+    <Compile Remove="src\Services\TestRunner.cs" />
+    <Compile Remove="src\Services\TestLoader.cs" />
+    <Compile Remove="src\Data\TestCounter.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -140,6 +145,10 @@
 
   <ItemGroup>
     <RegFreeComManifest Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.X.manifest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Data\Configuration\SqlClient" />
   </ItemGroup>
 
 <!--  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">-->

@@ -38,7 +38,7 @@ namespace Gunter.Reporting.Modules.Tabular
                 .Update(Columns.Value, context.Result.ToString(), context.Result.ToString().ToLower());
             section.Data.Body.NewRow()
                 .Update(Columns.Property, "Then")
-                .Update(Columns.Value, context.TestCase.When[context.Result]);
+                .Update(Columns.Value, context.TestCase.Messages[context.Result]);
             section.Data.Body.NewRow()
                 .Update(Columns.Property, nameof(Gunter.Data.TestCase.Tags))
                 .Update(Columns.Value, context.TestCase.Tags);

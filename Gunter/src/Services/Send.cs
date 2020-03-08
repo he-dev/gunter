@@ -14,30 +14,25 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
 {
-    public interface IChannel : IModel
+    public interface ISend
     {
-        Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds);
+        Task InvokeAsync(TheoryFile theoryFile, string testCaseName, string messageName);
     }
 
-    public abstract class Channel : IChannel
+    public abstract class Send : ISend
     {
-        protected Channel([NotNull] ILogger logger)
+        protected Send(ILogger logger)
         {
             Logger = logger;
         }
 
         protected ILogger Logger { get; }
 
-        [JsonRequired]
-        public SoftString Id { get; set; }
-
-        public Merge? Merge { get; set; }
-
-        public async Task SendAsync(TestContext context, IEnumerable<SoftString> reportIds)
+        public async Task InvokeAsync(TheoryFile theoryFile, string testCaseName, string messageName)
         {
             var reports =
-                from id in reportIds
-                join report in context.Specification.Reports on id equals report.Id
+                from id in theoryFile.OfType<ITestCase>()
+                join report in message.TheoryFile.Reports on id equals report.Id
                 select report;
 
             foreach (var report in reports)
@@ -49,9 +44,9 @@ namespace Gunter.Services
                     {
                         var modules =
                             from module in report.Modules
-                            select module.CreateDto(context);
+                            select module.CreateDto(message);
 
-                        await PublishReportAsync(context, report, modules);
+                        await PublishReportAsync(message, report, modules);
                         Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Completed());
                     }
                     catch (Exception ex)

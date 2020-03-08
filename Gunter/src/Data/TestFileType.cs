@@ -1,6 +1,6 @@
 namespace Gunter.Data
 {
-    public enum TestBundleType
+    public enum TestFileType
     {
         Unknown,
         Regular,

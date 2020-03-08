@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gunter.Annotations;
@@ -17,7 +19,7 @@ using Reusable.Translucent;
 
 namespace Gunter.Data.SqlClient
 {
-    public interface ITableOrView : IQuery
+    public interface ITableOrView : IQuery, IMergeable
     {
         string ConnectionString { get; }
 
@@ -26,32 +28,34 @@ namespace Gunter.Data.SqlClient
         int Timeout { get; }
     }
 
-
     [PublicAPI]
     [UsedImplicitly]
-    public class TableOrView : Query
+    public class TableOrView : Query<ITableOrView>, ITableOrView
     {
-        [Mergeable(Required = true)]
+        public List<TemplateSelector>? TemplateSelectors { get; set; }
+
         public string ConnectionString { get; set; }
 
-        [Mergeable(Required = true)]
         public string Command { get; set; }
 
-        [Mergeable]
         public int Timeout { get; set; }
+
+        public IModel Merge(IEnumerable<TheoryFile> templates) => new TableOrViewUnion(this, templates);
     }
 
     public class TableOrViewUnion : Union<ITableOrView>, ITableOrView
     {
-        public TableOrViewUnion(ITableOrView model, IEnumerable<Specification> templates) : base(model, templates) { }
+        public TableOrViewUnion(ITableOrView model, IEnumerable<TheoryFile> templates) : base(model, templates) { }
 
         public string ConnectionString => GetValue(x => x.ConnectionString, x => x is {});
 
         public string Command => GetValue(x => x.Command, x => x is {});
 
         public int Timeout => GetValue(x => x.Timeout, x => x > 0);
-        
-        public List<IDataFilter> Filters { get; set; } = new List<IDataFilter>();
+
+        public List<IDataFilter> Filters => GetValue(x => x.Filters, x => x?.Any() == true);
+
+        public IModel Merge(IEnumerable<TheoryFile> templates) => new TableOrViewUnion(this, templates);
     }
 
     public class GetDataFromTableOrView : IGetDataFrom
@@ -62,6 +66,8 @@ namespace Gunter.Data.SqlClient
         }
 
         private IResource Resource { get; }
+
+        public Type SourceType => typeof(ITableOrView);
 
         public async Task<QueryResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties)
         {

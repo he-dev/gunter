@@ -23,7 +23,7 @@ namespace Gunter.Commands
             var messenger =
                 parameter
                     .TestContext
-                    .Specification
+                    .TheoryFile
                     .Channels
                     .Where(m => m.Id.Equals(parameter.Channel))
                     .SingleOrThrow
@@ -32,7 +32,7 @@ namespace Gunter.Commands
                     );
 
             // ReSharper disable once PossibleNullReferenceException - messenger won't be null
-            await messenger.SendAsync(parameter.TestContext, new SoftString[] { parameter.Report });
+            await messenger.InvokeAsync(TODO, TODO, TODO);
         }
 
         [UsedImplicitly]

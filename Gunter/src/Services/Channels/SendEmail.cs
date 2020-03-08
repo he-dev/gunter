@@ -14,33 +14,20 @@ using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Translucent;
 using Reusable.Utilities.Mailr;
 using Reusable.Utilities.Mailr.Models;
+using Email = Reusable.Utilities.Mailr.Models.Email;
 
 namespace Gunter.Services.Channels
 {
     [Gunter]
     [PublicAPI]
-    public class Mailr : Channel
+    public class SendEmail : Send
     {
         private readonly IResource _resource;
 
-        public Mailr
-        (
-            ILogger<Mailr> logger,
-            IResource resource
-        ) : base(logger)
+        public SendEmail(ILogger<SendEmail> logger, IResource resource) : base(logger)
         {
             _resource = resource;
         }
-
-        [Mergeable]
-        public List<string> To { get; set; }
-
-        [Mergeable]
-        public List<string> CC { get; set; }
-
-        [DefaultValue("default")]
-        [Mergeable]
-        public string Theme { get; set; }
 
         protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IModuleDto> modules)
         {

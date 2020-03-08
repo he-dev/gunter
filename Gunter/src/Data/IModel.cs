@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 
@@ -7,8 +8,14 @@ namespace Gunter.Data
     public interface IModel
     {
         [JsonRequired]
-        SoftString Id { get; }
+        SoftString Name { get; }
+    }
 
-        Merge? Merge { get; }
+    public interface IMergeable
+    {
+        [JsonProperty("Merge")]
+        List<TemplateSelector>? TemplateSelectors { get; }
+
+        IModel Merge(IEnumerable<TheoryFile> templates);
     }
 }

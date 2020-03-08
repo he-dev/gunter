@@ -1,6 +1,7 @@
 {
-  "Variables": [
+  "Properties": [
     {
+      "$g": "StaticPropertyCollection",
       "Id": "locals",
       "Merge": "_Gunter#defaults",
       "Items": {
@@ -52,8 +53,17 @@
       "Assert": "Count([_id]) = 5",
       "When": {
         "Passed": [
-          "send -report full -channel email",
-          "halt"
+          {
+            "$g": "Email",
+            "Merge": "_Gunter#email",
+            "To": [
+              "gunter@test.com"
+            ],
+            "Report": "full"
+          },
+          {
+            "$g": "Halt"
+          }
         ]
       },
       "Tags": [
@@ -76,16 +86,6 @@
         ]
       },
       "Tags": []
-    }
-  ],
-  "Channels": [
-    {
-      "$g": "Mailr",
-      "Id": "email",
-      "To": [
-        "gunter@test.com"
-      ],
-      "Merge": "_Gunter#email"
     }
   ],
   "Reports": [

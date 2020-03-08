@@ -55,21 +55,21 @@ namespace Gunter.Data
             public static class TestBundle
             {
                 //public static readonly IRuntimeVariable Name = RuntimeVariableFactory.Create<Gunter.Data.TestBundle>(x => Path.GetFileNameWithoutExtension(x.FullName));
-                public static readonly IProperty FullName = RuntimePropertyFactory.Create<Gunter.Data.Specification>(x => x.FullName);
-                public static readonly IProperty FileName = RuntimePropertyFactory.Create<Gunter.Data.Specification>(x => x.FileName);
+                public static readonly IProperty FullName = RuntimePropertyFactory.Create<Gunter.Data.TheoryFile>(x => x.FullName);
+                public static readonly IProperty FileName = RuntimePropertyFactory.Create<Gunter.Data.TheoryFile>(x => x.FileName);
             }
 
             public static class TestCase
             {
-                public static readonly IProperty Level = RuntimePropertyFactory.Create<Gunter.Data.TestCase>(x => x.Level);
-                public static readonly IProperty Message = RuntimePropertyFactory.Create<Gunter.Data.TestCase>(x => x.Message);
+                public static readonly IProperty Level = RuntimePropertyFactory.Create<Gunter.Data.ITestCase>(x => x.Level);
+                public static readonly IProperty Message = RuntimePropertyFactory.Create<Gunter.Data.ITestCase>(x => x.Message);
             }
 
-            public static class TestCounter
-            {
-                public static readonly IProperty GetDataElapsed = RuntimePropertyFactory.Create<Gunter.Data.TestCounter>(x => x.GetDataElapsed);
-                public static readonly IProperty AssertElapsed = RuntimePropertyFactory.Create<Gunter.Data.TestCounter>(x => x.RunTestElapsed);
-            }
+            // public static class TestCounter
+            // {
+            //     public static readonly IProperty GetDataElapsed = RuntimePropertyFactory.Create<Gunter.Data.TestCounter>(x => x.GetDataElapsed);
+            //     public static readonly IProperty AssertElapsed = RuntimePropertyFactory.Create<Gunter.Data.TestCounter>(x => x.RunTestElapsed);
+            // }
 
             public static IEnumerable<IProperty> Enumerate()
             {
@@ -79,8 +79,8 @@ namespace Gunter.Data
                 yield return TestBundle.FileName;
                 yield return TestCase.Level;
                 yield return TestCase.Message;
-                yield return TestCounter.GetDataElapsed;
-                yield return TestCounter.AssertElapsed;
+                //yield return TestCounter.GetDataElapsed;
+                //yield return TestCounter.AssertElapsed;
             }
         }
     }

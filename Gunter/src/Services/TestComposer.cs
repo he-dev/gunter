@@ -20,7 +20,7 @@ namespace Gunter.Services
 {
     internal interface ITestComposer
     {
-        IEnumerable<Specification> ComposeTests(IEnumerable<Specification> bundles, TestFilter testFilter);
+        IEnumerable<TestFile> ComposeTests(IEnumerable<TestFile> bundles, TestFilter testFilter);
     }
 
     internal class TestComposer : ITestComposer
@@ -34,11 +34,11 @@ namespace Gunter.Services
             _componentContext = componentContext;
         }
 
-        public IEnumerable<Specification> ComposeTests(IEnumerable<Specification> bundles, TestFilter testFilter)
+        public IEnumerable<TestFile> ComposeTests(IEnumerable<TestFile> bundles, TestFilter testFilter)
         {
             var bundleGroups = bundles.ToLookup(b => b.TestFile.Type);
 
-            foreach (var bundle in bundleGroups[TestBundleType.Regular])
+            foreach (var bundle in bundleGroups[TestFileType.Regular])
             {
                 var executableTests =
                     from test in bundle.Tests
@@ -50,22 +50,22 @@ namespace Gunter.Services
 
                 bundle.Tests = executableTests.ToList();
 
-                if (TryCompose(bundle, bundleGroups[TestBundleType.Template], out var composition))
+                if (TryCompose(bundle, bundleGroups[TestFileType.Template], out var composition))
                 {
                     yield return composition;
                 }
             }
         }
 
-        private bool TryCompose(Specification specification, IEnumerable<Specification> partials, out Specification composition)
+        private bool TryCompose(TestFile testFile, IEnumerable<TestFile> partials, out TestFile composition)
         {
             composition = default;
             using (_logger.BeginScope().WithCorrelationHandle("MergeTests").UseStopwatch())
             {
-                _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = specification.Name.ToString() }));
+                _logger.Log(Abstraction.Layer.Service().Meta(new { TestBundleName = testFile.Name.ToString() }));
                 try
                 {
-                    composition = Merge(specification, partials);
+                    composition = Merge(testFile, partials);
                     _logger.Log(Abstraction.Layer.Service().Routine(nameof(TryCompose)).Completed());
                     return true;
                 }
@@ -77,14 +77,14 @@ namespace Gunter.Services
             }
         }
 
-        private Specification Merge(Specification regular, IEnumerable<Specification> partials)
+        private TestFile Merge(TestFile regular, IEnumerable<TestFile> partials)
         {
             var mergeableTestBundleProperties =
-                typeof(Specification)
+                typeof(TestFile)
                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(p => p.CanWrite);
 
-            var newTestBundle = _componentContext.Resolve<Specification>();
+            var newTestBundle = _componentContext.Resolve<TestFile>();
 
             foreach (var testBundleProperty in mergeableTestBundleProperties)
             {
@@ -106,13 +106,13 @@ namespace Gunter.Services
                     var other = default(IModel);
                     if (mergeable.Merge is {})
                     {
-                        var partialTestBundle = partials.Where(p => p.Name == mergeable.Merge.Name).SingleOrThrow
+                        var partialTestBundle = partials.Where(p => p.Name == mergeable.Merge.TemplateName).SingleOrThrow
                         (
-                            onEmpty: () => DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{mergeable.Merge.Name}'.")
+                            onEmpty: () => DynamicException.Create("OtherTestBundleNotFound", $"Could not find test bundle '{mergeable.Merge.TemplateName}'.")
                         );
 
                         var partialTestBundleValue = (IEnumerable<IModel>)testBundleProperty.GetValue(partialTestBundle);
-                        var mergeId = mergeable.Merge.Id ?? mergeable.Id;
+                        var mergeId = mergeable.Merge.ModelId ?? mergeable.Id;
                         other = partialTestBundleValue.Where(x => x.Id == mergeId).SingleOrThrow
                         (
                             onEmpty: () => DynamicException.Create("OtherMergeableNotFound", $"Could not find mergeable '{mergeId}' of '{mergeable.GetType().ToPrettyString()}' with the id '{mergeable.Id}'.")

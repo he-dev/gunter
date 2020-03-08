@@ -14,14 +14,21 @@ using Reusable.OmniLog;
 
 namespace Gunter.Data
 {
-    public interface ITestCase : IModel
+    public interface ITestCase : IModel, IMergeable
     {
         LogLevel Level { get; }
+
+        HashSet<SoftString> QueryNames { get; }
+
         string Message { get; }
-        List<SoftString> QueryIds { get; }
+
         string Filter { get; }
+
         string Assert { get; }
-        Dictionary<TestResult, List<string>> When { get; }
+
+        [JsonProperty("When")]
+        Dictionary<TestResult, List<IMessage>> Messages { get; }
+
         HashSet<SoftString> Tags { get; }
     }
 
@@ -35,59 +42,63 @@ namespace Gunter.Data
 
         public TestCase(Factory factory) => _factory = factory;
 
-        public Specification Parent { get; }
+        public TheoryFile Parent { get; }
 
-        public SoftString Id { get; set; }
+        public SoftString Name { get; set; }
 
-        public Merge Merge { get; set; }
+        public List<TemplateSelector>? TemplateSelectors { get; set; }
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
-        [Mergeable]
         public LogLevel Level { get; set; } = LogLevel.Warning;
 
-        [Mergeable]
         public string Message { get; set; }
 
         [JsonProperty("Check", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [Mergeable]
-        public List<SoftString> QueryIds { get; set; } = new List<SoftString>();
+        public HashSet<SoftString> QueryNames { get; set; } = new HashSet<SoftString>();
 
-        [Mergeable]
         public string Filter { get; set; }
 
-        [Mergeable]
         public string Assert { get; set; }
 
         // Gets or sets commands that should be executed upon the specified test-result.
-        public Dictionary<TestResult, List<string>> When { get; set; } = new Dictionary<TestResult, List<string>>();
+        public Dictionary<TestResult, List<IMessage>> Messages { get; set; } = new Dictionary<TestResult, List<IMessage>>();
 
         //[JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [Mergeable]
         public HashSet<SoftString> Tags { get; set; } = new HashSet<SoftString>();
-    }
 
-    public class TestCaseUnion : Union<ITestCase>, ITestCase
-    {
-        public TestCaseUnion(ITestCase model, IEnumerable<Specification> templates) : base(model, templates) { }
+        public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
 
-        public LogLevel Level => GetValue(x => x.Level, x => x > LogLevel.None);
-        public string Message => GetValue(x => x.Message, x => x is {});
-        public List<SoftString> QueryIds => GetValue(x => x.QueryIds, x => x?.Any() == true);
-        public string Filter => GetValue(x => x.Filter, x => x is {});
-        public string Assert => GetValue(x => x.Assert, x => x is {});
-        public Dictionary<TestResult, List<string>> When => GetValue(x => x.When, x => x?.Any() == true);
-        public HashSet<SoftString> Tags => GetValue(x => x.Tags, x => x?.Any() == true);
+        private class Union : Union<ITestCase>, ITestCase
+        {
+            public Union(ITestCase model, IEnumerable<TheoryFile> templates) : base(model, templates) { }
+
+            public LogLevel Level => GetValue(x => x.Level, x => x > LogLevel.None);
+
+            public HashSet<SoftString> QueryNames => GetValue(x => x.QueryNames, x => x?.Any() == true);
+
+            public string Message => GetValue(x => x.Message, x => x is {});
+
+            public string Filter => GetValue(x => x.Filter, x => x is {});
+
+            public string Assert => GetValue(x => x.Assert, x => x is {});
+
+            public Dictionary<TestResult, List<IMessage>> Messages => GetValue(x => x.Messages, x => x?.Any() == true);
+
+            public HashSet<SoftString> Tags => GetValue(x => x.Tags, x => x?.Any() == true);
+
+            public IModel Merge(IEnumerable<TheoryFile> templates) => new Union(this, templates);
+        }
     }
 
     public static class TestCaseExtensions
     {
-        public static IEnumerable<IQuery> Queries(this TestCase testCase, Specification specification)
+        public static IEnumerable<IQuery> Queries(this ITestCase testCase, TheoryFile theoryFile)
         {
             var dataSources =
-                from id in testCase.QueryIds
-                join ds in specification.Queries on id equals ds.Id
+                from id in testCase.QueryNames
+                join ds in theoryFile.Queries on id equals ds.Name
                 select ds;
 
             return dataSources.Distinct();

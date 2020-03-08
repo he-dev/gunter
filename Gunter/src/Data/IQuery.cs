@@ -21,23 +21,24 @@ namespace Gunter.Data
     [PublicAPI]
     public interface IQuery : IModel
     {
-        List<IDataFilter>? Filters { get; set; }
+        List<IDataFilter>? Filters { get; }
     }
 
     [Gunter]
-    public abstract class Query : IQuery
+    public abstract class Query<T> : IQuery
     {
         [JsonRequired]
-        public SoftString Id { get; set; }
+        public SoftString Name { get; set; }
 
-        public Merge Merge { get; set; }
+        public TheoryFile Parent { get; }
 
-        [Mergeable]
         public List<IDataFilter>? Filters { get; set; } = new List<IDataFilter>?();
     }
-    
+
     public interface IGetDataFrom
     {
+        Type SourceType { get; }
+
         Task<QueryResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties);
     }
 
