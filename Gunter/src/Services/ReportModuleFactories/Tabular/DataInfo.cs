@@ -61,7 +61,7 @@ namespace Gunter.Reporting.Modules.Tabular
 
             var section = new ReportModule<DataInfo>
             {
-                Heading = Heading.Format(context.RuntimeProperties),
+                Heading = Heading.Format(context.Container),
                 Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))).ToArray()))
             };
 

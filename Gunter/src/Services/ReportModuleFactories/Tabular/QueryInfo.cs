@@ -5,6 +5,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using Gunter.Data;
+using Gunter.Workflows;
 using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
@@ -29,7 +30,7 @@ namespace Gunter.Reporting.Modules.Tabular
             // Initialize the data-table;
             var section = new ReportModule<QueryInfo>
             {
-                Heading = Heading.Format(context.RuntimeProperties),
+                Heading = Heading.Format(context.Container),
                 Data = new HtmlTable(HtmlTableColumn.Create
                 (
                     ("Property", typeof(string)),

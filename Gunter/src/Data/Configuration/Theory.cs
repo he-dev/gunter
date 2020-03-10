@@ -5,7 +5,6 @@ using System.Collections;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using Gunter.Data.Abstractions;
 using Gunter.Reporting;
 using Gunter.Reporting.Modules.Tabular;
 using Gunter.Services;
@@ -92,35 +91,12 @@ namespace Gunter.Data
                 : Path.GetFileName(Name.ToString()).StartsWith(TemplatePrefix)
                     ? TestFileType.Template
                     : TestFileType.Regular;
-
-        public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
-
+        
         public IEnumerator<IModel> GetEnumerator()
         {
             return Properties.Cast<IModel>().Concat(Queries).Concat(Tests).Concat(Reports).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        private class Union : Union<ITheory>, ITheory
-        {
-            public Union(ITheory model, IEnumerable<Theory> templates) : base(model, templates) { }
-
-            public bool Enabled => Model.Enabled;
-
-            public IEnumerable<IPropertyCollection> Properties => Model.Tests.Select(m => m.Merge(Templates)).Cast<IPropertyCollection>();
-
-            public IEnumerable<IQuery> Queries => Model.Queries.Select(m => m is IMergeable mergeable ? mergeable.Merge(Templates) : m).Cast<IQuery>();
-
-            public IEnumerable<ITestCase> Tests => Model.Tests.Select(m => m.Merge(Templates)).Cast<ITestCase>();
-            
-            public IEnumerable<IReport> Reports => Model.Reports.Select(m => m.Merge(Templates)).Cast<IReport>();
-
-            public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
-
-            public IEnumerator<IModel> GetEnumerator() => Model.GetEnumerator();
-
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        }
     }
 }

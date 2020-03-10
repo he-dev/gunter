@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Gunter.Annotations;
-using Gunter.Data.Abstractions;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Data;
@@ -67,29 +66,6 @@ namespace Gunter.Data
 
         //[JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public HashSet<SoftString> Tags { get; set; } = new HashSet<SoftString>();
-
-        public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
-
-        private class Union : Union<ITestCase>, ITestCase
-        {
-            public Union(ITestCase model, IEnumerable<Theory> templates) : base(model, templates) { }
-
-            public LogLevel Level => GetValue(x => x.Level, x => x > LogLevel.None);
-
-            public HashSet<SoftString> QueryNames => GetValue(x => x.QueryNames, x => x?.Any() == true);
-
-            public string Message => GetValue(x => x.Message, x => x is {});
-
-            public string Filter => GetValue(x => x.Filter, x => x is {});
-
-            public string Assert => GetValue(x => x.Assert, x => x is {});
-
-            public Dictionary<TestResult, List<IMessage>> Messages => GetValue(x => x.Messages, x => x?.Any() == true);
-
-            public HashSet<SoftString> Tags => GetValue(x => x.Tags, x => x?.Any() == true);
-
-            public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
-        }
     }
 
     public static class TestCaseExtensions

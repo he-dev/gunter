@@ -30,16 +30,14 @@ namespace Gunter.Data
         [JsonRequired]
         public SoftString Name { get; set; }
 
-        public Theory Parent { get; }
-
         public List<IDataFilter>? Filters { get; set; } = new List<IDataFilter>?();
     }
 
     public interface IGetDataFrom
     {
-        Type SourceType { get; }
+        Type QueryType { get; }
 
-        Task<GetDataResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties);
+        Task<GetDataResult> ExecuteAsync(IQuery query, RuntimeContainer container);
     }
 
     public class GetDataResult : IDisposable

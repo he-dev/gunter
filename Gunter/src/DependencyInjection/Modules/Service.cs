@@ -106,17 +106,17 @@ namespace Gunter.DependencyInjection.Modules
             //     .RegisterType<TestRunner>()
             //     .As<ITestRunner>();
 
-            builder
-                .RegisterType<RuntimePropertyProvider>()
-                .WithParameter(new TypedParameter(typeof(IEnumerable<IProperty>), RuntimeProperty.BuiltIn.Enumerate()))
-                .AsSelf();
+            // builder
+            //     .RegisterType<RuntimePropertyProvider>()
+            //     .WithParameter(new TypedParameter(typeof(IEnumerable<IProperty>), RuntimeProperty.BuiltIn.Enumerate()))
+            //     .AsSelf();
 
             builder
                 .RegisterModule(new CommandModule(builder =>
                 {
                     builder.Register<Commands.Run>();
-                    builder.Register<Commands.Send>();
-                    builder.Register<Commands.Halt>();
+                    //builder.Register<Commands.Send>();
+                    //builder.Register<Commands.Halt>();
                 }));
         }
     }

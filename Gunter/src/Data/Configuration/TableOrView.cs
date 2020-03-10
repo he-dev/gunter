@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gunter.Annotations;
-using Gunter.Data.Abstractions;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable.Extensions;
@@ -39,24 +38,8 @@ namespace Gunter.Data.SqlClient
         public string Command { get; set; }
 
         public int Timeout { get; set; }
-
-        public IModel Merge(IEnumerable<Theory> templates) => new TableOrViewUnion(this, templates);
     }
 
-    public class TableOrViewUnion : Union<ITableOrView>, ITableOrView
-    {
-        public TableOrViewUnion(ITableOrView model, IEnumerable<Theory> templates) : base(model, templates) { }
-
-        public string ConnectionString => GetValue(x => x.ConnectionString, x => x is {});
-
-        public string Command => GetValue(x => x.Command, x => x is {});
-
-        public int Timeout => GetValue(x => x.Timeout, x => x > 0);
-
-        public List<IDataFilter> Filters => GetValue(x => x.Filters, x => x?.Any() == true);
-
-        public IModel Merge(IEnumerable<Theory> templates) => new TableOrViewUnion(this, templates);
-    }
 
     public class GetDataFromTableOrView : IGetDataFrom
     {
@@ -67,21 +50,21 @@ namespace Gunter.Data.SqlClient
 
         private IResource Resource { get; }
 
-        public Type SourceType => typeof(ITableOrView);
+        public Type QueryType => typeof(ITableOrView);
 
-        public async Task<GetDataResult> ExecuteAsync(IQuery query, RuntimePropertyProvider runtimeProperties)
+        public async Task<GetDataResult> ExecuteAsync(IQuery query, RuntimeContainer container)
         {
             return
                 query is ITableOrView tableOrView
-                    ? await ExecuteAsync(tableOrView, runtimeProperties)
+                    ? await ExecuteAsync(tableOrView, container)
                     : default;
         }
 
-        private async Task<GetDataResult> ExecuteAsync(ITableOrView view, RuntimePropertyProvider runtimeProperties)
+        private async Task<GetDataResult> ExecuteAsync(ITableOrView view, RuntimeContainer container)
         {
-            var commandText = await GetCommandTextAsync(view, runtimeProperties);
+            var commandText = await GetCommandTextAsync(view, container);
 
-            using var conn = new SqlConnection(view.ConnectionString.Format(runtimeProperties));
+            using var conn = new SqlConnection(view.ConnectionString.Format(container));
 
             await conn.OpenAsync();
             using var cmd = conn.CreateCommand();
@@ -100,21 +83,21 @@ namespace Gunter.Data.SqlClient
             };
         }
 
-        private async Task<string> GetCommandTextAsync(ITableOrView view, RuntimePropertyProvider runtimeProperties)
+        private async Task<string> GetCommandTextAsync(ITableOrView view, RuntimeContainer container)
         {
             // language=regexp
             const string fileSchemePattern = "^file:///";
-            var commandText = view.Command.Format(runtimeProperties);
+            var commandText = view.Command.Format(container);
             if (Regex.IsMatch(commandText, fileSchemePattern))
             {
                 var path = Regex.Replace(commandText, fileSchemePattern, string.Empty);
                 if (!Path.IsPathRooted(path))
                 {
                     var defaultTestsDirectoryName = await Resource.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
-                    path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path).Format(runtimeProperties);
+                    path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path).Format(container);
                 }
 
-                commandText = (await Resource.ReadTextFileAsync(path)).Format(runtimeProperties);
+                commandText = (await Resource.ReadTextFileAsync(path)).Format(container);
             }
 
             return commandText;

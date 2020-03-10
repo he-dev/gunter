@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
@@ -18,6 +19,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Reusable;
+using Reusable.Collections.Generic;
 using Reusable.Commander;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
@@ -36,6 +38,36 @@ using IMessage = Gunter.Data.IMessage;
 
 namespace Gunter
 {
+    public class RuntimeContainer : IEnumerable<object>
+    {
+        private readonly IImmutableList<object> _items;
+
+        public RuntimeContainer() => _items = ImmutableList<object>.Empty;
+
+        public RuntimeContainer(IImmutableList<object> items) => _items = items;
+
+        public static readonly RuntimeContainer Empty = new RuntimeContainer();
+
+        public RuntimeContainer Add(object item) => new RuntimeContainer(_items.Add(item));
+
+        public RuntimeContainer AddRange(IEnumerable<object> items) => new RuntimeContainer(_items.AddRange(items));
+
+        public IEnumerator<object> GetEnumerator() => _items.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_items).GetEnumerator();
+
+        public static implicit operator TryGetValueCallback(RuntimeContainer container) => container.TryGetValue;
+
+        private bool TryGetValue(string name, out object? value)
+        {
+            return (value = this.OfType<IProperty>().Single(p => p.Name.Equals(name)) switch
+            {
+                StaticProperty staticProperty => staticProperty.GetValue(null).ToString(),
+                InstanceProperty instanceProperty => instanceProperty.GetValue(this.First(item => instanceProperty.SourceType.IsInstanceOfType(item)))
+            }) is {};
+        }
+    }
+
     namespace Workflows
     {
         internal class SessionWorkflow : Workflow<SessionContext>
@@ -54,7 +86,7 @@ namespace Gunter
                         {
                             ForEachTestCase =
                             {
-                                new CreateRuntimeProperties(serviceProvider),
+                                new CreateRuntimeContainer(serviceProvider),
                                 new GetData(serviceProvider)
                                 {
                                     Options =
@@ -252,6 +284,8 @@ namespace Gunter
         internal class TheoryContext
         {
             public ITheory Theory { get; set; }
+
+            public IEnumerable<ITheory> Templates { get; set; }
         }
 
         public class TestContext : IDisposable
@@ -270,7 +304,7 @@ namespace Gunter
 
             public TimeSpan EvaluateDataElapsed { get; set; }
 
-            public RuntimePropertyProvider Properties { get; set; }
+            public RuntimeContainer Container { get; set; }
 
             public TestResult Result { get; set; } = TestResult.Undefined;
 
@@ -293,22 +327,12 @@ namespace Gunter
 
             public override async Task ExecuteAsync(SessionContext context)
             {
+                var actions = new ActionBlock<TheoryContext>(ForEachTestFile.ExecuteAsync, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism });
+
                 var testFiles = context.TestFiles.ToLookup(p => p.Type);
-                var templates = testFiles[TestFileType.Template];
-
-                var theories =
-                    from theory in testFiles[TestFileType.Regular]
-                    select theory.Merge(templates);
-
-                var actions = new ActionBlock<TheoryContext>
-                (
-                    ForEachTestFile.ExecuteAsync,
-                    new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism }
-                );
-
-                foreach (var theory in theories.Cast<ITheory>())
+                foreach (var theory in testFiles[TestFileType.Regular])
                 {
-                    await actions.SendAsync(new TheoryContext { Theory = theory });
+                    await actions.SendAsync(new TheoryContext { Theory = theory, Templates = testFiles[TestFileType.Template] });
                 }
 
                 actions.Complete();
@@ -333,7 +357,7 @@ namespace Gunter
                     from queryName in testCase.QueryNames
                     join query in context.Theory.Queries on queryName equals query.Name
                     select (testCase, query);
-                
+
                 foreach (var (testCase, query) in testCases)
                 {
                     try
@@ -355,15 +379,19 @@ namespace Gunter
             }
         }
 
-        internal class CreateRuntimeProperties : Step<TestContext>
+        internal class CreateRuntimeContainer : Step<TestContext>
         {
-            public CreateRuntimeProperties(IServiceProvider serviceProvider) : base(serviceProvider) { }
+            public CreateRuntimeContainer(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
             public override async Task ExecuteAsync(TestContext context)
             {
-                var properties = RuntimeProperty.BuiltIn.Enumerate().Concat(context.Theory.Properties.Flatten());
-                var objects = new object[] { context.Theory, context.TestCase };
-                context.Properties = new RuntimePropertyProvider(properties.ToImmutableList(), objects.ToImmutableList());
+                context.Container =
+                    RuntimeContainer
+                        .Empty
+                        .AddRange(RuntimeProperty.BuiltIn.Enumerate())
+                        .AddRange(context.Theory.Properties.Flatten())
+                        .Add(context.Theory)
+                        .Add(context.TestCase);
 
                 await ExecuteNextAsync(context);
             }
@@ -389,9 +417,9 @@ namespace Gunter
                 {
                     context.GetDataResult = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
                     {
-                        if (Options.Single(o => o.SourceType.IsInstanceOfType(context.Query)) is {} getData)
+                        if (Options.Single(o => o.QueryType.IsInstanceOfType(context.Query)) is {} getData)
                         {
-                            return await getData.ExecuteAsync(context.Query, context.Properties);
+                            return await getData.ExecuteAsync(context.Query, context.Container);
                         }
 
                         return default;
@@ -476,7 +504,7 @@ namespace Gunter
 
             public override async Task ExecuteAsync(TestContext context)
             {
-                if(context.TestCase.Messages.TryGetValue(context.Result, out var messages))
+                if (context.TestCase.Messages.TryGetValue(context.Result, out var messages))
                 {
                     foreach (var message in messages)
                     {
@@ -491,6 +519,14 @@ namespace Gunter
 
                 await ExecuteNextAsync(context);
             }
+        }
+    }
+
+    public static class Search
+    {
+        public static TValue Resolve<T, TValue>(this T obj, Func<T, TValue> getValue, Func<TValue, bool> success, Func<T, IEnumerable<TValue>> values)
+        {
+            return values(obj).Prepend(getValue(obj)).FirstOrDefault(success);
         }
     }
 }

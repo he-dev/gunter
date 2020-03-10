@@ -1,4 +1,5 @@
 using Gunter.Data;
+using Gunter.Workflows;
 
 namespace Gunter.Reporting.Modules
 {

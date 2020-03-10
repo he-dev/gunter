@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Gunter.Annotations;
 using Gunter.Data;
-using Gunter.Data.Abstractions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
@@ -31,18 +30,5 @@ namespace Gunter.Reporting
         public IEnumerator<IReportModuleFactory> GetEnumerator() => Modules.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
-
-        private class Union : Union<IReport>, IReport
-        {
-            public Union(IReport model, IEnumerable<Theory> templates) : base(model, templates) { }
-
-            public string Title => GetValue(x => x.Title, x => x is {});
-
-            public List<IReportModuleFactory> Modules => GetValue(x => x.Modules, x => x is {});
-
-            public IModel Merge(IEnumerable<Theory> templates) => new Union(this, templates);
-        }
     }
 }

@@ -50,6 +50,8 @@
     <Compile Remove="src\Data\TestCounter.cs" />
     <Compile Remove="src\Data\TestContext.cs" />
     <Compile Remove="src\Commands\Send.cs" />
+    <Compile Remove="src\Data\Abstractions\Union.cs" />
+    <Compile Remove="src\Services\RuntimePropertyProvider.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -150,6 +152,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="src\Data\Abstractions" />
     <Folder Include="src\Data\Configuration\SqlClient" />
   </ItemGroup>
 

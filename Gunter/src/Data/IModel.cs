@@ -15,7 +15,5 @@ namespace Gunter.Data
     {
         [JsonProperty("Merge")]
         List<TemplateSelector>? TemplateSelectors { get; }
-
-        IModel Merge(IEnumerable<Theory> templates);
     }
 }
