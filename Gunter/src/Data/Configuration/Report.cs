@@ -1,20 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Gunter.Annotations;
-using Gunter.Data;
-using JetBrains.Annotations;
+using Gunter.Data.Configuration.Abstractions;
+using Gunter.Reporting;
 using Newtonsoft.Json;
 using Reusable;
 
-namespace Gunter.Reporting
+namespace Gunter.Data.Configuration
 {
-    public interface IReport : IModel, IMergeable
-    {
-        string Title { get; }
-
-        List<ReportModule> Modules { get; }
-    }
-
     [JsonObject]
     public class Report : IReport, IEnumerable<ReportModule>
     {

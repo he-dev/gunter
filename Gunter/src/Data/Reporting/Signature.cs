@@ -1,8 +1,7 @@
-using Gunter.Data;
+using Gunter.Data.Configuration;
 using Gunter.Workflows;
-using Reusable.Extensions;
 
-namespace Gunter.Reporting.Modules
+namespace Gunter.Data.Reporting
 {
     public class Signature : RenderDto<>
     {

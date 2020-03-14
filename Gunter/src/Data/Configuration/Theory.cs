@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using Gunter.Reporting;
-using Gunter.Reporting.Modules.Tabular;
-using Gunter.Services;
-using Gunter.Services.Channels;
-using Gunter.Workflows;
+using Gunter.Data.Configuration.Abstractions;
+using Gunter.Data.Reporting;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Reusable;
 
-namespace Gunter.Data
+namespace Gunter.Data.Configuration
 {
     // public interface ITheory : IModel, IMergeable, IEnumerable<IModel>
     // {
@@ -38,15 +35,15 @@ namespace Gunter.Data
 
         public static readonly IEnumerable<Type> SectionTypes = new[]
         {
-            typeof(Gunter.Data.SqlClient.TableOrView),
+            typeof(TableOrView),
             typeof(Gunter.Services.DataFilters.GetJsonValue),
             typeof(Gunter.Services.DataFilters.GetFirstLine),
             typeof(Gunter.Services.Channels.DispatchEmail),
-            typeof(Gunter.Reporting.Modules.Level),
-            typeof(Gunter.Reporting.Modules.Greeting),
-            typeof(Gunter.Reporting.Modules.Tabular.TestInfo),
-            typeof(Gunter.Reporting.Modules.Tabular.QueryInfo),
-            typeof(Gunter.Reporting.Modules.Tabular.DataInfo),
+            typeof(Level),
+            typeof(Greeting),
+            typeof(TestInfo),
+            typeof(QueryInfo),
+            typeof(DataInfo),
             typeof(Gunter.Reporting.Formatters.TimeSpan),
         };
 

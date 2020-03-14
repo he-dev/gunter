@@ -1,24 +1,34 @@
 using Newtonsoft.Json;
+using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Reporting
+namespace Gunter.Data.Configuration
 {
     public interface IReportModule
     {
         string Name { get; }
-        
-        int Ordinal { get; }
-        
-        string Heading { get; }
-        
-        string Text { get; }
-        
-        HtmlTable Data { get; }
+    }
+
+    public abstract class ReportModule : IReportModule
+    {
+        public string Name => GetType().ToPrettyString();
+    }
+
+    public class Heading : ReportModule
+    {
+        public string Text { get; set; }
+
+        public int Level { get; set; }
+    }
+    
+    public class Paragraph : ReportModule
+    {
+        public string Text { get; set; }
     }
 
     public class ReportModule<T> : IReportModule
     {
-        [JsonProperty("$t")]
+        //[JsonProperty("$t")]
         public string Name => typeof(T).Name;
 
         public int Ordinal { get; set; }

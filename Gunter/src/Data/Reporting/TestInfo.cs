@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel;
-using Gunter.Data;
+using Gunter.Data.Configuration;
+using Gunter.Reporting;
 using Gunter.Workflows;
-using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Reporting.Modules.Tabular
+namespace Gunter.Data.Reporting
 {
     public class TestInfo : RenderDto<>, ITabular
     {
@@ -29,10 +29,10 @@ namespace Gunter.Reporting.Modules.Tabular
             };
 
             section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestCase.Filter))
+                .Update(Columns.Property, nameof(TestCase.Filter))
                 .Update(Columns.Value, context.TestCase.Filter);
             section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestCase.Assert))
+                .Update(Columns.Property, nameof(TestCase.Assert))
                 .Update(Columns.Value, context.TestCase.Assert);
             section.Data.Body.NewRow()
                 .Update(Columns.Property, "When")
@@ -41,7 +41,7 @@ namespace Gunter.Reporting.Modules.Tabular
                 .Update(Columns.Property, "Then")
                 .Update(Columns.Value, context.TestCase.Messages[context.Result]);
             section.Data.Body.NewRow()
-                .Update(Columns.Property, nameof(Gunter.Data.TestCase.Tags))
+                .Update(Columns.Property, nameof(TestCase.Tags))
                 .Update(Columns.Value, context.TestCase.Tags);
             section.Data.Body.NewRow()
                 .Update(Columns.Property, "Elapsed")

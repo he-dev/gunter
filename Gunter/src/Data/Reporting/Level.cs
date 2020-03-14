@@ -1,7 +1,7 @@
-using Gunter.Data;
+using Gunter.Data.Configuration;
 using Gunter.Workflows;
 
-namespace Gunter.Reporting.Modules
+namespace Gunter.Data.Reporting
 {
     public class Level : RenderDto<>
     {

@@ -1,17 +1,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using Gunter.Reporting;
+using Gunter.Data.Configuration.Abstractions;
 using Newtonsoft.Json;
 using Reusable;
 
-namespace Gunter.Data
+namespace Gunter.Data.Configuration
 {
-    public interface IMessage : IModel
-    {
-        string ReportName { get; }
-    }
-
     public class Email : IMessage, IMergeable
     {
         [JsonRequired]

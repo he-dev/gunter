@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
+using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Abstractions;
 using Gunter.Reporting;
 using Gunter.Workflows;
 using JetBrains.Annotations;

@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using Gunter.Annotations;
+using Gunter.Data.Configuration.Abstractions;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Reusable;
-using Reusable.Data;
-using Reusable.Extensions;
 using Reusable.OmniLog;
 
-namespace Gunter.Data
+namespace Gunter.Data.Configuration
 {
     public interface ITestCase : IModel, IMergeable
     {

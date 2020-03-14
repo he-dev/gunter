@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using Autofac;
 using Gunter.Annotations;
 using Gunter.Data;
+using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Abstractions;
 using Gunter.Reporting;
-using Gunter.Reporting.Modules.Tabular;
 using Gunter.Workflows;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -69,7 +70,7 @@ namespace Gunter.Services.Channels
                         select render.Execute(module);
 
 
-                    await SendAsync((Gunter.Data.Email)message, report.Title, modules);
+                    await SendAsync((Data.Configuration.Email)message, report.Title, modules);
                     //Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Completed());
                 }
                 catch (Exception ex)
@@ -79,7 +80,7 @@ namespace Gunter.Services.Channels
             }
         }
 
-        private async Task SendAsync(Gunter.Data.Email email, string title, IEnumerable<IReportModule> modules)
+        private async Task SendAsync(Data.Configuration.Email email, string title, IEnumerable<IReportModule> modules)
         {
             var to = email.To.Select(x => x.FormatWith(Format));
             var subject = title.FormatWith(Format);

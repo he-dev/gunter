@@ -1,6 +1,8 @@
 ﻿using Autofac;
+using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Abstractions;
+using Gunter.Data.Reporting;
 using Gunter.Reporting;
-using Gunter.Reporting.Modules.Tabular;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -12,8 +14,8 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterType<QueryInfo>();
             builder.RegisterType<DataInfo>();
             builder.RegisterType<TestInfo>().AsSelf();
-            builder.RegisterType<Gunter.Reporting.Report>().AsSelf();
-            builder.RegisterType<Gunter.Reporting.Report>().As<IReport>();//.AsSelf();
+            builder.RegisterType<Report>().AsSelf();
+            builder.RegisterType<Report>().As<IReport>();//.AsSelf();
         }
     }
 }

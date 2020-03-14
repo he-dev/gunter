@@ -4,12 +4,13 @@ using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
-using Gunter.Data;
+using Gunter.Data.Configuration;
+using Gunter.Reporting;
 using Gunter.Workflows;
-using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
+using ReportModule = Gunter.Reporting.ReportModule;
 
-namespace Gunter.Reporting.Modules.Tabular
+namespace Gunter.Data.Reporting
 {
     [Renderer(typeof(QueryInfo))]
     public class QueryInfo : ReportModule

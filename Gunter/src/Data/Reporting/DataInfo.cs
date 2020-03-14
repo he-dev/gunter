@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Custom;
-using Gunter.Data;
+using Gunter.Data.Configuration;
 using Gunter.Extensions;
+using Gunter.Reporting;
 using Gunter.Workflows;
 using JetBrains.Annotations;
 using Reusable.Collections;
 using Reusable.Exceptionize;
-using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
+using ReportModule = Gunter.Reporting.ReportModule;
 
-namespace Gunter.Reporting.Modules.Tabular
+namespace Gunter.Data.Reporting
 {
     [PublicAPI]
     [Renderer(typeof(RenderDataInfo))]
