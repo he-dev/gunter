@@ -4,7 +4,7 @@ using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
 {
-    public class Greeting : ReportModuleFactory
+    public class Greeting : RenderDto<>
     {
         public override IReportModule Create(TestContext context)
         {

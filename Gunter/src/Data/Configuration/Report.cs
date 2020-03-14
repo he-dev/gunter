@@ -12,11 +12,11 @@ namespace Gunter.Reporting
     {
         string Title { get; }
 
-        List<IReportModuleFactory> Modules { get; }
+        List<ReportModule> Modules { get; }
     }
 
     [JsonObject]
-    public class Report : IReport, IEnumerable<IReportModuleFactory>
+    public class Report : IReport, IEnumerable<ReportModule>
     {
         [JsonRequired]
         public SoftString Name { get; set; }
@@ -25,9 +25,9 @@ namespace Gunter.Reporting
 
         public string Title { get; set; }
 
-        public List<IReportModuleFactory> Modules { get; set; } = new List<IReportModuleFactory>();
+        public List<ReportModule> Modules { get; set; } = new List<ReportModule>();
 
-        public IEnumerator<IReportModuleFactory> GetEnumerator() => Modules.GetEnumerator();
+        public IEnumerator<ReportModule> GetEnumerator() => Modules.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

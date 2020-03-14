@@ -15,20 +15,20 @@ using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Services
 {
-    public interface ISend
+    public interface IDispatchMessage
     {
-        Task InvokeAsync(TestContext context);
+        Task InvokeAsync(IMessage message);
     }
 
-    public abstract class Send : ISend
+    public abstract class Dispatch : IDispatchMessage
     {
-        protected Send(ILogger logger)
+        protected Dispatch(ILogger logger)
         {
             Logger = logger;
         }
 
         protected ILogger Logger { get; }
 
-        public abstract Task InvokeAsync(TestContext context);
+        public abstract Task InvokeAsync(IMessage message);
     }
 }

@@ -1,6 +1,6 @@
 namespace Gunter.Data
 {
-    public enum TestFileType
+    public enum TheoryType
     {
         Unknown,
         Regular,

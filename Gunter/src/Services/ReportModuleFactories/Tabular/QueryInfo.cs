@@ -11,7 +11,8 @@ using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Reporting.Modules.Tabular
 {
-    public class QueryInfo : ReportModuleFactory, ITabular
+    [Renderer(typeof(QueryInfo))]
+    public class QueryInfo : ReportModule
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 
@@ -24,13 +25,29 @@ namespace Gunter.Reporting.Modules.Tabular
 
         [DefaultValue(@"mm\:ss\.fff")]
         public string TimespanFormat { get; set; }
+        
+    }
+    
+    public class RenderQueryInfo : IRenderDto
+    {
+        public RenderQueryInfo(Format format, TestContext context)
+        {
+            Format = format;
+            Context = context;
+        }
 
-        public override IReportModule Create(TestContext context)
+        private Format Format { get; }
+
+        private TestContext Context { get; }
+
+        public IReportModule Execute(ReportModule model) => Execute(model as QueryInfo);
+
+        private IReportModule Execute(QueryInfo model)
         {
             // Initialize the data-table;
             var section = new ReportModule<QueryInfo>
             {
-                Heading = Heading.Format(context.Container),
+                Heading = model.Heading.FormatWith(Format),
                 Data = new HtmlTable(HtmlTableColumn.Create
                 (
                     ("Property", typeof(string)),
@@ -39,18 +56,18 @@ namespace Gunter.Reporting.Modules.Tabular
             };
             var table = section.Data;
 
-            table.Body.Add("Type", context.Query.GetType().Name);
-            table.Body.NewRow().Update(Columns.Property, "Command").Update(Columns.Value, context.Query, "query");
-            table.Body.Add("Results", context.Data.Rows.Count.ToString());
-            table.Body.Add("Elapsed", $"{RuntimeProperty.BuiltIn.TestContext.GetDataElapsed.ToFormatString(TimespanFormat)}".Format(context.Container));
+            table.Body.Add("Type", Context.Query.GetType().Name);
+            table.Body.NewRow().Update(Columns.Property, "Command").Update(Columns.Value, Context.Query, "query");
+            table.Body.Add("Results", Context.Data.Rows.Count.ToString());
+            table.Body.Add("Elapsed", $"{RuntimeProperty.BuiltIn.TestContext.GetDataElapsed.ToFormatString(TimespanFormat)}".Format(Context.Container));
 
-            var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
-            var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
+            var hasTimestampColumn = Context.Data.Columns.Contains(TimestampColumn);
+            var hasRows = Context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
 
             if (hasTimestampColumn && hasRows)
             {
-                var timestampMin = context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
-                var timestampMax = context.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn));
+                var timestampMin = Context.Data.AsEnumerable().Min(r => r.Field<DateTime>(TimestampColumn));
+                var timestampMax = Context.Data.AsEnumerable().Max(r => r.Field<DateTime>(TimestampColumn));
 
                 table.Body.Add(new List<string> { "Timestamp: min", timestampMin.ToString(CultureInfo.InvariantCulture) });
                 table.Body.Add(new List<string> { "Timestamp: max", timestampMax.ToString(CultureInfo.InvariantCulture) });
@@ -68,5 +85,6 @@ namespace Gunter.Reporting.Modules.Tabular
 
             public const string Value = nameof(Value);
         }
+
     }
 }

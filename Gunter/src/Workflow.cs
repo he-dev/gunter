@@ -11,13 +11,17 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Autofac;
+using Autofac.Builder;
 using Autofac.Core;
 using Gunter.Data;
 using Gunter.Data.SqlClient;
+using Gunter.Reporting;
+using Gunter.Reporting.Modules.Tabular;
 using Gunter.Services;
 using Gunter.Services.Channels;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -37,7 +41,6 @@ using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Translucent;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
-using IMessage = Gunter.Data.IMessage;
 
 namespace Gunter
 {
@@ -52,81 +55,63 @@ namespace Gunter
                 builder.RegisterType<Merge>().InstancePerDependency();
                 builder.RegisterInstance(new StaticProperty(() => ProgramInfo.FullName));
                 builder.RegisterInstance(new StaticProperty(() => ProgramInfo.Version));
-                builder.Register(CreateSessionWorkflow);
-            }
-
-            private static Workflow<SessionContext> CreateSessionWorkflow(IComponentContext c)
-            {
-                return c.Resolve<Workflow<SessionContext>>().Pipe(sw =>
+                builder.RegisterType<GetDataFromTableOrView>().As<IGetDataFrom>();
+                builder.RegisterType<DispatchEmail>().As<IDispatchMessage>().InstancePerDependency();
+                builder.RegisterType<RenderDataInfo>();
+                builder.RegisterType<RenderQueryInfo>();
+                builder.Register(c => new Workflow<SessionContext>
                 {
-                    sw.Add(c.Resolve<FindTestFiles>());
-                    sw.Add(c.Resolve<LoadTestFiles>());
-                    sw.Add(c.Resolve<ProcessTheories>().Pipe(pt =>
-                    {
-                        //
-                        pt.ForEachTestFile = () => CreateTheoryWorkflow(c);
-                    }));
-                });
-            }
+                    c.Resolve<FindTheoryFiles>(),
+                    c.Resolve<LoadTheoryFiles>(),
+                    c.Resolve<ProcessTheories>()
+                }).InstancePerDependency();
 
-            private static Workflow<TheoryContext> CreateTheoryWorkflow(IComponentContext c)
-            {
-                return c.Resolve<Workflow<TheoryContext>>().Pipe(tw =>
+                builder.Register(c => new Workflow<TheoryContext>
                 {
-                    //
-                    tw.Add(c.Resolve<ProcessTheory>().Pipe(pt =>
-                    {
-                        //
-                        pt.ForEachTestCase = () => CreateTestWorkflow(c);
-                    }));
-                });
-            }
+                    c.Resolve<ProcessTheory>()
+                }).InstancePerDependency();
 
-            private static Workflow<TestContext> CreateTestWorkflow(IComponentContext c)
-            {
-                return c.Resolve<Workflow<TestContext>>().Pipe(tw =>
+                builder.Register(c => new Workflow<TestContext>
                 {
-                    tw.Add(c.Resolve<GetData>());
-                    tw.Add(c.Resolve<FilterData>());
-                    tw.Add(c.Resolve<EvaluateData>());
-                    tw.Add(c.Resolve<SendMessages>());
-                });
+                    c.Resolve<GetData>(),
+                    c.Resolve<FilterData>(),
+                    c.Resolve<EvaluateData>(),
+                    c.Resolve<SendMessages>(),
+                }).InstancePerDependency();
             }
         }
 
-        internal class SessionWorkflow : Workflow<SessionContext>
-        {
-            private SessionWorkflow(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
-            // public static SessionWorkflow Create(IServiceProvider serviceProvider) => new SessionWorkflow(serviceProvider)
-            // {
-            //     new FindTestFiles(),
-            //     new LoadTestFiles(),
-            //     new ProcessTheories
-            //     {
-            //         ForEachTestFile =
-            //         {
-            //             new ProcessTheory
-            //             {
-            //                 ForEachTestCase =
-            //                 {
-            //                     new CreateRuntimeContainer(),
-            //                     new GetData()
-            //                     {
-            //                         Options =
-            //                         {
-            //                             serviceProvider.GetRequiredService<GetDataFromTableOrView>()
-            //                         }
-            //                     },
-            //                     new FilterData(),
-            //                     new EvaluateData(),
-            //                     new SendMessages()
-            //                 }
-            //             }
-            //         }
-            //     }
-            // };
-        }
+        // internal class SessionWorkflow : Workflow<SessionContext>
+        // {
+        //     // public static SessionWorkflow Create(IServiceProvider serviceProvider) => new SessionWorkflow(serviceProvider)
+        //     // {
+        //     //     new FindTestFiles(),
+        //     //     new LoadTestFiles(),
+        //     //     new ProcessTheories
+        //     //     {
+        //     //         ForEachTestFile =
+        //     //         {
+        //     //             new ProcessTheory
+        //     //             {
+        //     //                 ForEachTestCase =
+        //     //                 {
+        //     //                     new CreateRuntimeContainer(),
+        //     //                     new GetData()
+        //     //                     {
+        //     //                         Options =
+        //     //                         {
+        //     //                             serviceProvider.GetRequiredService<GetDataFromTableOrView>()
+        //     //                         }
+        //     //                     },
+        //     //                     new FilterData(),
+        //     //                     new EvaluateData(),
+        //     //                     new SendMessages()
+        //     //                 }
+        //     //             }
+        //     //         }
+        //     //     }
+        //     // };
+        // }
 
         internal class SessionContext
         {
@@ -147,10 +132,10 @@ namespace Gunter
             public List<string> Tags { get; set; } = new List<string>();
         }
 
-        internal class FindTestFiles : Step<SessionContext>
+        internal class FindTheoryFiles : Step<SessionContext>
         {
             [Service]
-            public ILogger<FindTestFiles> Logger { get; set; }
+            public ILogger<FindTheoryFiles> Logger { get; set; }
 
             [Service]
             public IDirectoryTree DirectoryTree { get; set; }
@@ -227,10 +212,10 @@ namespace Gunter
             }
         }
 
-        internal class LoadTestFiles : Step<SessionContext>
+        internal class LoadTheoryFiles : Step<SessionContext>
         {
             [Service]
-            public ILogger<FindTestFiles> Logger { get; set; }
+            public ILogger<FindTheoryFiles> Logger { get; set; }
 
             [Service]
             public IResource Resource { get; set; }
@@ -303,21 +288,21 @@ namespace Gunter
 
         internal class TheoryContext
         {
-            public ITheory Theory { get; set; }
+            //public ITheory Theory { get; set; }
 
-            public IEnumerable<ITheory> Templates { get; set; }
+            //public IEnumerable<ITheory> Templates { get; set; }
         }
 
         public class TestContext : IDisposable
         {
-            public TestContext(ITheory theory, ITestCase testCase, IQuery query)
+            public TestContext(Theory theory, ITestCase testCase, IQuery query)
             {
                 Theory = theory;
                 TestCase = testCase;
                 Query = query;
             }
 
-            public ITheory Theory { get; }
+            public Theory Theory { get; }
 
             public ITestCase TestCase { get; }
 
@@ -340,59 +325,56 @@ namespace Gunter
 
         internal class ProcessTheories : Step<SessionContext>
         {
-            public ProcessTheories(ILifetimeScope lifetimeScope)
+            public ProcessTheories(ILogger<ProcessTheories> logger, ILifetimeScope lifetimeScope)
             {
+                Logger = logger;
                 LifetimeScope = lifetimeScope;
             }
 
             private ILifetimeScope LifetimeScope { get; }
 
-            [Service]
-            public ILogger<FindTestFiles> Logger { get; set; }
+            private ILogger<ProcessTheories> Logger { get; }
 
-            public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount * 2;
-
-            [Service]
-            public Func<Workflow<TheoryContext>> ForEachTestFile { get; set; }
+            //public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount * 2;
 
             public override async Task ExecuteAsync(SessionContext context)
             {
-                var actions = new ActionBlock<TheoryContext>(ForEachTestFile().ExecuteAsync, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism });
-
-                var testFiles = context.TestFiles.ToLookup(p => p.Type);
-                foreach (var theory in testFiles[TestFileType.Regular])
-                {
-                    using var scope = LifetimeScope.BeginLifetimeScope(builder =>
-                    {
-                        builder.RegisterInstance(theory).As<ITheory>();
-                        builder.RegisterInstance(testFiles[TestFileType.Template]);
-                    });
-                    await actions.SendAsync(new TheoryContext { Theory = theory, Templates = testFiles[TestFileType.Template] });
-                }
-
-                actions.Complete();
-                await actions.Completion;
+                var theories = context.TestFiles.ToLookup(p => p.Type);
+                var theoryWorkflowTasks = theories[TheoryType.Regular].Select(theory => ProcessTheory(theory, theories[TheoryType.Template]));
+                await Task.WhenAll(theoryWorkflowTasks);
                 await ExecuteNextAsync(context);
+            }
+
+            private async Task ProcessTheory(Theory theory, IEnumerable<Theory> templates)
+            {
+                using var scope = LifetimeScope.BeginLifetimeScope(builder =>
+                {
+                    builder.RegisterInstance(theory);
+                    builder.RegisterInstance(templates);
+                });
+
+                await scope.Resolve<Workflow<TheoryContext>>().ExecuteAsync(default);
             }
         }
 
         internal class ProcessTheory : Step<TheoryContext>
         {
-            public ProcessTheory(ILifetimeScope lifetimeScope)
+            public ProcessTheory(ILifetimeScope lifetimeScope, Theory theory)
             {
                 LifetimeScope = lifetimeScope;
+                Theory = theory;
             }
 
             private ILifetimeScope LifetimeScope { get; }
 
-            public Func<Workflow<TestContext>> ForEachTestCase { get; set; }
+            private Theory Theory { get; }
 
             public override async Task ExecuteAsync(TheoryContext context)
             {
                 var testCases =
-                    from testCase in context.Theory.Tests
+                    from testCase in Theory.Tests
                     from queryName in testCase.QueryNames
-                    join query in context.Theory.Queries on queryName equals query.Name
+                    join query in Theory.Queries on queryName equals query.Name
                     select (testCase, query);
 
                 foreach (var (testCase, query) in testCases)
@@ -409,7 +391,7 @@ namespace Gunter
 
                     try
                     {
-                        await ForEachTestCase().ExecuteAsync(scope.Resolve<TestContext>());
+                        await scope.Resolve<Workflow<TestContext>>().ExecuteAsync(scope.Resolve<TestContext>());
                     }
                     catch (OperationCanceledException)
                     {
@@ -423,17 +405,18 @@ namespace Gunter
 
         internal class GetData : Step<TestContext>
         {
-            public GetData(ILogger<GetData> logger, IMemoryCache cache)
+            public GetData(ILogger<GetData> logger, IMemoryCache cache, IEnumerable<IGetDataFrom> getDataFromCommands)
             {
                 Logger = logger;
                 Cache = cache;
+                GetDataFromCommands = getDataFromCommands;
             }
 
-            public ILogger<GetData> Logger { get; set; }
+            private ILogger<GetData> Logger { get; }
 
-            public IMemoryCache Cache { get; set; }
+            private IMemoryCache Cache { get; }
 
-            public List<IGetDataFrom> Options { get; set; } = new List<IGetDataFrom>();
+            private IEnumerable<IGetDataFrom> GetDataFromCommands { get; }
 
             public override async Task ExecuteAsync(TestContext context)
             {
@@ -443,7 +426,7 @@ namespace Gunter
                 {
                     (context.QueryCommand, context.Data) = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
                     {
-                        if (Options.Single(o => o.QueryType.IsInstanceOfType(context.Query)) is {} getData)
+                        if (GetDataFromCommands.Single(o => o.QueryType.IsInstanceOfType(context.Query)) is {} getData)
                         {
                             return await getData.ExecuteAsync(context.Query);
                         }
@@ -514,14 +497,15 @@ namespace Gunter
 
         internal class SendMessages : Step<TestContext>
         {
-            [Service]
-            public ILogger<EvaluateData> Logger { get; set; }
+            public SendMessages(ILogger<SendMessages> logger, IComponentContext componentContext)
+            {
+                Logger = logger;
+                ComponentContext = componentContext;
+            }
 
-            [Service]
-            public ICommandExecutor CommandExecutor { get; set; }
+            private ILogger<SendMessages> Logger { get; set; }
 
-            [Service]
-            public IServiceProvider ServiceProvider { get; set; }
+            private IComponentContext ComponentContext { get; }
 
             public override async Task ExecuteAsync(TestContext context)
             {
@@ -531,8 +515,8 @@ namespace Gunter
                     {
                         switch (message)
                         {
-                            case IEmail email:
-                                await ServiceProvider.GetRequiredService<SendEmail>().InvokeAsync(context);
+                            case Email email:
+                                await ComponentContext.Resolve<DispatchEmail>().InvokeAsync(email);
                                 break;
                         }
                     }
@@ -540,14 +524,6 @@ namespace Gunter
 
                 await ExecuteNextAsync(context);
             }
-        }
-    }
-
-    public static class Search
-    {
-        public static TValue Resolve<T, TValue>(this T obj, Func<T, TValue> getValue, Func<TValue, bool> success, Func<T, IEnumerable<TValue>> values)
-        {
-            return values(obj).Prepend(getValue(obj)).FirstOrDefault(success);
         }
     }
 
@@ -575,7 +551,7 @@ namespace Gunter
         }
 
         private Format Format { get; }
-        
+
         private IEnumerable<Theory> Templates { get; }
 
         public virtual TValue Execute<T, TValue>(T instance, Func<T, TValue> getValue)
@@ -601,22 +577,19 @@ namespace Gunter
 
     public static class MergeHelper
     {
-        public static TValue MergeWith<T, TValue>(this T instance, Func<T, TValue> getValue, Merge merge) => merge.Execute(instance, getValue);
-
-        public static IMerge<T, TValue> Merge<T, TValue>(this T instance, Func<T, TValue> getValue) => new Merge<T, TValue>
+        public static IMerge<TValue> Merge<T, TValue>(this T instance, Func<T, TValue> getValue) => new Merge<T, TValue>
         {
             Instance = instance,
             GetValue = getValue
         };
-
     }
 
-    public interface IMerge<T, TValue>
+    public interface IMerge<out TValue>
     {
         TValue With(Merge merge);
     }
 
-    public class Merge<T, TValue> : IMerge<T, TValue>
+    public class Merge<T, TValue> : IMerge<TValue>
     {
         public T Instance { get; set; }
 

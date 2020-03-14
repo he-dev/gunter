@@ -6,7 +6,7 @@ using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Reporting.Modules.Tabular
 {
-    public class TestInfo : ReportModuleFactory, ITabular
+    public class TestInfo : RenderDto<>, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 

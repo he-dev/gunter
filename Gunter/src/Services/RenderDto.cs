@@ -1,4 +1,5 @@
-﻿using Gunter.Annotations;
+﻿using System;
+using Gunter.Annotations;
 using Gunter.Data;
 using Gunter.Workflows;
 using JetBrains.Annotations;
@@ -19,15 +20,27 @@ namespace Gunter.Reporting
     }
 
     [Gunter]
-    public abstract class ReportModuleFactory : IReportModuleFactory
+    public abstract class ReportModule
     {
         public string? Heading { get; set; }
 
         public string? Text { get; set; }
 
         public int Ordinal { get; set; }
+    }
 
-        public abstract IReportModule Create(TestContext context);
+    public class RendererAttribute : Attribute
+    {
+        public RendererAttribute(Type rendererType) => RendererType = rendererType;
+
+        public Type RendererType { get; }
+
+        public static implicit operator Type(RendererAttribute rendererAttribute) => rendererAttribute.RendererType;
+    }
+
+    public interface IRenderDto
+    {
+        IReportModule Execute(ReportModule model);
     }
 
     public interface ITabular

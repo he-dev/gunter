@@ -15,13 +15,24 @@ using Reusable.Utilities.Mailr.Models;
 namespace Gunter.Reporting.Modules.Tabular
 {
     [PublicAPI]
-    public class DataInfo : ReportModuleFactory, ITabular
+    [Renderer(typeof(RenderDataInfo))]
+    public class DataInfo : ReportModule
     {
-        private static readonly IEqualityComparer<IEnumerable<object>> GroupKeyEqualityComparer =
-            EqualityComparerFactory<IEnumerable<object>>.Create(
-                (left, right) => left.SequenceEqual(right),
-                (keys) => keys.CalcHashCode()
-            );
+        public TableOrientation Orientation => TableOrientation.Horizontal;
+
+        public bool HasFoot => true;
+
+        public List<DataInfoColumn?> Columns { get; set; } = new List<DataInfoColumn?>();
+    }
+
+    [PublicAPI]
+    public class RenderDataInfo : IRenderDto
+    {
+        private static readonly IEqualityComparer<IEnumerable<object>> GroupKeyEqualityComparer = EqualityComparerFactory<IEnumerable<object>>.Create
+        (
+            (left, right) => left.SequenceEqual(right),
+            (keys) => keys.CalcHashCode()
+        );
 
         private delegate object? AggregateCallback(IEnumerable<object?> values);
 
@@ -36,23 +47,27 @@ namespace Gunter.Reporting.Modules.Tabular
             [ColumnAggregate.Average] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
         };
 
-        public TableOrientation Orientation => TableOrientation.Horizontal;
+        public RenderDataInfo(Format format, TestContext testContext)
+        {
+            Format = format;
+            TestContext = testContext;
+        }
 
-        public bool HasFoot => true;
+        private Format Format { get; }
 
-        [NotNull]
-        [ItemCanBeNull]
-        public List<DataInfoColumn?> Columns { get; set; } = new List<DataInfoColumn?>();
+        private TestContext TestContext { get; }
 
-        public override IReportModule Create(TestContext context)
+        public IReportModule Execute(ReportModule model) => Execute(model as DataInfo);
+
+        private IReportModule Execute(DataInfo model)
         {
             // Materialize it because we'll be modifying it.
-            var columns = Columns.ToList();
+            var columns = model.Columns.ToList();
 
             // Use all columns by default if none-specified.
-            if (!Columns.Any())
+            if (!model.Columns.Any())
             {
-                columns = context.Data.Columns.Cast<DataColumn>().Select(c => new DataInfoColumn
+                columns = TestContext.Data.Columns.Cast<DataColumn>().Select(c => new DataInfoColumn
                 {
                     Select = c.ColumnName,
                     Aggregate = ColumnAggregate.Last
@@ -61,12 +76,12 @@ namespace Gunter.Reporting.Modules.Tabular
 
             var section = new ReportModule<DataInfo>
             {
-                Heading = Heading.Format(context.Container),
+                Heading = model.Heading.FormatWith(Format),
                 Data = new HtmlTable(HtmlTableColumn.Create(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))).ToArray()))
             };
 
             // Filter rows before processing them.
-            var filteredRows = context.Data.Select(context.TestCase.Filter);
+            var filteredRows = TestContext.Data.Select(TestContext.TestCase.Filter);
 
             // We'll use it a lot so materialize it.
             var groupColumns = columns.Where(x => x.IsKey).ToList();

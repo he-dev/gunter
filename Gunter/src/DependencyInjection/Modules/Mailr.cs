@@ -6,7 +6,7 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<Services.Channels.SendEmail>();
+            builder.RegisterType<Services.Channels.DispatchEmail>();
         }
     }
 }

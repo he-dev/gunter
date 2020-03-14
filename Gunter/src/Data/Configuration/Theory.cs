@@ -15,24 +15,24 @@ using Reusable;
 
 namespace Gunter.Data
 {
-    public interface ITheory : IModel, IMergeable, IEnumerable<IModel>
-    {
-        [DefaultValue(true)]
-        bool Enabled { get; }
-
-        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        IEnumerable<IPropertyCollection> Properties { get; }
-
-        IEnumerable<IQuery> Queries { get; }
-
-        IEnumerable<ITestCase> Tests { get; }
-        
-        IEnumerable<IReport> Reports { get; }
-    }
+    // public interface ITheory : IModel, IMergeable, IEnumerable<IModel>
+    // {
+    //     [DefaultValue(true)]
+    //     bool Enabled { get; }
+    //
+    //     [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+    //     IEnumerable<IPropertyCollection> Properties { get; }
+    //
+    //     IEnumerable<IQuery> Queries { get; }
+    //
+    //     IEnumerable<ITestCase> Tests { get; }
+    //     
+    //     IEnumerable<IReport> Reports { get; }
+    // }
 
     [PublicAPI]
     [JsonObject]
-    public class Theory : ITheory
+    public class Theory : IModel, IMergeable, IEnumerable<IModel>
     {
         public const string TemplatePrefix = "_";
 
@@ -41,7 +41,7 @@ namespace Gunter.Data
             typeof(Gunter.Data.SqlClient.TableOrView),
             typeof(Gunter.Services.DataFilters.GetJsonValue),
             typeof(Gunter.Services.DataFilters.GetFirstLine),
-            typeof(Gunter.Services.Channels.SendEmail),
+            typeof(Gunter.Services.Channels.DispatchEmail),
             typeof(Gunter.Reporting.Modules.Level),
             typeof(Gunter.Reporting.Modules.Greeting),
             typeof(Gunter.Reporting.Modules.Tabular.TestInfo),
@@ -85,12 +85,12 @@ namespace Gunter.Data
         //public string Name => Path.GetFileNameWithoutExtension(FileName);
 
         [JsonIgnore]
-        public TestFileType Type =>
+        public TheoryType Type =>
             Name is null
-                ? TestFileType.Unknown
+                ? TheoryType.Unknown
                 : Path.GetFileName(Name.ToString()).StartsWith(TemplatePrefix)
-                    ? TestFileType.Template
-                    : TestFileType.Regular;
+                    ? TheoryType.Template
+                    : TheoryType.Regular;
         
         public IEnumerator<IModel> GetEnumerator()
         {

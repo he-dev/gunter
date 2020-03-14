@@ -3,7 +3,7 @@ using Gunter.Workflows;
 
 namespace Gunter.Reporting.Modules
 {
-    public class Level : ReportModuleFactory
+    public class Level : RenderDto<>
     {
         public override IReportModule Create(TestContext context)
         {

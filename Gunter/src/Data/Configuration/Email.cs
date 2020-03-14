@@ -7,20 +7,12 @@ using Reusable;
 
 namespace Gunter.Data
 {
-    public interface IMessage : IModel { }
-
-    public interface IEmail : IMessage, IMergeable
+    public interface IMessage : IModel
     {
-        List<string> To { get; }
-
-        List<string> CC { get; }
-
-        string Theme { get; }
-
         string ReportName { get; }
     }
 
-    public class Email : IEmail
+    public class Email : IMessage, IMergeable
     {
         [JsonRequired]
         public SoftString Name { get; set; }
