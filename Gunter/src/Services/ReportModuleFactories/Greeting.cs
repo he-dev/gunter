@@ -1,4 +1,5 @@
 using Gunter.Data;
+using Gunter.Workflows;
 using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
@@ -9,8 +10,8 @@ namespace Gunter.Reporting.Modules
         {
             return new ReportModule<Greeting>
             {
-                Heading = Heading.Format(context.RuntimeProperties),
-                Text = Text.Format(context.RuntimeProperties),
+                Heading = Heading.Format(context.Container),
+                Text = Text.Format(context.Container),
                 Ordinal = Ordinal
             };
         }

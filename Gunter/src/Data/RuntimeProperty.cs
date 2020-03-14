@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
@@ -11,28 +13,19 @@ namespace Gunter.Data
     [UsedImplicitly]
     public interface IProperty : IEquatable<IProperty>
     {
-        //[AutoEqualityProperty]
-        Type? SourceType { get; }
-        
         [AutoEqualityProperty]
         SoftString Name { get; }
 
-        object? GetValue(object? obj);
+        object? GetValue();
     }
 
     public abstract class RuntimeProperty : IProperty
     {
-        protected RuntimeProperty(Type? sourceType, string name)
-        {
-            SourceType = sourceType;
-            Name = name;
-        }
-
-        public Type? SourceType { get; }
+        protected RuntimeProperty(string name) => Name = name;
 
         public SoftString Name { get; }
 
-        public abstract object? GetValue(object? obj);
+        public abstract object? GetValue();
 
         #region IEquatable
 
@@ -44,62 +37,47 @@ namespace Gunter.Data
 
         #endregion
 
-        public static class BuiltIn
+        protected static string CreateName(Expression expression)
         {
-            public static class Program
+            return expression switch
             {
-                public static readonly IProperty FullName = RuntimePropertyFactory.Create<Gunter.ProgramInfo>(_ => ProgramInfo.FullName);
-                public static readonly IProperty Environment = RuntimePropertyFactory.Create<Gunter.ProgramInfo>(x => x.Environment);
+                LambdaExpression lambdaExpression => CreateName(lambdaExpression.Body),
+                MemberExpression memberExpression => CreateName(memberExpression),
+                // Value types are wrapped by Convert(x) which is an unary-expression.
+                UnaryExpression unaryExpression => CreateName(unaryExpression.Operand),
+                // There is an unary-expression when using interfaces.
+                _ => throw new ArgumentException("Member expression not found.")
+            };
+        }
+
+        private static string CreateName(MemberExpression memberExpression)
+        {
+            // ReSharper disable once PossibleNullReferenceException - For member expression the DeclaringType cannot be null.
+            var typeName = memberExpression.Member.ReflectedType.Name;
+            if (memberExpression.Member.ReflectedType.IsInterface)
+            {
+                // Remove the leading "I" from an interface name.
+                typeName = Regex.Replace(typeName, "^I", string.Empty);
             }
 
-            public static class TestBundle
-            {
-                //public static readonly IRuntimeVariable Name = RuntimeVariableFactory.Create<Gunter.Data.TestBundle>(x => Path.GetFileNameWithoutExtension(x.FullName));
-                public static readonly IProperty FullName = RuntimePropertyFactory.Create<Gunter.Data.Theory>(x => x.FullName);
-                public static readonly IProperty FileName = RuntimePropertyFactory.Create<Gunter.Data.Theory>(x => x.FileName);
-            }
-
-            public static class TestCase
-            {
-                public static readonly IProperty Level = RuntimePropertyFactory.Create<Gunter.Data.ITestCase>(x => x.Level);
-                public static readonly IProperty Message = RuntimePropertyFactory.Create<Gunter.Data.ITestCase>(x => x.Message);
-            }
-
-            // public static class TestCounter
-            // {
-            //     public static readonly IProperty GetDataElapsed = RuntimePropertyFactory.Create<Gunter.Data.TestCounter>(x => x.GetDataElapsed);
-            //     public static readonly IProperty AssertElapsed = RuntimePropertyFactory.Create<Gunter.Data.TestCounter>(x => x.RunTestElapsed);
-            // }
-
-            public static IEnumerable<IProperty> Enumerate()
-            {
-                yield return Program.FullName;
-                yield return Program.Environment;
-                yield return TestBundle.FullName;
-                yield return TestBundle.FileName;
-                yield return TestCase.Level;
-                yield return TestCase.Message;
-                //yield return TestCounter.GetDataElapsed;
-                //yield return TestCounter.AssertElapsed;
-            }
+            return $"{typeName}.{memberExpression.Member.Name}";
         }
     }
 
-    internal class InstanceProperty : RuntimeProperty
+    internal class InstanceProperty<T> : RuntimeProperty
     {
-        private readonly Func<object, object?> _getValue;
+        private readonly T _instance;
+        private readonly Func<T, object?> _getValue;
 
-        public InstanceProperty
-        (
-            Type sourceType,
-            string name,
-            Func<object, object?> getValue
-        ) : base(sourceType, name)
+        public delegate InstanceProperty<T> Factory(Expression<Func<T, object?>> selectorExpression);
+
+        public InstanceProperty(T instance, Expression<Func<T, object?>> selectorExpression) : base(CreateName(selectorExpression))
         {
-            _getValue = getValue;
+            _instance = instance;
+            _getValue = selectorExpression.Compile();
         }
-        
-        public override object? GetValue(object? obj) => _getValue(obj);
+
+        public override object? GetValue() => _getValue(_instance);
     }
 
     [PublicAPI]
@@ -108,14 +86,14 @@ namespace Gunter.Data
     {
         private readonly object _value;
 
-        public StaticProperty(string name, object value) : base(default, name)
+        public StaticProperty(Expression<Func<object?>> selectorExpression) : base(CreateName(selectorExpression))
         {
-            _value = value;
+            _value = selectorExpression.Compile()();
         }
 
-        public override object GetValue(object? obj) => _value;
+        public override object? GetValue() => _value;
 
-        public static implicit operator StaticProperty(KeyValuePair<string, object> kvp) => new StaticProperty(kvp.Key, kvp.Value);
+        //public static implicit operator StaticProperty(KeyValuePair<string, object> kvp) => new StaticProperty(kvp.Key, kvp.Value);
 
         //public static implicit operator KeyValuePair<SoftString, object>(StaticProperty tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
     }

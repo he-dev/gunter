@@ -37,7 +37,7 @@ namespace Gunter.Data
     {
         Type QueryType { get; }
 
-        Task<GetDataResult> ExecuteAsync(IQuery query, RuntimeContainer container);
+        Task<GetDataResult> ExecuteAsync(IQuery query);
     }
 
     public class GetDataResult : IDisposable
@@ -45,6 +45,8 @@ namespace Gunter.Data
         public string Command { get; set; }
 
         public DataTable? Data { get; set; }
+
+        public void Deconstruct(out string command, out DataTable? data) => (command, data) = (Command, Data);
 
         public void Dispose() => Data?.Dispose();
     }

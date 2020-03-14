@@ -9,6 +9,7 @@ using Gunter.Data;
 using Gunter.Reporting;
 using Gunter.Workflows;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
@@ -31,9 +32,14 @@ namespace Gunter.Services.Channels
             _resource = resource;
         }
 
-        public async Task InvokeAsync(TestContext context, IEmail email)
+        public List<string> To { get; set; } = new List<string>();
+
+        [JsonProperty("Report")]
+        public string ReportName { get; set; }
+
+        public override async Task InvokeAsync(TestContext context)
         {
-            var report = context.Theory.Reports.Single(r => r.Name.Equals(email.ReportName));
+            var report = context.Theory.Reports.Single(r => r.Name.Equals(ReportName));
 
 
             //using (Logger.BeginScope().WithCorrelationHandle("PublishReport").UseStopwatch())
@@ -57,17 +63,17 @@ namespace Gunter.Services.Channels
             }
         }
         
-        protected override async Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IReportModule> modules)
+        private async Task PublishAsync(TestContext context, IReport report, IEnumerable<IReportModule> modules)
         {
-            var to = To.Select(x => x.Format(context.RuntimeProperties));
-            var subject = report.Title.Format(context.RuntimeProperties);
+            var to = To.Select(x => x.Format(context.Container));
+            var subject = report.Title.Format(context.Container);
 
             modules = modules.ToList();
 
             var email = new Email.Html(to, subject)
             {
-                Theme = Theme,
-                CC = CC,
+                //Theme = Theme,
+                //CC = CC,
                 Body = new
                 {
                     Modules = modules
@@ -89,11 +95,6 @@ namespace Gunter.Services.Channels
                 http.UserAgent = new ProductInfoHeaderValue(ProgramInfo.Name, ProgramInfo.Version);
                 http.ControllerTags.Add("Mailr");
             });
-        }
-
-        protected override Task PublishReportAsync(TestContext context, IReport report, IEnumerable<IReportModule> modules)
-        {
-            
         }
     }
 }

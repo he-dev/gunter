@@ -42,7 +42,7 @@ namespace Gunter.Reporting.Modules.Tabular
             table.Body.Add("Type", context.Query.GetType().Name);
             table.Body.NewRow().Update(Columns.Property, "Command").Update(Columns.Value, context.Query, "query");
             table.Body.Add("Results", context.Data.Rows.Count.ToString());
-            table.Body.Add("Elapsed", $"{RuntimeProperty.BuiltIn.TestCounter.GetDataElapsed.ToFormatString(TimespanFormat)}".Format(context.RuntimeProperties));
+            table.Body.Add("Elapsed", $"{RuntimeProperty.BuiltIn.TestContext.GetDataElapsed.ToFormatString(TimespanFormat)}".Format(context.Container));
 
             var hasTimestampColumn = context.Data.Columns.Contains(TimestampColumn);
             var hasRows = context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.

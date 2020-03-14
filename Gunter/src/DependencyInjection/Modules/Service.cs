@@ -4,6 +4,7 @@ using System.Net.Http;
 using Autofac;
 using Gunter.Data;
 using Gunter.Services;
+using Gunter.Workflows;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Reusable;
@@ -11,6 +12,7 @@ using Reusable.Commander;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Data;
 using Reusable.Extensions;
+using Reusable.Flowingo.Steps;
 using Reusable.IO;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
@@ -93,6 +95,14 @@ namespace Gunter.DependencyInjection.Modules
             builder
                 .RegisterType<RuntimePropertyNameValidator>()
                 .As<IRuntimePropertyNameValidator>();
+
+            builder
+                .RegisterType<Workflow<TheoryContext>>()
+                .InstancePerDependency();
+            
+            builder
+                .RegisterType<Workflow<TestContext>>()
+                .InstancePerDependency();
 
             // builder
             //     .RegisterType<TestLoader>()

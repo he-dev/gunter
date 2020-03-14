@@ -52,6 +52,7 @@
     <Compile Remove="src\Commands\Send.cs" />
     <Compile Remove="src\Data\Abstractions\Union.cs" />
     <Compile Remove="src\Services\RuntimePropertyProvider.cs" />
+    <Compile Remove="src\Services\RuntimePropertyFactory.cs" />
   </ItemGroup>
 
   <ItemGroup>

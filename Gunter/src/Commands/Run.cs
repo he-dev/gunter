@@ -3,11 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Gunter.Data;
 using Gunter.Services;
+using Gunter.Workflows;
 using JetBrains.Annotations;
 using Reusable.Commander;
 using Reusable.Data.Annotations;
+using Reusable.Flowingo.Steps;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Translucent;
 
@@ -16,24 +17,18 @@ namespace Gunter.Commands
     [Tags("b")]
     internal class Run : Command<Run.Parameter>
     {
-        private readonly ITestLoader _testLoader;
-        private readonly ITestComposer _testComposer;
-        private readonly ITestRunner _testRunner;
         private readonly IResource _resource;
+        private readonly Workflow<SessionContext> _sessionWorkflow;
 
         public Run
         (
             ILogger<Run> logger,
-            ITestLoader testLoader,
-            ITestComposer testComposer,
-            ITestRunner testRunner,
-            IResource resource
+            IResource resource,
+            Workflow<SessionContext> sessionWorkflow
         )
         {
-            _testLoader = testLoader;
-            _testComposer = testComposer;
-            _testRunner = testRunner;
             _resource = resource;
+            _sessionWorkflow = sessionWorkflow;
         }
 
         protected override async Task ExecuteAsync(Parameter parameter, CancellationToken cancellationToken)
@@ -41,16 +36,21 @@ namespace Gunter.Commands
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var defaultPath = Path.Combine(currentDirectory, _resource.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
-            var bundles = await _testLoader.LoadTestsAsync(parameter.Path ?? defaultPath, parameter.Files).ToListAsync(cancellationToken);
-            var testFilter = new TestFilter
+            //var bundles = await _testLoader.LoadTestsAsync(parameter.Path ?? defaultPath, parameter.Files).ToListAsync(cancellationToken);
+            var testFilter = new Workflows.TestFilter
             {
-                Path = parameter.Path ?? defaultPath,
+                //DirectoryNamePatterns = parameter.Path ?? defaultPath,
                 //Files = commandLine.Files,
-                Tests = parameter.Tests,
+                //Tags = parameter.Tests,
                 Tags = parameter.Tags
             };
-            var compositions = _testComposer.ComposeTests(bundles, testFilter);
-            await _testRunner.RunAsync(compositions);
+            //var compositions = _testComposer.ComposeTests(bundles, testFilter);
+            //await _testRunner.RunAsync(compositions);
+
+            await _sessionWorkflow.ExecuteAsync(new SessionContext
+            {
+                TestFilter = testFilter
+            });
         }
 
         [UsedImplicitly]

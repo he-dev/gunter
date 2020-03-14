@@ -1,4 +1,5 @@
 using Gunter.Data;
+using Gunter.Workflows;
 using Reusable.Extensions;
 
 namespace Gunter.Reporting.Modules
@@ -9,7 +10,7 @@ namespace Gunter.Reporting.Modules
         {
             return new ReportModule<Signature>
             {
-                Text = $"{RuntimeProperty.BuiltIn.Program.FullName}".Format(context.RuntimeProperties),
+                Text = $"{RuntimeProperty.BuiltIn.Program.FullName}".Format(context.Container),
                 Ordinal = Ordinal
             };
         }

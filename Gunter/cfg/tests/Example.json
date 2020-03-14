@@ -54,7 +54,7 @@
       "When": {
         "Passed": [
           {
-            "$g": "Email",
+            "$g": "SendEmail",
             "Merge": "_Gunter#email",
             "To": [
               "gunter@test.com"

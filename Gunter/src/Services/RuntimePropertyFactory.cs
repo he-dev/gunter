@@ -13,53 +13,18 @@ namespace Gunter.Services
             var parameter = Expression.Parameter(typeof(object), "obj");
             var converted = Cast<T>.Create(getValueExpression.Body, parameter);
             var getValueFunc = Expression.Lambda<Func<object, object>>(converted, parameter).Compile();
-            
-            return new InstanceProperty(typeof(T), CreateName(getValueExpression), getValueFunc);
+
+            return new InstanceProperty(CreateName(getValueExpression), typeof(T), getValueFunc);
         }
 
         public static IProperty Create(Expression<Func<object>> expression)
         {
             var memberExpression = (MemberExpression)expression.Body;
 
-            return new InstanceProperty
-            (
-                memberExpression.Member.ReflectedType,
-                CreateName(expression),
-                _ => expression.Compile()()
-            );
+            return new InstanceProperty(CreateName(expression), memberExpression.Member.ReflectedType, _ => expression.Compile()());
         }
 
-        private static string CreateName(Expression expression)
-        {
-            expression = expression is LambdaExpression lambda ? lambda.Body : expression;
-
-            while (true)
-            {
-                switch (expression)
-                {
-                    case MemberExpression memberExpression:
-                        // ReSharper disable once PossibleNullReferenceException
-                        // For member expression the DeclaringType cannot be null.
-                        var typeName = memberExpression.Member.ReflectedType.Name;
-                        if (memberExpression.Member.ReflectedType.IsInterface)
-                        {
-                            // Remove the leading "I" from an interface name.
-                            typeName = Regex.Replace(typeName, "^I", string.Empty);
-                        }
-
-                        return $"{typeName}.{memberExpression.Member.Name}";
-
-                    // Value types are wrapped by Convert(x) which is an unary-expression.
-                    case UnaryExpression unaryExpression:
-                        expression = unaryExpression.Operand;
-                        continue;
-                }
-
-                // There is an unary-expression when using interfaces.
-
-                throw new ArgumentException("Member expression not found.");
-            }
-        }
+        
     }
 
     // (T)obj

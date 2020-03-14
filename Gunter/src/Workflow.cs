@@ -6,9 +6,12 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Custom;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Autofac;
+using Autofac.Core;
 using Gunter.Data;
 using Gunter.Data.SqlClient;
 using Gunter.Services;
@@ -38,70 +41,91 @@ using IMessage = Gunter.Data.IMessage;
 
 namespace Gunter
 {
-    public class RuntimeContainer : IEnumerable<object>
-    {
-        private readonly IImmutableList<object> _items;
-
-        public RuntimeContainer() => _items = ImmutableList<object>.Empty;
-
-        public RuntimeContainer(IImmutableList<object> items) => _items = items;
-
-        public static readonly RuntimeContainer Empty = new RuntimeContainer();
-
-        public RuntimeContainer Add(object item) => new RuntimeContainer(_items.Add(item));
-
-        public RuntimeContainer AddRange(IEnumerable<object> items) => new RuntimeContainer(_items.AddRange(items));
-
-        public IEnumerator<object> GetEnumerator() => _items.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_items).GetEnumerator();
-
-        public static implicit operator TryGetValueCallback(RuntimeContainer container) => container.TryGetValue;
-
-        private bool TryGetValue(string name, out object? value)
-        {
-            return (value = this.OfType<IProperty>().Single(p => p.Name.Equals(name)) switch
-            {
-                StaticProperty staticProperty => staticProperty.GetValue(null).ToString(),
-                InstanceProperty instanceProperty => instanceProperty.GetValue(this.First(item => instanceProperty.SourceType.IsInstanceOfType(item)))
-            }) is {};
-        }
-    }
-
     namespace Workflows
     {
+        internal class SessionModule : Module
+        {
+            protected override void Load(ContainerBuilder builder)
+            {
+                builder.RegisterGeneric(typeof(InstanceProperty<>));
+                builder.RegisterType<Format>().InstancePerDependency();
+                builder.RegisterType<Merge>().InstancePerDependency();
+                builder.RegisterInstance(new StaticProperty(() => ProgramInfo.FullName));
+                builder.RegisterInstance(new StaticProperty(() => ProgramInfo.Version));
+                builder.Register(CreateSessionWorkflow);
+            }
+
+            private static Workflow<SessionContext> CreateSessionWorkflow(IComponentContext c)
+            {
+                return c.Resolve<Workflow<SessionContext>>().Pipe(sw =>
+                {
+                    sw.Add(c.Resolve<FindTestFiles>());
+                    sw.Add(c.Resolve<LoadTestFiles>());
+                    sw.Add(c.Resolve<ProcessTheories>().Pipe(pt =>
+                    {
+                        //
+                        pt.ForEachTestFile = () => CreateTheoryWorkflow(c);
+                    }));
+                });
+            }
+
+            private static Workflow<TheoryContext> CreateTheoryWorkflow(IComponentContext c)
+            {
+                return c.Resolve<Workflow<TheoryContext>>().Pipe(tw =>
+                {
+                    //
+                    tw.Add(c.Resolve<ProcessTheory>().Pipe(pt =>
+                    {
+                        //
+                        pt.ForEachTestCase = () => CreateTestWorkflow(c);
+                    }));
+                });
+            }
+
+            private static Workflow<TestContext> CreateTestWorkflow(IComponentContext c)
+            {
+                return c.Resolve<Workflow<TestContext>>().Pipe(tw =>
+                {
+                    tw.Add(c.Resolve<GetData>());
+                    tw.Add(c.Resolve<FilterData>());
+                    tw.Add(c.Resolve<EvaluateData>());
+                    tw.Add(c.Resolve<SendMessages>());
+                });
+            }
+        }
+
         internal class SessionWorkflow : Workflow<SessionContext>
         {
             private SessionWorkflow(IServiceProvider serviceProvider) : base(serviceProvider) { }
 
-            public static SessionWorkflow Create(IServiceProvider serviceProvider) => new SessionWorkflow(serviceProvider)
-            {
-                new FindTestFiles(serviceProvider),
-                new LoadTestFiles(serviceProvider),
-                new ProcessTheories(serviceProvider)
-                {
-                    ForEachTestFile =
-                    {
-                        new ProcessTheory(serviceProvider)
-                        {
-                            ForEachTestCase =
-                            {
-                                new CreateRuntimeContainer(serviceProvider),
-                                new GetData(serviceProvider)
-                                {
-                                    Options =
-                                    {
-                                        new GetDataFromTableOrView(default)
-                                    }
-                                },
-                                new FilterData(serviceProvider),
-                                new EvaluateData(serviceProvider),
-                                new ProcessMessages(serviceProvider)
-                            }
-                        }
-                    }
-                }
-            };
+            // public static SessionWorkflow Create(IServiceProvider serviceProvider) => new SessionWorkflow(serviceProvider)
+            // {
+            //     new FindTestFiles(),
+            //     new LoadTestFiles(),
+            //     new ProcessTheories
+            //     {
+            //         ForEachTestFile =
+            //         {
+            //             new ProcessTheory
+            //             {
+            //                 ForEachTestCase =
+            //                 {
+            //                     new CreateRuntimeContainer(),
+            //                     new GetData()
+            //                     {
+            //                         Options =
+            //                         {
+            //                             serviceProvider.GetRequiredService<GetDataFromTableOrView>()
+            //                         }
+            //                     },
+            //                     new FilterData(),
+            //                     new EvaluateData(),
+            //                     new SendMessages()
+            //                 }
+            //             }
+            //         }
+            //     }
+            // };
         }
 
         internal class SessionContext
@@ -125,8 +149,6 @@ namespace Gunter
 
         internal class FindTestFiles : Step<SessionContext>
         {
-            public FindTestFiles(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
             [Service]
             public ILogger<FindTestFiles> Logger { get; set; }
 
@@ -207,8 +229,6 @@ namespace Gunter
 
         internal class LoadTestFiles : Step<SessionContext>
         {
-            public LoadTestFiles(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
             [Service]
             public ILogger<FindTestFiles> Logger { get; set; }
 
@@ -290,13 +310,22 @@ namespace Gunter
 
         public class TestContext : IDisposable
         {
-            public ITheory Theory { get; set; }
+            public TestContext(ITheory theory, ITestCase testCase, IQuery query)
+            {
+                Theory = theory;
+                TestCase = testCase;
+                Query = query;
+            }
 
-            public ITestCase TestCase { get; set; }
+            public ITheory Theory { get; }
 
-            public IQuery Query { get; set; }
+            public ITestCase TestCase { get; }
 
-            public GetDataResult? GetDataResult { get; set; }
+            public IQuery Query { get; }
+
+            public string QueryCommand { get; set; }
+
+            public DataTable? Data { get; set; }
 
             public TimeSpan GetDataElapsed { get; set; }
 
@@ -304,34 +333,40 @@ namespace Gunter
 
             public TimeSpan EvaluateDataElapsed { get; set; }
 
-            public RuntimeContainer Container { get; set; }
-
             public TestResult Result { get; set; } = TestResult.Undefined;
 
-            public void Dispose() => GetDataResult?.Dispose();
+            public void Dispose() => Data?.Dispose();
         }
 
         internal class ProcessTheories : Step<SessionContext>
         {
-            public ProcessTheories(IServiceProvider serviceProvider) : base(serviceProvider)
+            public ProcessTheories(ILifetimeScope lifetimeScope)
             {
-                ForEachTestFile = new Workflow<TheoryContext>(serviceProvider);
+                LifetimeScope = lifetimeScope;
             }
+
+            private ILifetimeScope LifetimeScope { get; }
 
             [Service]
             public ILogger<FindTestFiles> Logger { get; set; }
 
             public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount * 2;
 
-            public Workflow<TheoryContext> ForEachTestFile { get; set; }
+            [Service]
+            public Func<Workflow<TheoryContext>> ForEachTestFile { get; set; }
 
             public override async Task ExecuteAsync(SessionContext context)
             {
-                var actions = new ActionBlock<TheoryContext>(ForEachTestFile.ExecuteAsync, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism });
+                var actions = new ActionBlock<TheoryContext>(ForEachTestFile().ExecuteAsync, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = MaxDegreeOfParallelism });
 
                 var testFiles = context.TestFiles.ToLookup(p => p.Type);
                 foreach (var theory in testFiles[TestFileType.Regular])
                 {
+                    using var scope = LifetimeScope.BeginLifetimeScope(builder =>
+                    {
+                        builder.RegisterInstance(theory).As<ITheory>();
+                        builder.RegisterInstance(testFiles[TestFileType.Template]);
+                    });
                     await actions.SendAsync(new TheoryContext { Theory = theory, Templates = testFiles[TestFileType.Template] });
                 }
 
@@ -343,12 +378,14 @@ namespace Gunter
 
         internal class ProcessTheory : Step<TheoryContext>
         {
-            public ProcessTheory(IServiceProvider serviceProvider) : base(serviceProvider)
+            public ProcessTheory(ILifetimeScope lifetimeScope)
             {
-                ForEachTestCase = new Workflow<TestContext>(serviceProvider);
+                LifetimeScope = lifetimeScope;
             }
 
-            public Workflow<TestContext> ForEachTestCase { get; set; }
+            private ILifetimeScope LifetimeScope { get; }
+
+            public Func<Workflow<TestContext>> ForEachTestCase { get; set; }
 
             public override async Task ExecuteAsync(TheoryContext context)
             {
@@ -360,14 +397,19 @@ namespace Gunter
 
                 foreach (var (testCase, query) in testCases)
                 {
+                    using var scope = LifetimeScope.BeginLifetimeScope(builder =>
+                    {
+                        builder.RegisterInstance(new MemoryCache(new MemoryCacheOptions()));
+                        builder.RegisterInstance(testCase);
+                        builder.RegisterInstance(query).As<IQuery>();
+                        builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Level)).As<IProperty>();
+                        builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Message)).As<IProperty>();
+                        builder.Register(c => c.Resolve<InstanceProperty<TestContext>.Factory>()(x => x.GetDataElapsed)).As<IProperty>();
+                    });
+
                     try
                     {
-                        await ForEachTestCase.ExecuteAsync(new TestContext
-                        {
-                            Theory = context.Theory,
-                            TestCase = testCase,
-                            Query = query
-                        });
+                        await ForEachTestCase().ExecuteAsync(scope.Resolve<TestContext>());
                     }
                     catch (OperationCanceledException)
                     {
@@ -379,32 +421,16 @@ namespace Gunter
             }
         }
 
-        internal class CreateRuntimeContainer : Step<TestContext>
-        {
-            public CreateRuntimeContainer(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
-            public override async Task ExecuteAsync(TestContext context)
-            {
-                context.Container =
-                    RuntimeContainer
-                        .Empty
-                        .AddRange(RuntimeProperty.BuiltIn.Enumerate())
-                        .AddRange(context.Theory.Properties.Flatten())
-                        .Add(context.Theory)
-                        .Add(context.TestCase);
-
-                await ExecuteNextAsync(context);
-            }
-        }
-
         internal class GetData : Step<TestContext>
         {
-            public GetData(IServiceProvider serviceProvider) : base(serviceProvider) { }
+            public GetData(ILogger<GetData> logger, IMemoryCache cache)
+            {
+                Logger = logger;
+                Cache = cache;
+            }
 
-            [Service]
             public ILogger<GetData> Logger { get; set; }
 
-            [Service]
             public IMemoryCache Cache { get; set; }
 
             public List<IGetDataFrom> Options { get; set; } = new List<IGetDataFrom>();
@@ -415,17 +441,17 @@ namespace Gunter
                 Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Name }));
                 try
                 {
-                    context.GetDataResult = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
+                    (context.QueryCommand, context.Data) = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
                     {
                         if (Options.Single(o => o.QueryType.IsInstanceOfType(context.Query)) is {} getData)
                         {
-                            return await getData.ExecuteAsync(context.Query, context.Container);
+                            return await getData.ExecuteAsync(context.Query);
                         }
 
                         return default;
                     });
                     context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
-                    Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.GetDataResult.Data.Rows.Count, ColumnCount = context.GetDataResult.Data.Columns.Count }));
+                    Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.Data.Rows.Count, ColumnCount = context.Data.Columns.Count }));
                     await ExecuteNextAsync(context);
                 }
                 catch (Exception inner)
@@ -437,8 +463,6 @@ namespace Gunter
 
         internal class FilterData : Step<TestContext>
         {
-            public FilterData(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
             [Service]
             public ILogger<FilterData> Logger { get; set; }
 
@@ -449,7 +473,7 @@ namespace Gunter
                     using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(FilterData)).UseStopwatch();
                     foreach (var dataFilter in filters)
                     {
-                        dataFilter.Execute(context.GetDataResult.Data);
+                        dataFilter.Execute(context.Data);
                     }
 
                     context.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
@@ -461,8 +485,6 @@ namespace Gunter
 
         internal class EvaluateData : Step<TestContext>
         {
-            public EvaluateData(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
             [Service]
             public ILogger<EvaluateData> Logger { get; set; }
 
@@ -470,7 +492,7 @@ namespace Gunter
             {
                 using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(EvaluateData)).UseStopwatch();
 
-                if (context.GetDataResult.Data.Compute(context.TestCase.Assert, context.TestCase.Filter) is bool success)
+                if (context.Data.Compute(context.TestCase.Assert, context.TestCase.Filter) is bool success)
                 {
                     context.EvaluateDataElapsed = Logger.Scope().Stopwatch().Elapsed;
                     context.Result = success switch
@@ -490,17 +512,16 @@ namespace Gunter
             }
         }
 
-        internal class ProcessMessages : Step<TestContext>
+        internal class SendMessages : Step<TestContext>
         {
-            public ProcessMessages(IServiceProvider serviceProvider) : base(serviceProvider) { }
-
             [Service]
             public ILogger<EvaluateData> Logger { get; set; }
 
             [Service]
             public ICommandExecutor CommandExecutor { get; set; }
 
-            public List<IMessage> Messages { get; set; } = new List<IMessage>();
+            [Service]
+            public IServiceProvider ServiceProvider { get; set; }
 
             public override async Task ExecuteAsync(TestContext context)
             {
@@ -511,7 +532,7 @@ namespace Gunter
                         switch (message)
                         {
                             case IEmail email:
-                                await ServiceProvider.GetRequiredService<SendEmail>().InvokeAsync(context, email);
+                                await ServiceProvider.GetRequiredService<SendEmail>().InvokeAsync(context);
                                 break;
                         }
                     }
@@ -528,5 +549,84 @@ namespace Gunter
         {
             return values(obj).Prepend(getValue(obj)).FirstOrDefault(success);
         }
+    }
+
+    public class Format
+    {
+        public Format(IEnumerable<IProperty> runtimeProperties)
+        {
+            RuntimeProperties = runtimeProperties;
+        }
+
+        private IEnumerable<IProperty> RuntimeProperties { get; }
+
+        public virtual string Execute(string value)
+        {
+            return value.Format(name => (string?)RuntimeProperties.FirstOrDefault(p => p.Name.Equals(name))?.GetValue());
+        }
+    }
+
+    public class Merge
+    {
+        public Merge(Format format, IEnumerable<Theory> templates)
+        {
+            Format = format;
+            Templates = templates;
+        }
+
+        private Format Format { get; }
+        
+        private IEnumerable<Theory> Templates { get; }
+
+        public virtual TValue Execute<T, TValue>(T instance, Func<T, TValue> getValue)
+        {
+            var models = Templates.OfType<T>();
+            var values = models.Select(getValue).Prepend(getValue(instance));
+
+            foreach (var value in values)
+            {
+                if (value is {})
+                {
+                    return value switch
+                    {
+                        string s => (TValue)(object)Format.Execute(s),
+                        _ => value
+                    };
+                }
+            }
+
+            return default;
+        }
+    }
+
+    public static class MergeHelper
+    {
+        public static TValue MergeWith<T, TValue>(this T instance, Func<T, TValue> getValue, Merge merge) => merge.Execute(instance, getValue);
+
+        public static IMerge<T, TValue> Merge<T, TValue>(this T instance, Func<T, TValue> getValue) => new Merge<T, TValue>
+        {
+            Instance = instance,
+            GetValue = getValue
+        };
+
+    }
+
+    public interface IMerge<T, TValue>
+    {
+        TValue With(Merge merge);
+    }
+
+    public class Merge<T, TValue> : IMerge<T, TValue>
+    {
+        public T Instance { get; set; }
+
+        public Func<T, TValue> GetValue { get; set; }
+
+        public TValue With(Merge merge) => merge.Execute(Instance, GetValue);
+    }
+
+    public static class FormatHelper
+    {
+        public static string FormatWith(this string value, Format format) => format.Execute(value);
     }
 }
