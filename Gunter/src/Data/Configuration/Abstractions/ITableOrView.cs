@@ -1,4 +1,5 @@
-namespace Gunter.Data.Configuration.Abstractions {
+namespace Gunter.Data.Configuration.Abstractions
+{
     public interface ITableOrView : IQuery, IMergeable
     {
         string ConnectionString { get; }

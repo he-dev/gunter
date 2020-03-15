@@ -5,28 +5,14 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Reporting;
+using Gunter.Data.Configuration.Reporting;
+using Gunter.Services;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 
 namespace Gunter.Data.Configuration
 {
-    // public interface ITheory : IModel, IMergeable, IEnumerable<IModel>
-    // {
-    //     [DefaultValue(true)]
-    //     bool Enabled { get; }
-    //
-    //     [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    //     IEnumerable<IPropertyCollection> Properties { get; }
-    //
-    //     IEnumerable<IQuery> Queries { get; }
-    //
-    //     IEnumerable<ITestCase> Tests { get; }
-    //     
-    //     IEnumerable<IReport> Reports { get; }
-    // }
-
     [PublicAPI]
     [JsonObject]
     public class Theory : IModel, IMergeable, IEnumerable<IModel>
@@ -38,12 +24,11 @@ namespace Gunter.Data.Configuration
             typeof(TableOrView),
             typeof(Gunter.Services.DataFilters.GetJsonValue),
             typeof(Gunter.Services.DataFilters.GetFirstLine),
-            typeof(Gunter.Services.Channels.DispatchEmail),
+            typeof(DispatchEmail),
             typeof(Level),
-            typeof(Greeting),
             typeof(TestInfo),
             typeof(QueryInfo),
-            typeof(DataInfo),
+            typeof(DataSummary),
             typeof(Gunter.Reporting.Formatters.TimeSpan),
         };
 

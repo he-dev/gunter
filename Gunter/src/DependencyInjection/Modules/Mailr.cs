@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Gunter.Services;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -6,7 +7,7 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<Services.Channels.DispatchEmail>();
+            builder.RegisterType<DispatchEmail>();
         }
     }
 }

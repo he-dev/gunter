@@ -54,28 +54,44 @@
   ],
   "Reports": [
     {
-      "Id": "mssql",
+      "Name": "mssql",
       "Title": "Glitch alert [{TestCase.Level}]",
       "Modules": [
         {
           "$g": "Level"
         },
         {
-          "$g": "Greeting",
-          "Heading": "Hi, everyone.",
+          "$g": "Heading",
+          "Text": "Hi, everyone.",
+          "Level": 1
+        },
+        {
+          "$g": "Paragraph",
           "Text": "{TestCase.Message}"
         },
         {
-          "$g": "TestInfo",
-          "Heading": "Test"
+          "$g": "Heading",
+          "Text": "Test Case",
+          "Level": 2
         },
         {
-          "$g": "QueryInfo",
-          "Heading": "Query"
+          "$g": "TestSummary"
         },
         {
-          "$g": "DataInfo",
-          "Heading": "Default columns",
+          "$g": "Heading",
+          "Text": "Query",
+          "Level": 2
+        },
+        {
+          "$g": "QuerySummary"
+        },
+        {
+          "$g": "Heading",
+          "Text": "Data summary - default columns",
+          "Level": 2
+        },
+        {
+          "$g": "DataSummary",
           "Columns": [
             {
               "Select": "_string_text"
@@ -104,8 +120,12 @@
           ]
         },
         {
-          "$g": "DataInfo",
-          "Heading": "Custom columns",
+          "$g": "Heading",
+          "Text": "Data summary - custom columns",
+          "Level": 2
+        },
+        {
+          "$g": "DataSummary",
           "Columns": [
             {
               "Select": "_string_text",

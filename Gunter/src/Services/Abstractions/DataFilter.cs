@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace Gunter.Services
+namespace Gunter.Services.Abstractions
 {
     public interface IDataFilter
     {

@@ -5,7 +5,6 @@ using System.Linq.Custom;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using Reusable.Commander;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;

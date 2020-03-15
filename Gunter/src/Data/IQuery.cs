@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Services;
+using Gunter.Services.Abstractions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
@@ -30,10 +31,10 @@ namespace Gunter.Data
         [JsonRequired]
         public SoftString Name { get; set; }
 
-        public List<IDataFilter>? Filters { get; set; } = new List<IDataFilter>?();
+        public List<IDataFilter>? Filters { get; set; } = new List<IDataFilter>();
     }
 
-    public interface IGetDataFrom
+    public interface IGetData
     {
         Type QueryType { get; }
 

@@ -9,7 +9,7 @@ namespace Gunter.DependencyInjection.Modules
         {
             builder.RegisterType<Theory>();
             builder.RegisterType<TestCase>();
-            builder.RegisterType<Gunter.Data.StaticPropertyCollection>();
+            builder.RegisterType<Gunter.Data.ConstantPropertyCollection>();
             builder.RegisterType<TableOrView>();
         }
     }

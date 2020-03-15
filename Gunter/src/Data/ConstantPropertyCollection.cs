@@ -7,10 +7,10 @@ using Reusable;
 
 namespace Gunter.Data
 {
-    public interface IPropertyCollection : IEnumerable<StaticProperty>, IModel, IMergeable { }
+    public interface IPropertyCollection : IEnumerable<ConstantProperty>, IModel, IMergeable { }
 
     [JsonObject]
-    public class StaticPropertyCollection : IPropertyCollection
+    public class ConstantPropertyCollection : IPropertyCollection
     {
         public SoftString Name { get; set; }
 
@@ -18,7 +18,7 @@ namespace Gunter.Data
 
         public IDictionary<string, object> Items { get; set; }
 
-        public IEnumerator<StaticProperty> GetEnumerator() => Items.Select(x => (StaticProperty)x).GetEnumerator();
+        public IEnumerator<ConstantProperty> GetEnumerator() => Items.Select(x => new ConstantProperty(x.Key, x.Value)).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

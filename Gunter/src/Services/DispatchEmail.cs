@@ -1,33 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.Annotations;
-using Gunter.Data;
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Reporting;
-using Gunter.Workflows;
+using Gunter.Services.Abstractions;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Translucent;
 using Reusable.Utilities.Mailr;
-using Reusable.Utilities.Mailr.Models;
 using Email = Reusable.Utilities.Mailr.Models.Email;
 
-namespace Gunter.Services.Channels
+namespace Gunter.Services
 {
     [Gunter]
     [PublicAPI]
-    public class DispatchEmail : Dispatch
+    public class DispatchEmail : DispatchMessage
     {
         public DispatchEmail
         (
@@ -66,7 +62,7 @@ namespace Gunter.Services.Channels
                 {
                     var modules =
                         from module in report.Modules
-                        let render = (IRenderDto)default(IComponentContext).Resolve(module.GetType().GetCustomAttribute<RendererAttribute>())
+                        let render = (IRenderReportModule)default(IComponentContext).Resolve(module.GetType().GetCustomAttribute<ServiceAttribute>())
                         select render.Execute(module);
 
 
@@ -80,10 +76,10 @@ namespace Gunter.Services.Channels
             }
         }
 
-        private async Task SendAsync(Data.Configuration.Email email, string title, IEnumerable<IReportModule> modules)
+        private async Task SendAsync(Data.Configuration.Email email, string title, IEnumerable<IReportModuleDto> modules)
         {
-            var to = email.To.Select(x => x.FormatWith(Format));
-            var subject = title.FormatWith(Format);
+            var to = email.To.Select(x => x.Map(Format));
+            var subject = title.Map(Format);
 
             var htmlEmail = new Email.Html(to, subject)
             {

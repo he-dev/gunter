@@ -97,6 +97,24 @@ namespace Gunter.Data
 
         //public static implicit operator KeyValuePair<SoftString, object>(StaticProperty tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
     }
+    
+    [PublicAPI]
+    [UsedImplicitly]
+    public class ConstantProperty : RuntimeProperty
+    {
+        private readonly object _value;
+
+        public ConstantProperty(string name, object value) : base(name)
+        {
+            _value = value;
+        }
+
+        public override object? GetValue() => _value;
+
+        //public static implicit operator StaticProperty(KeyValuePair<string, object> kvp) => new StaticProperty(kvp.Key, kvp.Value);
+
+        //public static implicit operator KeyValuePair<SoftString, object>(StaticProperty tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
+    }
 
     internal static class PropertyExtensions
     {

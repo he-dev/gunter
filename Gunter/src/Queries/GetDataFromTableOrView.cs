@@ -6,13 +6,15 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gunter.Data;
 using Gunter.Data.Configuration.Abstractions;
+using Gunter.Services;
+using Reusable.Extensions;
 using Reusable.Translucent;
 
-namespace Gunter.Services
+namespace Gunter.Queries
 {
-    public class GetDataFromTableOrView : IGetDataFrom
+    public class GetDataTableOrView : IGetData
     {
-        public GetDataFromTableOrView(Merge merge, Format format, IResource resource)
+        public GetDataTableOrView(Merge merge, Format format, IResource resource)
         {
             Merge = merge;
             Format = format;
@@ -72,7 +74,7 @@ namespace Gunter.Services
                     path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path);
                 }
 
-                commandText = (await Resource.ReadTextFileAsync(path)).FormatWith(Format);
+                commandText = (await Resource.ReadTextFileAsync(path)).Map(Format);
             }
 
             return commandText;

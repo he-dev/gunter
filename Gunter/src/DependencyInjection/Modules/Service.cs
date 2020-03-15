@@ -92,9 +92,9 @@ namespace Gunter.DependencyInjection.Modules
             builder
                 .RegisterModule<JsonContractResolverModule>();
 
-            builder
-                .RegisterType<RuntimePropertyNameValidator>()
-                .As<IRuntimePropertyNameValidator>();
+            // builder
+            //     .RegisterType<RuntimePropertyNameValidator>()
+            //     .As<IRuntimePropertyNameValidator>();
 
             builder
                 .RegisterType<Workflow<TheoryContext>>()
