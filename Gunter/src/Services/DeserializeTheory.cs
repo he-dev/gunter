@@ -57,7 +57,7 @@ namespace Gunter.Services
             {
                 return new Theory
                 {
-                    FullName = FileName
+                    FileName = FileName
                 };
             }
         }

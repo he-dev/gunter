@@ -44,9 +44,9 @@ namespace Gunter.Workflow.Steps
                 builder.RegisterInstance(templates);
             });
 
-            //await ForEachTheory(scope).ExecuteAsync(default);
+            await ForEachTheory(scope).ExecuteAsync(scope.Resolve<TheoryContext>());
 
-            await scope.Resolve<Workflow<TheoryContext>>().ExecuteAsync(default);
+            //await scope.Resolve<Workflow<TheoryContext>>().ExecuteAsync(default);
         }
     }
 }

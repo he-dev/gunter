@@ -3,7 +3,7 @@ using Gunter.Data.Configuration.Reporting.Abstractions;
 
 namespace Gunter.Data.Configuration.Reporting
 {
-    public class TestInfo : ReportModule, ITabular
+    public class TestSummary : ReportModule, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 

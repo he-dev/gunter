@@ -19,9 +19,9 @@ namespace Gunter.Services.Reporting
 
         private TestContext TestContext { get; }
 
-        public IReportModuleDto Execute(ReportModule model) => Execute(model as TestInfo);
+        public IReportModuleDto Execute(ReportModule model) => Execute(model as TestSummary);
 
-        private IReportModuleDto Execute(TestInfo model)
+        private IReportModuleDto Execute(TestSummary model)
         {
             var table = new HtmlTable
             (
@@ -48,7 +48,7 @@ namespace Gunter.Services.Reporting
                 .Set(Columns.Property, "Elapsed")
                 .Set(Columns.Value, $"{{{nameof(TestContext)}.{nameof(TestContext.EvaluateDataElapsed)}:{model.TimespanFormat}}}".Map(Format));
 
-            return new ReportModuleDto<TestInfo>(model, testInfo => new
+            return new ReportModuleDto<TestSummary>(model, testInfo => new
             {
                 Data = table
             });

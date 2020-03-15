@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel;
 using Gunter.Data.Configuration.Reporting.Abstractions;
+using Gunter.Services.Reporting;
 
 namespace Gunter.Data.Configuration.Reporting
 {
-    [Service(typeof(QueryInfo))]
-    public class QueryInfo : ReportModule, ITabular
+    [Service(typeof(RenderQuerySummary))]
+    public class QuerySummary : ReportModule, ITabular
     {
         [DefaultValue("Timestamp")]
         public string TimestampColumn { get; set; }

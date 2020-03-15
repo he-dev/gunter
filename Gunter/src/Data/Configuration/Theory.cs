@@ -27,13 +27,26 @@ namespace Gunter.Data.Configuration
             typeof(Email),
             typeof(Halt),
             typeof(Level),
-            typeof(TestInfo),
-            typeof(QueryInfo),
+            typeof(Heading),
+            typeof(Paragraph),
+            typeof(TestSummary),
+            typeof(QuerySummary),
             typeof(DataSummary),
             typeof(FormatTimeSpan),
         };
 
-        public SoftString Name { get; set; }
+        [JsonIgnore]
+        public string FileName { get; set; }
+
+        [JsonIgnore]
+        public string DirectoryName => Path.GetDirectoryName(FileName);
+
+        [JsonIgnore]
+        public SoftString Name
+        {
+            get => Path.GetFileNameWithoutExtension(FileName);
+            set { }
+        }
 
         public TemplateSelector TemplateSelectors { get; set; }
 
@@ -53,25 +66,13 @@ namespace Gunter.Data.Configuration
         public IEnumerable<IReport> Reports { get; set; } = new List<IReport>();
 
         [JsonIgnore]
-        public string FullName { get; set; }
-
-        [JsonIgnore]
-        public string DirectoryName => Path.GetDirectoryName(FullName);
-
-        [JsonIgnore]
-        public string FileName => Path.GetFileNameWithoutExtension(FullName);
-
-        //[JsonIgnore]
-        //public string Name => Path.GetFileNameWithoutExtension(FileName);
-
-        [JsonIgnore]
         public TheoryType Type =>
             Name is null
                 ? TheoryType.Unknown
                 : Path.GetFileName(Name.ToString()).StartsWith(TemplatePrefix)
                     ? TheoryType.Template
                     : TheoryType.Regular;
-        
+
         public IEnumerator<IModel> GetEnumerator()
         {
             return Properties.Cast<IModel>().Concat(Queries).Concat(Tests).Concat(Reports).GetEnumerator();

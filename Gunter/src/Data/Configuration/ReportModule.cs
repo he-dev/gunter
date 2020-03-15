@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using Gunter.Annotations;
 using Reusable.Extensions;
 
 namespace Gunter.Data.Configuration
 {
+    [Gunter]
     public abstract class ReportModule
     {
         public string Name => GetType().ToPrettyString();

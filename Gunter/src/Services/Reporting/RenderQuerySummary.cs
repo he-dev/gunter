@@ -13,10 +13,10 @@ using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Services.Reporting
 {
-    using static RenderQueryInfo.Columns;
-    public class RenderQueryInfo : IRenderReportModule
+    using static RenderQuerySummary.Columns;
+    public class RenderQuerySummary : IRenderReportModule
     {
-        public RenderQueryInfo(Format format, TestContext context)
+        public RenderQuerySummary(Format format, TestContext context)
         {
             Format = format;
             Context = context;
@@ -26,9 +26,9 @@ namespace Gunter.Services.Reporting
 
         private TestContext Context { get; }
 
-        public IReportModuleDto Execute(ReportModule model) => Execute(model as QueryInfo);
+        public IReportModuleDto Execute(ReportModule model) => Execute(model as QuerySummary);
 
-        private IReportModuleDto Execute(QueryInfo model)
+        private IReportModuleDto Execute(QuerySummary model)
         {
             var table = new HtmlTable
             (
@@ -56,7 +56,7 @@ namespace Gunter.Services.Reporting
                 table.Body.Add(new List<string> { "Timespan", timespan.ToString(model.TimespanFormat, CultureInfo.InvariantCulture) });
             }
 
-            return new ReportModuleDto<QueryInfo>(model, _ => new
+            return new ReportModuleDto<QuerySummary>(model, _ => new
             {
                 Data = table
             });

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Custom;
 using Gunter.Data.Configuration;
 
 namespace Gunter.Services
@@ -19,7 +20,7 @@ namespace Gunter.Services
 
         public virtual TValue Execute<T, TValue>(T instance, Func<T, TValue> getValue)
         {
-            var models = Templates.OfType<T>();
+            var models = Templates.Flatten().OfType<T>();
             var values = models.Select(getValue).Prepend(getValue(instance));
 
             foreach (var value in values)

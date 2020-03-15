@@ -6,6 +6,7 @@ using Gunter.Services.Abstractions;
 using Gunter.Services.Reporting;
 using Gunter.Workflow.Steps;
 using Gunter.Workflows;
+using Microsoft.Extensions.Caching.Memory;
 using Reusable.Extensions;
 using Reusable.Flowingo.Steps;
 
@@ -26,9 +27,16 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterType<EvaluateData>();
             builder.RegisterType<SendMessages>();
             
+            // Contexts
+            
+            builder.RegisterType<SessionContext>();
+            builder.RegisterType<TheoryContext>();
+            builder.RegisterType<TestContext>();
+            
             // Services
 
             builder.RegisterType<DeserializeTheory>();
+            builder.Register(_ => new MemoryCache(new MemoryCacheOptions())).As<IMemoryCache>().InstancePerLifetimeScope();
             
             builder.RegisterType<Format>().InstancePerDependency();
             builder.RegisterType<Merge>().InstancePerDependency();
@@ -37,7 +45,7 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterType<GetDataTableOrView>().As<IGetData>();
             builder.RegisterType<DispatchEmail>().As<IDispatchMessage>().InstancePerDependency();
             builder.RegisterType<RenderDataSummary>();
-            builder.RegisterType<RenderQueryInfo>();
+            builder.RegisterType<RenderQuerySummary>();
 
             builder.Register(c => new Workflow<SessionContext>().Pipe(sessionWorkflow =>
             {

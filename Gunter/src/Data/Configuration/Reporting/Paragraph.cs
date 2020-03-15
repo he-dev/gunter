@@ -1,3 +1,5 @@
+using Gunter.Annotations;
+
 namespace Gunter.Data.Configuration.Reporting
 {
     public class Paragraph : ReportModule

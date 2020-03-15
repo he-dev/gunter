@@ -9,10 +9,10 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<TestInfo>();
-            builder.RegisterType<QueryInfo>();
+            builder.RegisterType<TestSummary>();
+            builder.RegisterType<QuerySummary>();
             builder.RegisterType<DataSummary>();
-            builder.RegisterType<TestInfo>().AsSelf();
+            builder.RegisterType<TestSummary>().AsSelf();
             builder.RegisterType<Report>().AsSelf();
             builder.RegisterType<Report>().As<IReport>();//.AsSelf();
         }
