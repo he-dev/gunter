@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Gunter.Reporting;
+using Gunter.Data.Configuration.Reporting.Abstractions;
 using Gunter.Services.Reporting;
 
 namespace Gunter.Data.Configuration.Reporting

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
+using Gunter.Data.Configuration.Reporting.Abstractions;
+using Gunter.Reporting;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.Collections;
 using Reusable.Diagnostics;
 
-
-namespace Gunter.Reporting
+namespace Gunter.Data.Configuration.Reporting
 {    
     public class DataInfoColumn : IEquatable<DataInfoColumn>
     {
@@ -21,7 +22,7 @@ namespace Gunter.Reporting
         [DefaultValue(ColumnAggregate.Last)]
         public ColumnAggregate Aggregate { get; set; }
 
-        public IFormatter? Formatter { get; set; }
+        public IFormatData? Formatter { get; set; }
 
         // Not using IList because it's not compatible with the params argument
         public string[] Styles { get; set; }

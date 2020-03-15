@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Gunter.Reporting;
+using Gunter.Data.Configuration.Reporting;
 
 [assembly:InternalsVisibleTo("Gunter.Tests")]
 

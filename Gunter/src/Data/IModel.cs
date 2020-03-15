@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
+using Gunter.Annotations;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 
 namespace Gunter.Data
 {
+    [Gunter]
     public interface IModel
     {
-        [JsonRequired]
-        SoftString Name { get; }
+        SoftString? Name { get; set; }
     }
 
     public interface IMergeable
     {
         [JsonProperty("Merge")]
-        List<TemplateSelector>? TemplateSelectors { get; }
+        TemplateSelector TemplateSelectors { get; set; }
     }
 }

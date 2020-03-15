@@ -1,5 +1,3 @@
-using Gunter.Workflows;
-
 namespace Gunter.Data.Configuration.Reporting
 {
     public class Paragraph : ReportModule

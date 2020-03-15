@@ -1,26 +1,34 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using Gunter.Annotations;
 using Gunter.Data.Configuration.Abstractions;
 using Newtonsoft.Json;
 using Reusable;
 
 namespace Gunter.Data.Configuration
 {
+    [Gunter]
     public class Email : IMessage, IMergeable
     {
-        [JsonRequired]
-        public SoftString Name { get; set; }
+        public SoftString? Name { get; set; }
 
-        public List<TemplateSelector>? TemplateSelectors { get; set; }
+        public TemplateSelector? TemplateSelectors { get; set; }
 
-        public List<string> To { get; set; }
+        public List<string> To { get; set; } = new List<string>();
 
-        public List<string> CC { get; set; }
+        public List<string> CC { get; set; } = new List<string>();
 
         [DefaultValue("default")]
         public string Theme { get; set; }
+        
+        public string? ReportName { get; set; }
+    }
 
-        [JsonProperty("Report")]
-        public string ReportName { get; set; }
+    [Gunter]
+    public class Halt : IMessage
+    {
+        public SoftString? Name { get; set; }
+
+        public string? ReportName { get; set; }
     }
 }

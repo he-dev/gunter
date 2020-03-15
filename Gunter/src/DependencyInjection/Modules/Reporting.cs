@@ -2,7 +2,6 @@
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting;
-using Gunter.Reporting;
 
 namespace Gunter.DependencyInjection.Modules
 {

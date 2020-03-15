@@ -8,7 +8,7 @@ using Autofac;
 using Gunter.Annotations;
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
-using Gunter.Reporting;
+using Gunter.Data.Configuration.Reporting.Abstractions;
 using Gunter.Services.Abstractions;
 using JetBrains.Annotations;
 using Reusable.Extensions;

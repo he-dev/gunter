@@ -12,19 +12,25 @@ using Reusable.Utilities.JsonNet;
 
 namespace Gunter.Workflow.Steps
 {
-    internal class LoadTheoryFiles : Step<SessionContext>
+    internal class LoadTheories : Step<SessionContext>
     {
-        [Service]
-        public ILogger<FindTheoryFiles> Logger { get; set; }
+        public LoadTheories
+        (
+            ILogger<LoadTheories> logger,
+            IResource resource,
+            DeserializeTheory deserializeTheory
+        )
+        {
+            Logger = logger;
+            Resource = resource;
+            DeserializeTheory = deserializeTheory;
+        }
 
-        [Service]
-        public IResource Resource { get; set; }
+        private ILogger<LoadTheories> Logger { get; set; }
 
-        [Service]
-        public IPrettyJson PrettyJson { get; set; }
-
-        [Service]
-        public DeserializeTestFile.Factory TestFileSerializerFactory { get; set; }
+        private IResource Resource { get; set; }
+        
+        private DeserializeTheory DeserializeTheory { get; }
 
         public override async Task ExecuteAsync(SessionContext context)
         {
@@ -34,25 +40,26 @@ namespace Gunter.Workflow.Steps
 
                 //_logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
 
-                if (await LoadTestFileAsync(testFileName) is {} testFile)
+                if (await DeserializeTheoryAsync(testFileName) is {} theory)
                 {
-                    context.TestFiles.Add(testFile);
+                    context.Theories.Add(theory);
                 }
             }
+
+            await ExecuteNextAsync(context);
         }
 
-        private async Task<Theory?> LoadTestFileAsync(string name)
+        private async Task<Theory?> DeserializeTheoryAsync(string name)
         {
             try
             {
                 var prettyJson = await Resource.ReadTextFileAsync(name);
-                var testFileSerializer = TestFileSerializerFactory(name);
-                var testFile = testFileSerializer.Invoke(prettyJson);
+                var theory = DeserializeTheory.Invoke(name, prettyJson);
 
-                if (testFile.Enabled)
+                if (theory.Enabled)
                 {
                     var duplicateIds =
-                        from model in testFile
+                        from model in theory
                         group model by model.Name into g
                         where g.Count() > 1
                         select g;
@@ -65,7 +72,7 @@ namespace Gunter.Workflow.Steps
                     }
                     else
                     {
-                        return testFile;
+                        return theory;
                     }
                 }
                 else

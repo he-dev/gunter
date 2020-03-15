@@ -19,37 +19,35 @@ namespace Gunter.Data.Configuration
     {
         public const string TemplatePrefix = "_";
 
-        public static readonly IEnumerable<Type> SectionTypes = new[]
+        public static readonly IEnumerable<Type> DataTypes = new[]
         {
             typeof(TableOrView),
             typeof(Gunter.Services.DataFilters.GetJsonValue),
             typeof(Gunter.Services.DataFilters.GetFirstLine),
-            typeof(DispatchEmail),
+            typeof(Email),
+            typeof(Halt),
             typeof(Level),
             typeof(TestInfo),
             typeof(QueryInfo),
             typeof(DataSummary),
-            typeof(Gunter.Reporting.Formatters.TimeSpan),
+            typeof(FormatTimeSpan),
         };
 
         public SoftString Name { get; set; }
 
-        public List<TemplateSelector>? TemplateSelectors { get; set; }
+        public TemplateSelector TemplateSelectors { get; set; }
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public IEnumerable<IPropertyCollection> Properties { get; set; }
+        public IEnumerable<ConstantPropertyCollection> Properties { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public IEnumerable<IQuery> Queries { get; set; } = new List<IQuery>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public IEnumerable<ITestCase> Tests { get; set; } = new List<ITestCase>();
-
-        // [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        // public List<ISend> Channels { get; set; } = new List<ISend>();
+        public IEnumerable<TestCase> Tests { get; set; } = new List<TestCase>();
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public IEnumerable<IReport> Reports { get; set; } = new List<IReport>();

@@ -1,7 +1,10 @@
+using Newtonsoft.Json;
+
 namespace Gunter.Data.Configuration.Abstractions
 {
     public interface IMessage : IModel
     {
-        string ReportName { get; }
+        [JsonProperty("Report")]
+        string? ReportName { get; set; }
     }
 }

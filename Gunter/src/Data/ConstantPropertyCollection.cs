@@ -7,14 +7,14 @@ using Reusable;
 
 namespace Gunter.Data
 {
-    public interface IPropertyCollection : IEnumerable<ConstantProperty>, IModel, IMergeable { }
+    //public interface IPropertyCollection : IEnumerable<ConstantProperty>, IModel, IMergeable { }
 
     [JsonObject]
-    public class ConstantPropertyCollection : IPropertyCollection
+    public class ConstantPropertyCollection : IEnumerable<ConstantProperty>, IModel, IMergeable
     {
         public SoftString Name { get; set; }
 
-        public List<TemplateSelector>? TemplateSelectors { get; set; }
+        public TemplateSelector TemplateSelectors { get; set; }
 
         public IDictionary<string, object> Items { get; set; }
 

@@ -8,7 +8,7 @@ namespace Gunter.Data.Configuration
     [UsedImplicitly]
     public class TableOrView : Query<ITableOrView>, ITableOrView
     {
-        public List<TemplateSelector>? TemplateSelectors { get; set; }
+        public TemplateSelector TemplateSelectors { get; set; }
 
         public string ConnectionString { get; set; }
 

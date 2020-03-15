@@ -1,7 +1,7 @@
 {
-  "Variables": [
+  "Properties": [
     {
-      "Id": "defaults",
+      "Name": "defaults",
       "Items": {
         "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
         "Greeting": "Hi there!"
@@ -11,7 +11,7 @@
   "Queries": [
     {
       "$g": "TableOrView",
-      "Id": "mssql-everything",
+      "Name": "mssql-everything",
       "ConnectionString": "{TestDb}",
       "Command": "file:///{TestBundle.FileName}.everything.sql",
       "Filters": [
@@ -39,19 +39,12 @@
     },
     {
       "$g": "TableOrView",
-      "Id": "mssql-empty",
+      "Name": "mssql-empty",
       "ConnectionString": "{TestDb}",
       "Command": "file:///{TestBundle.FileName}.empty.sql"
     }
   ],
   "Tests": [],
-  "Channels": [
-    {
-      "$g": "Mailr",
-      "Id": "email",
-      "Theme": "default"
-    }
-  ],
   "Reports": [
     {
       "Name": "mssql",

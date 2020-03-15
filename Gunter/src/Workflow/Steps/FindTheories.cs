@@ -9,13 +9,17 @@ using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.Workflow.Steps
 {
-    internal class FindTheoryFiles : Step<SessionContext>
+    internal class FindTheories : Step<SessionContext>
     {
-        [Service]
-        public ILogger<FindTheoryFiles> Logger { get; set; }
+        public FindTheories(ILogger<FindTheories> logger, IDirectoryTree directoryTree)
+        {
+            Logger = logger;
+            DirectoryTree = directoryTree;
+        }
 
-        [Service]
-        public IDirectoryTree DirectoryTree { get; set; }
+        private ILogger<FindTheories> Logger { get; set; }
+        
+        private IDirectoryTree DirectoryTree { get; set; }
 
         public override async Task ExecuteAsync(SessionContext context)
         {

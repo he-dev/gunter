@@ -1,30 +1,34 @@
 using System;
+using Gunter.Data;
 using Gunter.Data.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Reusable.Utilities.JsonNet;
 using Reusable.Utilities.JsonNet.Converters;
+using Reusable.Utilities.JsonNet.Visitors;
 
 namespace Gunter.Services
 {
-    internal class DeserializeTestFile
+    internal class DeserializeTheory
     {
-        public delegate DeserializeTestFile Factory(string fileName);
-
-        public DeserializeTestFile(IPrettyJson prettyJson, IContractResolver contractResolver, string fileName)
+        public DeserializeTheory(IContractResolver contractResolver)
         {
-            PrettyJson = prettyJson;
-            JsonSerializer = new JsonSerializer
+            CreateJsonSerializer = fileName => new JsonSerializer
             {
                 NullValueHandling = NullValueHandling.Ignore,
                 TypeNameHandling = TypeNameHandling.Auto,
                 ObjectCreationHandling = ObjectCreationHandling.Replace,
+                DefaultValueHandling = DefaultValueHandling.Populate,
                 ContractResolver = contractResolver,
                 Converters =
                 {
                     new StringEnumConverter(),
                     new SoftStringConverter(),
+                    new LambdaJsonConverter<TemplateSelector>
+                    {
+                        ReadJsonCallback = TemplateSelector.Parse
+                    },
                     new TestFileConverter
                     {
                         FileName = fileName
@@ -33,14 +37,16 @@ namespace Gunter.Services
             };
         }
 
-        private IPrettyJson PrettyJson { get; }
+        private Func<string, JsonSerializer> CreateJsonSerializer { get; }
 
-        private JsonSerializer JsonSerializer { get; }
-
-        public Theory Invoke(string prettyJson)
+        public Theory Invoke(string fileName, string prettyJson)
         {
-            var normalJson = PrettyJson.Read(prettyJson, TypeDictionary.From(Theory.SectionTypes));
-            return normalJson.ToObject<Theory>(JsonSerializer);
+            var jsonVisitor = new CompositeJsonVisitor
+            {
+                new TrimPropertyName(),
+                new NormalizePrettyTypeProperty(PrettyTypeDictionary.From(Theory.DataTypes))
+            };
+            return jsonVisitor.Visit(prettyJson).ToObject<Theory>(CreateJsonSerializer(fileName));
         }
 
         private class TestFileConverter : CustomCreationConverter<Theory>

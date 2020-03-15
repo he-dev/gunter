@@ -49,6 +49,7 @@ namespace Gunter.Commands
 
             await _sessionWorkflow.ExecuteAsync(new SessionContext
             {
+                TestDirectoryName = defaultPath,
                 TestFilter = testFilter
             });
         }

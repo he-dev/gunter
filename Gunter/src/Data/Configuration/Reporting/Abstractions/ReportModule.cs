@@ -1,11 +1,7 @@
 ﻿using System;
-using Gunter.Annotations;
-using Gunter.Data;
-using Gunter.Workflows;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 
-namespace Gunter.Reporting
+namespace Gunter.Data.Configuration.Reporting.Abstractions
 {
     public class ServiceAttribute : Attribute
     {

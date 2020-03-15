@@ -32,6 +32,8 @@ namespace Gunter.DependencyInjection
                 builder.RegisterModule<Modules.Data>();
                 builder.RegisterModule<Modules.Reporting>();
                 builder.RegisterModule<Modules.Mailr>();
+                builder.RegisterModule<Modules.Mailr>();
+                builder.RegisterModule<Modules.WorkflowModule>();
 
                 configureContainer?.Invoke(builder);
 
@@ -80,7 +82,7 @@ namespace Gunter.DependencyInjection
                             new NLogRx(),
                             new SimpleConsoleRx
                             {
-                                Template = @"[{Timestamp:HH:mm:ss:fff}] [{Level:u}] {Layer} | {Category} | {Identifier}: {Snapshot} {Elapsed}ms | {Message} {Exception}"
+                                Template = @"[{Timestamp:HH:mm:ss:fff}] [{Level}] {Layer} | {Category} | {Identifier}: {Snapshot} {Elapsed}ms | {Message} {Exception}"
                             }
                         )
                         .Build();

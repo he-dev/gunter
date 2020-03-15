@@ -11,27 +11,9 @@ using Reusable.OmniLog;
 
 namespace Gunter.Data.Configuration
 {
-    public interface ITestCase : IModel, IMergeable
-    {
-        LogLevel Level { get; }
-
-        HashSet<SoftString> QueryNames { get; }
-
-        string Message { get; }
-
-        string Filter { get; }
-
-        string Assert { get; }
-
-        [JsonProperty("When")]
-        Dictionary<TestResult, List<IMessage>> Messages { get; }
-
-        HashSet<SoftString> Tags { get; }
-    }
-
     [Gunter]
     [PublicAPI]
-    public class TestCase : ITestCase
+    public class TestCase : IModel, IMergeable
     {
         private readonly Factory _factory;
 
@@ -43,7 +25,7 @@ namespace Gunter.Data.Configuration
 
         public SoftString Name { get; set; }
 
-        public List<TemplateSelector>? TemplateSelectors { get; set; }
+        public TemplateSelector TemplateSelectors { get; set; }
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }
@@ -68,7 +50,7 @@ namespace Gunter.Data.Configuration
 
     public static class TestCaseExtensions
     {
-        public static IEnumerable<IQuery> Queries(this ITestCase testCase, Theory theory)
+        public static IEnumerable<IQuery> Queries(this TestCase testCase, Theory theory)
         {
             var dataSources =
                 from id in testCase.QueryNames

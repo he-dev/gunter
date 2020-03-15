@@ -1,8 +1,7 @@
 {
   "Properties": [
     {
-      "$g": "StaticPropertyCollection",
-      "Id": "locals",
+      "Name": "locals",
       "Merge": "_Gunter#defaults",
       "Items": {
         "ProductName": "Gunter",
@@ -13,18 +12,18 @@
   "Queries": [
     {
       "$g": "TableOrView",
-      "Id": "mssql-everything",
+      "Name": "mssql-everything",
       "Merge": "_Gunter#mssql-everything"
     },
     {
       "$g": "TableOrView",
-      "Id": "mssql-empty",
+      "Name": "mssql-empty",
       "Merge": "_Gunter#mssql-empty"
     }
   ],
   "Tests": [
     {
-      "Id": "fails",
+      "Name": "fails",
       "Enabled": true,
       "Level": "Fatal",
       "Message": "There is no data.",
@@ -34,8 +33,17 @@
       "Assert": "Count([_id]) > 0",
       "When": {
         "Failed": [
-          "send -report full -channel email",
-          "halt"
+          {
+            "$g": "Email",
+            "Merge": "_Gunter#email",
+            "To": [
+              "gunter@test.com"
+            ],
+            "Report": "full"
+          },
+          {
+            "$g": "Halt"
+          }
         ]
       },
       "Tags": [
@@ -43,7 +51,7 @@
       ]
     },
     {
-      "Id": "passes",
+      "Name": "passes",
       "Enabled": true,
       "Level": "Information",
       "Message": "There is some data.",
@@ -71,7 +79,7 @@
       ]
     },
     {
-      "Id": "does-not-run",
+      "Name": "does-not-run",
       "Enabled": false,
       "Level": "Error",
       "Message": "This test must not run.",
@@ -90,7 +98,7 @@
   ],
   "Reports": [
     {
-      "Id": "full",
+      "Name": "full",
       "Merge": "_Gunter#mssql"
     }
   ]

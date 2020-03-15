@@ -30,7 +30,7 @@ namespace Gunter.Workflow.Steps
 
         public override async Task ExecuteAsync(SessionContext context)
         {
-            var theories = context.TestFiles.ToLookup(p => p.Type);
+            var theories = context.Theories.ToLookup(p => p.Type);
             var theoryWorkflowTasks = theories[TheoryType.Regular].Select(theory => ProcessTheory(theory, theories[TheoryType.Template]));
             await Task.WhenAll(theoryWorkflowTasks);
             await ExecuteNextAsync(context);
