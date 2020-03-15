@@ -12,7 +12,7 @@ namespace Gunter.Data.Configuration
         [JsonRequired]
         public SoftString Name { get; set; }
 
-        public TemplateSelector TemplateSelectors { get; set; }
+        public TemplateSelector TemplateSelector { get; set; }
 
         public string Title { get; set; }
 

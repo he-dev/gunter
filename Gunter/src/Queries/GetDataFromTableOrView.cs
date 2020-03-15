@@ -74,7 +74,7 @@ namespace Gunter.Queries
                     path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path);
                 }
 
-                commandText = (await Resource.ReadTextFileAsync(path)).Map(Format);
+                commandText = (await Resource.ReadTextFileAsync(path.Map(Format))).Map(Format);
             }
 
             return commandText;

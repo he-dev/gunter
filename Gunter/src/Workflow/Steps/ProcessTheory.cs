@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
+using System.Linq.Custom;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.Data;
 using Gunter.Data.Configuration;
+using Gunter.Services;
 using Gunter.Workflows;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Flowingo.Abstractions;
@@ -40,6 +42,15 @@ namespace Gunter.Workflow.Steps
                     builder.RegisterInstance(new MemoryCache(new MemoryCacheOptions()));
                     builder.RegisterInstance(testCase);
                     builder.RegisterInstance(query).As<IQuery>();
+
+                    var properties = Theory.Merge(x => x.Properties).With(LifetimeScope.Resolve<Merge>()).Flatten();
+                    foreach (var property in properties)
+                    {
+                        builder.RegisterInstance(property).As<IProperty>();
+                    }
+                    
+                    builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.FileName)).As<IProperty>();
+                    builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.Name)).As<IProperty>();
                     builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Level)).As<IProperty>();
                     builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Message)).As<IProperty>();
                     builder.Register(c => c.Resolve<InstanceProperty<TestContext>.Factory>()(x => x.GetDataElapsed)).As<IProperty>();

@@ -17,7 +17,7 @@ namespace Gunter.Services
 
         public virtual string Execute(string value)
         {
-            return value.Format(name => (string?)RuntimeProperties.FirstOrDefault(p => p.Name.Equals(name))?.GetValue());
+            return value.Format(name => RuntimeProperties.FirstOrDefault(p => p.Name.Equals(name))?.GetValue()?.ToString());
         }
 
         public static implicit operator Func<string, string>(Format format) => format.Execute;

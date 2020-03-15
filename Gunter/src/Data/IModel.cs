@@ -15,6 +15,6 @@ namespace Gunter.Data
     public interface IMergeable
     {
         [JsonProperty("Merge")]
-        TemplateSelector TemplateSelectors { get; set; }
+        TemplateSelector TemplateSelector { get; set; }
     }
 }

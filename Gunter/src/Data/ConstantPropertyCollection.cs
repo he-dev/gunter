@@ -14,7 +14,7 @@ namespace Gunter.Data
     {
         public SoftString Name { get; set; }
 
-        public TemplateSelector TemplateSelectors { get; set; }
+        public TemplateSelector TemplateSelector { get; set; }
 
         public IDictionary<string, object> Items { get; set; }
 

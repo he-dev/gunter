@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Custom;
+using Gunter.Data;
 using Gunter.Data.Configuration;
 
 namespace Gunter.Services
@@ -18,9 +19,15 @@ namespace Gunter.Services
 
         private IEnumerable<Theory> Templates { get; }
 
-        public virtual TValue Execute<T, TValue>(T instance, Func<T, TValue> getValue)
+        public virtual TValue Execute<T, TValue>(T instance, Func<T, TValue> getValue) where T : IModel, IMergeable
         {
-            var models = Templates.Flatten().OfType<T>();
+            var models =
+                from t in Templates
+                where t.Name.Equals(instance.TemplateSelector.TemplateName)
+                from m in t.OfType<T>()
+                where m.Name.Equals(instance.TemplateSelector.ModelName)
+                select m;
+
             var values = models.Select(getValue).Prepend(getValue(instance));
 
             foreach (var value in values)
@@ -38,14 +45,17 @@ namespace Gunter.Services
             return default;
         }
     }
-    
+
     public static class MergeHelper
     {
-        public static IMerge<TValue> Merge<T, TValue>(this T instance, Func<T, TValue> getValue) => new Merge<T, TValue>
+        public static IMerge<TValue> Merge<T, TValue>(this T instance, Func<T, TValue> getValue) where T : IModel, IMergeable
         {
-            Instance = instance,
-            GetValue = getValue
-        };
+            return new Merge<T, TValue>
+            {
+                Instance = instance,
+                GetValue = getValue
+            };
+        }
     }
 
     public interface IMerge<out TValue>
@@ -53,7 +63,7 @@ namespace Gunter.Services
         TValue With(Merge merge);
     }
 
-    public class Merge<T, TValue> : IMerge<TValue>
+    public class Merge<T, TValue> : IMerge<TValue> where T : IModel, IMergeable
     {
         public T Instance { get; set; }
 

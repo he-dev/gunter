@@ -12,7 +12,7 @@ namespace Gunter.Data.Configuration
     {
         public SoftString? Name { get; set; }
 
-        public TemplateSelector? TemplateSelectors { get; set; }
+        public TemplateSelector? TemplateSelector { get; set; }
 
         public List<string> To { get; set; } = new List<string>();
 

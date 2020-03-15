@@ -48,7 +48,7 @@ namespace Gunter.Data.Configuration
             set { }
         }
 
-        public TemplateSelector TemplateSelectors { get; set; }
+        public TemplateSelector TemplateSelector { get; set; }
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }
