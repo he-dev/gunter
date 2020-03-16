@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
@@ -17,20 +17,17 @@ namespace Gunter.Workflow.Steps
 {
     internal class GetData : Step<TestContext>
     {
-        public GetData(ILogger<GetData> logger, IMemoryCache cache, IEnumerable<IGetData> getDataCommands)
+        public GetData(ILogger<GetData> logger, IMemoryCache cache, IEnumerable<IGetData> getDataCommands) : base(logger)
         {
-            Logger = logger;
             Cache = cache;
             GetDataCommands = getDataCommands;
         }
-
-        private ILogger<GetData> Logger { get; }
-
+        
         private IMemoryCache Cache { get; }
 
         private IEnumerable<IGetData> GetDataCommands { get; }
 
-        public override async Task ExecuteAsync(TestContext context)
+        protected override async Task<bool> ExecuteBody(TestContext context)
         {
             using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(GetData)).UseStopwatch();
             Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Name }));
@@ -47,12 +44,14 @@ namespace Gunter.Workflow.Steps
                 });
                 context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
                 Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.Data.Rows.Count, ColumnCount = context.Data.Columns.Count }));
-                await ExecuteNextAsync(context);
+                return true;
             }
             catch (Exception inner)
             {
                 throw DynamicException.Create(GetType().ToPrettyString(), $"Error getting or processing data for query '{context.Query.Name}'.", inner);
             }
+
+            return false;
         }
     }
 }

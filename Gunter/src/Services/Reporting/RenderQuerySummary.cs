@@ -7,7 +7,7 @@ using Gunter.Data;
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Reporting;
 using Gunter.Services.Abstractions;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 

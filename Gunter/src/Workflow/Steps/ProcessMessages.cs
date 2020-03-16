@@ -2,25 +2,22 @@ using System.Threading.Tasks;
 using Autofac;
 using Gunter.Data.Configuration;
 using Gunter.Services;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
 using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.Workflow.Steps
 {
-    internal class SendMessages : Step<TestContext>
+    internal class ProcessMessages : Step<TestContext>
     {
-        public SendMessages(ILogger<SendMessages> logger, IComponentContext componentContext)
+        public ProcessMessages(ILogger<ProcessMessages> logger, IComponentContext componentContext) : base(logger)
         {
-            Logger = logger;
             ComponentContext = componentContext;
         }
 
-        private ILogger<SendMessages> Logger { get; set; }
-
         private IComponentContext ComponentContext { get; }
 
-        public override async Task ExecuteAsync(TestContext context)
+        protected override async Task<bool> ExecuteBody(TestContext context)
         {
             if (context.TestCase.Messages.TryGetValue(context.Result, out var messages))
             {
@@ -35,7 +32,7 @@ namespace Gunter.Workflow.Steps
                 }
             }
 
-            await ExecuteNextAsync(context);
+            return true;
         }
     }
 }

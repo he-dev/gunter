@@ -41,7 +41,7 @@ namespace Gunter.Queries
         {
             var commandText = await GetCommandTextAsync(view);
 
-            using var conn = new SqlConnection(view.Merge(x => x.ConnectionString).With(Merge));
+            using var conn = new SqlConnection(view.Resolve(x => x.ConnectionString).With(Merge));
 
             await conn.OpenAsync();
             using var cmd = conn.CreateCommand();
@@ -64,7 +64,7 @@ namespace Gunter.Queries
         {
             // language=regexp
             const string fileSchemePattern = "^file:///";
-            var commandText = view.Merge(x => x.Command).With(Merge);
+            var commandText = view.Resolve(x => x.Command).With(Merge);
             if (Regex.IsMatch(commandText, fileSchemePattern))
             {
                 var path = Regex.Replace(commandText, fileSchemePattern, string.Empty);

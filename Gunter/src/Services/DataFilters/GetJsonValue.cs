@@ -13,7 +13,7 @@ namespace Gunter.Services.DataFilters
 {
     [Gunter]
     [UsedImplicitly]
-    public class GetJsonValue : IDataFilter
+    public class GetJsonValue : IFilterData
     {
         [JsonProperty(Required = Required.Always)]
         public IList<GetJsonValueColumn>? Columns { get; set; }

@@ -48,7 +48,7 @@ namespace Gunter.Services
 
     public static class MergeHelper
     {
-        public static IMerge<TValue> Merge<T, TValue>(this T instance, Func<T, TValue> getValue) where T : IModel, IMergeable
+        public static IMerge<TValue> Resolve<T, TValue>(this T instance, Func<T, TValue> getValue) where T : IModel, IMergeable
         {
             return new Merge<T, TValue>
             {

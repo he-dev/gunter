@@ -8,18 +8,24 @@ namespace Gunter.Services
 {
     public class Format
     {
-        public Format(IEnumerable<IProperty> runtimeProperties)
+        public Format(IEnumerable<IProperty> properties)
         {
-            RuntimeProperties = runtimeProperties;
+            Properties = properties;
         }
 
-        private IEnumerable<IProperty> RuntimeProperties { get; }
+        private IEnumerable<IProperty> Properties { get; }
 
-        public virtual string Execute(string value)
+        public virtual string? Execute(string value)
         {
-            return value.Format(name => RuntimeProperties.FirstOrDefault(p => p.Name.Equals(name))?.GetValue()?.ToString());
+            return value.Format(name => FindProperty(name)?.GetValue()?.ToString());
         }
 
-        public static implicit operator Func<string, string>(Format format) => format.Execute;
+        private IProperty? FindProperty(string name)
+        {
+            return Properties.FirstOrDefault(p => p.Name.Equals(name));
+        }
+        
+
+        public static implicit operator Func<string, string?>(Format format) => format.Execute;
     }
 }

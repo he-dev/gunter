@@ -3,8 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Gunter.Data.Workflows;
 using Gunter.Services;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using JetBrains.Annotations;
 using Reusable.Commander;
 using Reusable.Data.Annotations;
@@ -37,7 +38,7 @@ namespace Gunter.Commands
             var defaultPath = Path.Combine(currentDirectory, _resource.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
             //var bundles = await _testLoader.LoadTestsAsync(parameter.Path ?? defaultPath, parameter.Files).ToListAsync(cancellationToken);
-            var testFilter = new Workflows.TestFilter
+            var testFilter = new TheoryFilter
             {
                 //DirectoryNamePatterns = parameter.Path ?? defaultPath,
                 //Files = commandLine.Files,
@@ -49,8 +50,8 @@ namespace Gunter.Commands
 
             await _sessionWorkflow.ExecuteAsync(new SessionContext
             {
-                TestDirectoryName = defaultPath,
-                TestFilter = testFilter
+                TheoryDirectoryName = defaultPath,
+                TheoryFilter = testFilter
             });
         }
 

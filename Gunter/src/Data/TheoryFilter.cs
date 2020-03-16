@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Data;
-using Gunter.Data;
-using Gunter.Data.Configuration;
-using Reusable;
 
-namespace Gunter
+namespace Gunter.Data
 {
     namespace Workflows
     {
@@ -41,60 +36,12 @@ namespace Gunter
         //     // };
         // }
 
-        internal class SessionContext
-        {
-            public string TestDirectoryName { get; set; }
-
-            public TestFilter TestFilter { get; set; }
-
-            public HashSet<string> TestFileNames { get; set; } = new HashSet<string>(SoftString.Comparer);
-
-            public List<Theory> Theories { get; set; } = new List<Theory>();
-        }
-
-        public class TestFilter
+        public class TheoryFilter
         {
             public List<string> DirectoryNamePatterns { get; set; } = new List<string> { ".+" };
             public List<string> FileNamePatterns { get; set; } = new List<string> { ".+" };
             public List<string> TestNamePatterns { get; set; } = new List<string> { ".+" };
             public List<string> Tags { get; set; } = new List<string>();
-        }
-
-        internal class TheoryContext
-        {
-            //public ITheory Theory { get; set; }
-
-            //public IEnumerable<ITheory> Templates { get; set; }
-        }
-
-        public class TestContext : IDisposable
-        {
-            public TestContext(Theory theory, TestCase testCase, IQuery query)
-            {
-                Theory = theory;
-                TestCase = testCase;
-                Query = query;
-            }
-
-            public Theory Theory { get; }
-
-            public TestCase TestCase { get; }
-
-            public IQuery Query { get; }
-
-            public string QueryCommand { get; set; }
-
-            public DataTable? Data { get; set; }
-
-            public TimeSpan GetDataElapsed { get; set; }
-
-            public TimeSpan FilterDataElapsed { get; set; }
-
-            public TimeSpan EvaluateDataElapsed { get; set; }
-
-            public TestResult Result { get; set; } = TestResult.Undefined;
-
-            public void Dispose() => Data?.Dispose();
         }
     }
 }

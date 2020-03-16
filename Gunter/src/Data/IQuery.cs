@@ -22,7 +22,7 @@ namespace Gunter.Data
     [PublicAPI]
     public interface IQuery : IModel
     {
-        List<IDataFilter>? Filters { get; }
+        List<IFilterData>? Filters { get; }
     }
 
     [Gunter]
@@ -31,7 +31,7 @@ namespace Gunter.Data
         [JsonRequired]
         public SoftString Name { get; set; }
 
-        public List<IDataFilter>? Filters { get; set; } = new List<IDataFilter>();
+        public List<IFilterData>? Filters { get; set; } = new List<IFilterData>();
     }
 
     public interface IGetData

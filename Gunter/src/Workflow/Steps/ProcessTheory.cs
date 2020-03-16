@@ -6,20 +6,25 @@ using Autofac;
 using Gunter.Data;
 using Gunter.Data.Configuration;
 using Gunter.Services;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Steps;
+using Reusable.OmniLog.Abstractions;
+using Reusable.Utilities.Autofac;
 
 namespace Gunter.Workflow.Steps
 {
     internal class ProcessTheory : Step<TheoryContext>
     {
-        public ProcessTheory(ILifetimeScope lifetimeScope, Theory theory)
+        public ProcessTheory(ILogger<ProcessTheory> logger, Merge merge, ILifetimeScope lifetimeScope, Theory theory):base(logger)
         {
+            Merge = merge;
             LifetimeScope = lifetimeScope;
             Theory = theory;
         }
+
+        private Merge Merge { get; }
 
         private ILifetimeScope LifetimeScope { get; }
 
@@ -27,7 +32,7 @@ namespace Gunter.Workflow.Steps
 
         public Func<IComponentContext, Workflow<TestContext>> ForEachTestCase { get; set; }
 
-        public override async Task ExecuteAsync(TheoryContext context)
+        protected override async Task<bool> ExecuteBody(TheoryContext context)
         {
             var testCases =
                 from testCase in Theory.Tests
@@ -35,38 +40,40 @@ namespace Gunter.Workflow.Steps
                 join query in Theory.Queries on queryName equals query.Name
                 select (testCase, query);
 
-            foreach (var (testCase, query) in testCases)
+            try
             {
-                using var scope = LifetimeScope.BeginLifetimeScope(builder =>
+                foreach (var (testCase, query) in testCases)
                 {
-                    builder.RegisterInstance(new MemoryCache(new MemoryCacheOptions()));
-                    builder.RegisterInstance(testCase);
-                    builder.RegisterInstance(query).As<IQuery>();
-
-                    var properties = Theory.Merge(x => x.Properties).With(LifetimeScope.Resolve<Merge>()).Flatten();
-                    foreach (var property in properties)
-                    {
-                        builder.RegisterInstance(property).As<IProperty>();
-                    }
-                    
-                    builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.FileName)).As<IProperty>();
-                    builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.Name)).As<IProperty>();
-                    builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Level)).As<IProperty>();
-                    builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Message)).As<IProperty>();
-                    builder.Register(c => c.Resolve<InstanceProperty<TestContext>.Factory>()(x => x.GetDataElapsed)).As<IProperty>();
-                });
-
-                try
-                {
-                    await ForEachTestCase(scope).ExecuteAsync(scope.Resolve<TestContext>());
-                }
-                catch (OperationCanceledException)
-                {
-                    // log
+                    await ProcessTestCase(testCase, query);
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // ...
+            }
 
-            await ExecuteNextAsync(context);
+            return true;
+        }
+
+        private async Task ProcessTestCase(TestCase testCase, IQuery query)
+        {
+            using var scope = LifetimeScope.BeginLifetimeScope(builder =>
+            {
+                builder.RegisterInstance(testCase);
+                builder.RegisterInstance(query);
+                
+                builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.FileName)).As<IProperty>();
+                builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.Name)).As<IProperty>();
+                builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Level)).As<IProperty>();
+                builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Message)).As<IProperty>();
+                builder.Register(c => c.Resolve<InstanceProperty<TestContext>.Factory>()(x => x.GetDataElapsed)).As<IProperty>();
+                
+                var properties = Theory.Resolve(x => x.Properties).With(Merge).Flatten();
+                builder.RegisterEnumerable(properties, r => r.As<IProperty>());
+            });
+
+            //await ForEachTestCase(scope).ExecuteAsync(scope.Resolve<TestContext>());
+            await scope.Resolve<Workflow<TestContext>>().ExecuteAsync(scope.Resolve<TestContext>());
         }
     }
 }

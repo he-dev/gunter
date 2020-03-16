@@ -12,7 +12,7 @@ using Reusable.Extensions;
 namespace Gunter.Services.DataFilters
 {
     [Gunter]
-    public class GetFirstLine : IDataFilter
+    public class GetFirstLine : IFilterData
     {
         [JsonProperty(Required = Required.Always)]
         public List<GetFirstLineColumn>? Columns { get; set; }

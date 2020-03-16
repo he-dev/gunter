@@ -5,16 +5,18 @@ using System.Threading.Tasks;
 using Autofac;
 using Gunter.Data;
 using Gunter.Data.Configuration;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Steps;
 using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.Workflow.Steps
 {
+    using static TheoryType;
+
     internal class ProcessTheories : Step<SessionContext>
     {
-        public ProcessTheories(ILogger<ProcessTheories> logger, ILifetimeScope lifetimeScope)
+        public ProcessTheories(ILogger<ProcessTheories> logger, ILifetimeScope lifetimeScope) : base(logger)
         {
             Logger = logger;
             LifetimeScope = lifetimeScope;
@@ -24,16 +26,17 @@ namespace Gunter.Workflow.Steps
 
         private ILogger<ProcessTheories> Logger { get; }
 
-        //public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount * 2;
+        //public Func<IComponentContext, Workflow<TheoryContext>> ForEachTheory { get; set; }
 
-        public Func<IComponentContext, Workflow<TheoryContext>> ForEachTheory { get; set; }
-
-        public override async Task ExecuteAsync(SessionContext context)
+        protected override async Task<bool> ExecuteBody(SessionContext context)
         {
             var theories = context.Theories.ToLookup(p => p.Type);
-            var theoryWorkflowTasks = theories[TheoryType.Regular].Select(theory => ProcessTheory(theory, theories[TheoryType.Template]));
-            await Task.WhenAll(theoryWorkflowTasks);
-            await ExecuteNextAsync(context);
+            var processTheoryTasks =
+                from theory in theories[Regular]
+                select ProcessTheory(theory, theories[Template]);
+
+            await Task.WhenAll(processTheoryTasks);
+            return true;
         }
 
         private async Task ProcessTheory(Theory theory, IEnumerable<Theory> templates)
@@ -44,9 +47,8 @@ namespace Gunter.Workflow.Steps
                 builder.RegisterInstance(templates);
             });
 
-            await ForEachTheory(scope).ExecuteAsync(scope.Resolve<TheoryContext>());
-
-            //await scope.Resolve<Workflow<TheoryContext>>().ExecuteAsync(default);
+            //await ForEachTheory(scope).ExecuteAsync(scope.Resolve<TheoryContext>());
+            await scope.Resolve<Workflow<TheoryContext>>().ExecuteAsync(scope.Resolve<TheoryContext>());
         }
     }
 }

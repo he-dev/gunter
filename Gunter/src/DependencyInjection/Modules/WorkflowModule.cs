@@ -4,11 +4,12 @@ using Gunter.Queries;
 using Gunter.Services;
 using Gunter.Services.Abstractions;
 using Gunter.Services.Reporting;
+using Gunter.Workflow.Data;
 using Gunter.Workflow.Steps;
-using Gunter.Workflows;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Extensions;
 using Reusable.Flowingo.Steps;
+using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -18,14 +19,20 @@ namespace Gunter.DependencyInjection.Modules
         {
             builder.RegisterGeneric(typeof(InstanceProperty<>));
             builder.RegisterGeneric(typeof(Workflow<>)).InstancePerDependency();
-            builder.RegisterType<FindTheories>();
-            builder.RegisterType<LoadTheories>();
-            builder.RegisterType<ProcessTheories>();
-            builder.RegisterType<ProcessTheory>();
-            builder.RegisterType<GetData>();
-            builder.RegisterType<FilterData>();
-            builder.RegisterType<EvaluateData>();
-            builder.RegisterType<SendMessages>();
+            
+            // Session steps.
+            builder.RegisterType<FindTheories>().AsImplementedInterfaces();
+            builder.RegisterType<LoadTheories>().AsImplementedInterfaces();
+            builder.RegisterType<ProcessTheories>().AsImplementedInterfaces();
+            
+            // Theory steps.
+            builder.RegisterType<ProcessTheory>().AsImplementedInterfaces();
+            
+            // Test-case steps.
+            builder.RegisterType<GetData>().AsImplementedInterfaces();
+            builder.RegisterType<FilterData>().AsImplementedInterfaces();
+            builder.RegisterType<EvaluateData>().AsImplementedInterfaces();
+            builder.RegisterType<ProcessMessages>().AsImplementedInterfaces();
             
             // Contexts
             
@@ -47,27 +54,27 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterType<RenderDataSummary>();
             builder.RegisterType<RenderQuerySummary>();
 
-            builder.Register(c => new Workflow<SessionContext>().Pipe(sessionWorkflow =>
-            {
-                sessionWorkflow.Add(c.Resolve<FindTheories>());
-                sessionWorkflow.Add(c.Resolve<LoadTheories>());
-                sessionWorkflow.Add(c.Resolve<ProcessTheories>().Pipe(processTheories =>
-                {
-                    processTheories.ForEachTheory = theoryComponents => theoryComponents.Resolve<Workflow<TheoryContext>>().Pipe(theoryWorkflow =>
-                    {
-                        theoryWorkflow.Add(theoryComponents.Resolve<ProcessTheory>().Pipe(processTheory =>
-                        {
-                            processTheory.ForEachTestCase = testCaseComponents => testCaseComponents.Resolve<Workflow<TestContext>>().Pipe(testWorkflow =>
-                            {
-                                testWorkflow.Add(testCaseComponents.Resolve<GetData>());
-                                testWorkflow.Add(testCaseComponents.Resolve<FilterData>());
-                                testWorkflow.Add(testCaseComponents.Resolve<EvaluateData>());
-                                testWorkflow.Add(testCaseComponents.Resolve<SendMessages>());
-                            });
-                        }));
-                    });
-                }));
-            }));
+            // builder.Register(c => new Workflow<SessionContext>(c.Resolve<ILogger<Workflow<SessionContext>>>()).Pipe(sessionWorkflow =>
+            // {
+            //     sessionWorkflow.Add(c.Resolve<FindTheories>());
+            //     sessionWorkflow.Add(c.Resolve<LoadTheories>());
+            //     sessionWorkflow.Add(c.Resolve<ProcessTheories>().Pipe(processTheories =>
+            //     {
+            //         processTheories.ForEachTheory = theoryComponents => new Workflow<TheoryContext>(c.Resolve<ILogger<Workflow<TheoryContext>>>())
+            //         {
+            //             theoryComponents.Resolve<ProcessTheory>().Pipe(processTheory =>
+            //             {
+            //                 processTheory.ForEachTestCase = testCaseComponents => new Workflow<TestContext>(c.Resolve<ILogger<Workflow<TestContext>>>())
+            //                 {
+            //                     testCaseComponents.Resolve<GetData>(),
+            //                     testCaseComponents.Resolve<FilterData>(),
+            //                     testCaseComponents.Resolve<EvaluateData>(),
+            //                     testCaseComponents.Resolve<ProcessMessages>(),
+            //                 };
+            //             })
+            //         };
+            //     }));
+            // }));
         }
     }
 }

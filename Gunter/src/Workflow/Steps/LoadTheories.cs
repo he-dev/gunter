@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Data.Configuration;
 using Gunter.Services;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Annotations;
 using Reusable.OmniLog.Abstractions;
@@ -19,25 +19,20 @@ namespace Gunter.Workflow.Steps
             ILogger<LoadTheories> logger,
             IResource resource,
             DeserializeTheory deserializeTheory
-        )
+        ) : base(logger)
         {
-            Logger = logger;
             Resource = resource;
             DeserializeTheory = deserializeTheory;
         }
-
-        private ILogger<LoadTheories> Logger { get; set; }
 
         private IResource Resource { get; set; }
         
         private DeserializeTheory DeserializeTheory { get; }
 
-        public override async Task ExecuteAsync(SessionContext context)
+        protected override async Task<bool> ExecuteBody(SessionContext context)
         {
-            foreach (var testFileName in context.TestFileNames)
+            foreach (var testFileName in context.TheoryNames)
             {
-                //using var _ = _logger.BeginScope().WithCorrelationHandle("LoadTestFile").UseStopwatch();
-
                 //_logger.Log(Abstraction.Layer.IO().Meta(new { TestFileName = fullName }));
 
                 if (await DeserializeTheoryAsync(testFileName) is {} theory)
@@ -46,7 +41,7 @@ namespace Gunter.Workflow.Steps
                 }
             }
 
-            await ExecuteNextAsync(context);
+            return true;
         }
 
         private async Task<Theory?> DeserializeTheoryAsync(string name)

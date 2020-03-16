@@ -1,7 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using Reusable;
+using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Annotations;
 using Reusable.IO;
@@ -11,21 +12,18 @@ namespace Gunter.Workflow.Steps
 {
     internal class FindTheories : Step<SessionContext>
     {
-        public FindTheories(ILogger<FindTheories> logger, IDirectoryTree directoryTree)
+        public FindTheories(ILogger<FindTheories> logger, IDirectoryTree directoryTree) : base(logger)
         {
-            Logger = logger;
             DirectoryTree = directoryTree;
         }
 
-        private ILogger<FindTheories> Logger { get; set; }
-        
         private IDirectoryTree DirectoryTree { get; set; }
 
-        public override async Task ExecuteAsync(SessionContext context)
+        protected override Task<bool> ExecuteBody(SessionContext context)
         {
-            context.TestFileNames =
+            context.TheoryNames =
                 DirectoryTree
-                    .Walk(context.TestDirectoryName, DirectoryTreePredicates.MaxDepth(1), PhysicalDirectoryTree.IgnoreExceptions)
+                    .Walk(context.TheoryDirectoryName, DirectoryTreePredicates.MaxDepth(1), PhysicalDirectoryTree.IgnoreExceptions)
                     .WhereFiles(@"\.json$")
                     // .Where(node =>
                     // {
@@ -40,7 +38,7 @@ namespace Gunter.Workflow.Steps
                     .FullNames()
                     .ToHashSet(SoftString.Comparer);
 
-            await ExecuteNextAsync(context);
+            return true.ToTask();
         }
     }
 }

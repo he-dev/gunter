@@ -9,7 +9,7 @@ using Gunter.Data.Configuration.Reporting;
 using Gunter.Extensions;
 using Gunter.Reporting;
 using Gunter.Services.Abstractions;
-using Gunter.Workflows;
+using Gunter.Workflow.Data;
 using JetBrains.Annotations;
 using Reusable.Collections;
 using Reusable.Exceptionize;
