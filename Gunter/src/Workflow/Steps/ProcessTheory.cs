@@ -9,6 +9,7 @@ using Gunter.Services;
 using Gunter.Workflow.Data;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Flowingo.Abstractions;
+using Reusable.Flowingo.Data;
 using Reusable.Flowingo.Steps;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Utilities.Autofac;
@@ -17,7 +18,7 @@ namespace Gunter.Workflow.Steps
 {
     internal class ProcessTheory : Step<TheoryContext>
     {
-        public ProcessTheory(ILogger<ProcessTheory> logger, Merge merge, ILifetimeScope lifetimeScope, Theory theory):base(logger)
+        public ProcessTheory(Merge merge, ILifetimeScope lifetimeScope, Theory theory)
         {
             Merge = merge;
             LifetimeScope = lifetimeScope;
@@ -29,10 +30,10 @@ namespace Gunter.Workflow.Steps
         private ILifetimeScope LifetimeScope { get; }
 
         private Theory Theory { get; }
-
+        
         public Func<IComponentContext, Workflow<TestContext>> ForEachTestCase { get; set; }
 
-        protected override async Task<bool> ExecuteBody(TheoryContext context)
+        protected override async Task<Flow> ExecuteBody(TheoryContext context)
         {
             var testCases =
                 from testCase in Theory.Tests
@@ -52,7 +53,7 @@ namespace Gunter.Workflow.Steps
                 // ...
             }
 
-            return true;
+            return Flow.Continue;
         }
 
         private async Task ProcessTestCase(TestCase testCase, IQuery query)
@@ -61,19 +62,19 @@ namespace Gunter.Workflow.Steps
             {
                 builder.RegisterInstance(testCase);
                 builder.RegisterInstance(query);
-                
+
                 builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.FileName)).As<IProperty>();
                 builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.Name)).As<IProperty>();
                 builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Level)).As<IProperty>();
                 builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Message)).As<IProperty>();
                 builder.Register(c => c.Resolve<InstanceProperty<TestContext>.Factory>()(x => x.GetDataElapsed)).As<IProperty>();
-                
+
                 var properties = Theory.Resolve(x => x.Properties).With(Merge).Flatten();
                 builder.RegisterEnumerable(properties, r => r.As<IProperty>());
             });
 
-            //await ForEachTestCase(scope).ExecuteAsync(scope.Resolve<TestContext>());
-            await scope.Resolve<Workflow<TestContext>>().ExecuteAsync(scope.Resolve<TestContext>());
+            await ForEachTestCase(scope).ExecuteAsync(scope.Resolve<TestContext>());
+            //await scope.Resolve<Workflow<TestContext>>().ExecuteAsync(scope.Resolve<TestContext>());
         }
     }
 }

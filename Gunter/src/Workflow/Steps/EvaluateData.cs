@@ -7,6 +7,7 @@ using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Annotations;
+using Reusable.Flowingo.Data;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
@@ -16,9 +17,7 @@ namespace Gunter.Workflow.Steps
 {
     internal class EvaluateData : Step<TestContext>
     {
-        public EvaluateData(ILogger<EvaluateData> logger) : base(logger) { }
-
-        protected override Task<bool> ExecuteBody(TestContext context)
+        protected override Task<Flow> ExecuteBody(TestContext context)
         {
             if (context.Data.Compute(context.TestCase.Assert, context.TestCase.Filter) is bool success)
             {
@@ -29,14 +28,14 @@ namespace Gunter.Workflow.Steps
                     false => TestResult.Failed
                 };
 
-                Logger.Log(Abstraction.Layer.Service().Meta(new { TestResult = context.Result }));
+                Logger?.Log(Abstraction.Layer.Service().Meta(new { TestResult = context.Result }));
             }
             else
             {
                 throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
             }
 
-            return true.ToTask();
+            return Flow.Continue.ToTask();
         }
     }
 }

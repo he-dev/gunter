@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using Gunter.Workflow.Data;
+using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Annotations;
+using Reusable.Flowingo.Data;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
 
@@ -9,9 +11,7 @@ namespace Gunter.Workflow.Steps
 {
     internal class FilterData : Step<TestContext>
     {
-        public FilterData(ILogger<FilterData> logger) : base(logger) { }
-        
-        protected override async Task<bool> ExecuteBody(TestContext context)
+        protected override Task<Flow> ExecuteBody(TestContext context)
         {
             if (context.Query.Filters is {} filters)
             {
@@ -24,7 +24,7 @@ namespace Gunter.Workflow.Steps
                 context.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
             }
 
-            return true;
+            return Flow.Continue.ToTask();
         }
 
     }

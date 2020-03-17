@@ -5,6 +5,7 @@ using Reusable;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Annotations;
+using Reusable.Flowingo.Data;
 using Reusable.IO;
 using Reusable.OmniLog.Abstractions;
 
@@ -12,14 +13,14 @@ namespace Gunter.Workflow.Steps
 {
     internal class FindTheories : Step<SessionContext>
     {
-        public FindTheories(ILogger<FindTheories> logger, IDirectoryTree directoryTree) : base(logger)
+        public FindTheories(IDirectoryTree directoryTree)
         {
             DirectoryTree = directoryTree;
         }
 
         private IDirectoryTree DirectoryTree { get; set; }
 
-        protected override Task<bool> ExecuteBody(SessionContext context)
+        protected override Task<Flow> ExecuteBody(SessionContext context)
         {
             context.TheoryNames =
                 DirectoryTree
@@ -38,7 +39,7 @@ namespace Gunter.Workflow.Steps
                     .FullNames()
                     .ToHashSet(SoftString.Comparer);
 
-            return true.ToTask();
+            return Flow.Continue.ToTask();
         }
     }
 }

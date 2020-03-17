@@ -45,7 +45,6 @@ namespace Gunter.DependencyInjection
             }
         }
 
-        [NotNull]
         internal static ILoggerFactory InitializeLogging()
         {
             try
@@ -77,6 +76,7 @@ namespace Gunter.DependencyInjection
                         (
                             (LogProperty.Names.Level, LogLevel.Information)
                         )
+                        .UseCamelCase()
                         .UseEcho
                         (
                             new NLogRx(),

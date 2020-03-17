@@ -4,20 +4,21 @@ using Gunter.Data.Configuration;
 using Gunter.Services;
 using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
+using Reusable.Flowingo.Data;
 using Reusable.OmniLog.Abstractions;
 
 namespace Gunter.Workflow.Steps
 {
     internal class ProcessMessages : Step<TestContext>
     {
-        public ProcessMessages(ILogger<ProcessMessages> logger, IComponentContext componentContext) : base(logger)
+        public ProcessMessages(IComponentContext componentContext) 
         {
             ComponentContext = componentContext;
         }
 
         private IComponentContext ComponentContext { get; }
 
-        protected override async Task<bool> ExecuteBody(TestContext context)
+        protected override async Task<Flow> ExecuteBody(TestContext context)
         {
             if (context.TestCase.Messages.TryGetValue(context.Result, out var messages))
             {
@@ -32,7 +33,7 @@ namespace Gunter.Workflow.Steps
                 }
             }
 
-            return true;
+            return Flow.Continue;
         }
     }
 }

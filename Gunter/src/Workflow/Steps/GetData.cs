@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
+using Reusable.Flowingo.Data;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
@@ -17,7 +18,7 @@ namespace Gunter.Workflow.Steps
 {
     internal class GetData : Step<TestContext>
     {
-        public GetData(ILogger<GetData> logger, IMemoryCache cache, IEnumerable<IGetData> getDataCommands) : base(logger)
+        public GetData(IMemoryCache cache, IEnumerable<IGetData> getDataCommands)
         {
             Cache = cache;
             GetDataCommands = getDataCommands;
@@ -27,7 +28,7 @@ namespace Gunter.Workflow.Steps
 
         private IEnumerable<IGetData> GetDataCommands { get; }
 
-        protected override async Task<bool> ExecuteBody(TestContext context)
+        protected override async Task<Flow> ExecuteBody(TestContext context)
         {
             using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(GetData)).UseStopwatch();
             Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Name }));
@@ -44,14 +45,14 @@ namespace Gunter.Workflow.Steps
                 });
                 context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
                 Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.Data.Rows.Count, ColumnCount = context.Data.Columns.Count }));
-                return true;
+                return Flow.Continue;
             }
             catch (Exception inner)
             {
                 throw DynamicException.Create(GetType().ToPrettyString(), $"Error getting or processing data for query '{context.Query.Name}'.", inner);
             }
 
-            return false;
+            return Flow.Break;
         }
     }
 }

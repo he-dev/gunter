@@ -6,6 +6,7 @@ using Gunter.Services;
 using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Annotations;
+using Reusable.Flowingo.Data;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Translucent;
 using Reusable.Utilities.JsonNet;
@@ -16,20 +17,19 @@ namespace Gunter.Workflow.Steps
     {
         public LoadTheories
         (
-            ILogger<LoadTheories> logger,
             IResource resource,
             DeserializeTheory deserializeTheory
-        ) : base(logger)
+        )
         {
             Resource = resource;
             DeserializeTheory = deserializeTheory;
         }
 
         private IResource Resource { get; set; }
-        
+
         private DeserializeTheory DeserializeTheory { get; }
 
-        protected override async Task<bool> ExecuteBody(SessionContext context)
+        protected override async Task<Flow> ExecuteBody(SessionContext context)
         {
             foreach (var testFileName in context.TheoryNames)
             {
@@ -41,7 +41,7 @@ namespace Gunter.Workflow.Steps
                 }
             }
 
-            return true;
+            return Flow.Continue;
         }
 
         private async Task<Theory?> DeserializeTheoryAsync(string name)
