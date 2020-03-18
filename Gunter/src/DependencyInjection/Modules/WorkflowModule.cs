@@ -1,11 +1,16 @@
+using System.Collections.Generic;
 using Autofac;
 using Gunter.Data;
+using Gunter.Data.Configuration;
 using Gunter.Queries;
 using Gunter.Services;
 using Gunter.Services.Abstractions;
 using Gunter.Services.Reporting;
 using Gunter.Workflow.Data;
 using Gunter.Workflow.Steps;
+using Gunter.Workflow.Steps.SessionSteps;
+using Gunter.Workflow.Steps.TestCaseSteps;
+using Gunter.Workflow.Steps.TheorySteps;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Extensions;
 using Reusable.Flowingo.Steps;
@@ -20,13 +25,14 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterGeneric(typeof(Workflow<>)).InstancePerDependency();
 
             builder.RegisterGeneric(typeof(InitializeLogger<>));
-            
+
             // Session steps.
             builder.RegisterType<FindTheories>();
             builder.RegisterType<LoadTheories>();
             builder.RegisterType<ProcessTheories>();
 
             // Theory steps.
+            builder.RegisterType<IgnoreTheoryWithDuplicateModelNames>();
             builder.RegisterType<ProcessTheory>();
 
             // Test-case steps.
@@ -64,6 +70,7 @@ namespace Gunter.DependencyInjection.Modules
                 {
                     processTheories.ForEachTheory = theoryComponents => new Workflow<TheoryContext>("theory-workflow")
                     {
+                        c.Resolve<IgnoreTheoryWithDuplicateModelNames>(),
                         theoryComponents.Resolve<ProcessTheory>().Pipe(processTheory =>
                         {
                             processTheory.ForEachTestCase = testCaseComponents => new Workflow<TestContext>("test-case-workflow")
@@ -71,7 +78,14 @@ namespace Gunter.DependencyInjection.Modules
                                 testCaseComponents.Resolve<GetData>(),
                                 testCaseComponents.Resolve<FilterData>(),
                                 testCaseComponents.Resolve<EvaluateData>(),
-                                testCaseComponents.Resolve<ProcessMessages>(),
+                                testCaseComponents.Resolve<ProcessMessages>().Pipe(x =>
+                                {
+                                    x.ServiceMappings = new List<IServiceMapping>
+                                    {
+                                        Handle<Email>.With<DispatchEmail>(),
+                                        Handle<Halt>.With<ThrowOperationCanceledException>()
+                                    };
+                                }),
                             };
                         })
                     };

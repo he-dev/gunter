@@ -7,7 +7,6 @@ using Gunter.Annotations;
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Reporting;
 using Gunter.Extensions;
-using Gunter.Reporting;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
 using JetBrains.Annotations;

@@ -7,14 +7,12 @@ using Gunter.Data;
 using Gunter.Data.Configuration;
 using Gunter.Services;
 using Gunter.Workflow.Data;
-using Microsoft.Extensions.Caching.Memory;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
 using Reusable.Flowingo.Steps;
-using Reusable.OmniLog.Abstractions;
 using Reusable.Utilities.Autofac;
 
-namespace Gunter.Workflow.Steps
+namespace Gunter.Workflow.Steps.TheorySteps
 {
     internal class ProcessTheory : Step<TheoryContext>
     {
@@ -74,7 +72,6 @@ namespace Gunter.Workflow.Steps
             });
 
             await ForEachTestCase(scope).ExecuteAsync(scope.Resolve<TestContext>());
-            //await scope.Resolve<Workflow<TestContext>>().ExecuteAsync(scope.Resolve<TestContext>());
         }
     }
 }

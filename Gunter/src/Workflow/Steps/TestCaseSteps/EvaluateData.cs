@@ -6,14 +6,12 @@ using Gunter.Workflow.Data;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
-using Reusable.Flowingo.Annotations;
 using Reusable.Flowingo.Data;
 using Reusable.OmniLog;
-using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
 using Reusable.OmniLog.SemanticExtensions;
 
-namespace Gunter.Workflow.Steps
+namespace Gunter.Workflow.Steps.TestCaseSteps
 {
     internal class EvaluateData : Step<TestContext>
     {

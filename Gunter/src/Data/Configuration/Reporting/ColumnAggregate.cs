@@ -1,4 +1,4 @@
-﻿namespace Gunter.Reporting
+﻿namespace Gunter.Data.Configuration.Reporting
 {
     public enum ColumnAggregate
     {

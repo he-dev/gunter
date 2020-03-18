@@ -1,9 +1,19 @@
+using System.Collections.Generic;
+using System.Linq;
+using Gunter.Data.Configuration;
+
 namespace Gunter.Workflow.Data
 {
     internal class TheoryContext
     {
-        //public ITheory Theory { get; set; }
+        public TheoryContext(Theory theory, IEnumerable<Theory> templates)
+        {
+            Theory = theory;
+            Templates = templates.ToList();
+        }
 
-        //public IEnumerable<ITheory> Templates { get; set; }
+        public Theory Theory { get; }
+
+        public List<Theory> Templates { get; }
     }
 }

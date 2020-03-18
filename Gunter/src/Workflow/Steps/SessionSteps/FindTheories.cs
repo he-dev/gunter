@@ -4,12 +4,10 @@ using Gunter.Workflow.Data;
 using Reusable;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
-using Reusable.Flowingo.Annotations;
 using Reusable.Flowingo.Data;
 using Reusable.IO;
-using Reusable.OmniLog.Abstractions;
 
-namespace Gunter.Workflow.Steps
+namespace Gunter.Workflow.Steps.SessionSteps
 {
     internal class FindTheories : Step<SessionContext>
     {

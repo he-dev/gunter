@@ -6,25 +6,26 @@ using Autofac;
 using Gunter.Data;
 using Gunter.Data.Configuration;
 using Gunter.Workflow.Data;
-using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
 using Reusable.Flowingo.Steps;
-using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog;
+using Reusable.OmniLog.Nodes;
+using Reusable.OmniLog.SemanticExtensions;
 
-namespace Gunter.Workflow.Steps
+namespace Gunter.Workflow.Steps.SessionSteps
 {
     using static TheoryType;
 
     internal class ProcessTheories : Step<SessionContext>
     {
-        public ProcessTheories(ILifetimeScope lifetimeScope) 
+        public ProcessTheories(ILifetimeScope lifetimeScope)
         {
             LifetimeScope = lifetimeScope;
         }
 
         private ILifetimeScope LifetimeScope { get; }
-        
+
         public Func<IComponentContext, Workflow<TheoryContext>> ForEachTheory { get; set; }
 
         protected override async Task<Flow> ExecuteBody(SessionContext context)
@@ -40,13 +41,14 @@ namespace Gunter.Workflow.Steps
 
         private async Task ProcessTheory(Theory theory, IEnumerable<Theory> templates)
         {
-            using var scope = LifetimeScope.BeginLifetimeScope(builder =>
+            using var loggerScope = Logger.BeginScope().WithCorrelationHandle("ProcessTheory").UseStopwatch();
+            using var lifetimeScope = LifetimeScope.BeginLifetimeScope(builder =>
             {
                 builder.RegisterInstance(theory);
                 builder.RegisterInstance(templates);
             });
-
-            await ForEachTheory(scope).ExecuteAsync(scope.Resolve<TheoryContext>());
+            Logger.Log(Abstraction.Layer.Service().Meta(new { theory = theory.Name }));
+            await ForEachTheory(lifetimeScope).ExecuteAsync(lifetimeScope.Resolve<TheoryContext>());
         }
     }
 }

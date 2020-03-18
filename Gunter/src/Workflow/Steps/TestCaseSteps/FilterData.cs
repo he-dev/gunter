@@ -2,12 +2,10 @@ using System.Threading.Tasks;
 using Gunter.Workflow.Data;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
-using Reusable.Flowingo.Annotations;
 using Reusable.Flowingo.Data;
-using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Nodes;
 
-namespace Gunter.Workflow.Steps
+namespace Gunter.Workflow.Steps.TestCaseSteps
 {
     internal class FilterData : Step<TestContext>
     {

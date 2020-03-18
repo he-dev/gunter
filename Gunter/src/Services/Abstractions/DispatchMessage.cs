@@ -8,16 +8,4 @@ namespace Gunter.Services.Abstractions
     {
         Task InvokeAsync(IMessage message);
     }
-
-    public abstract class DispatchMessage : IDispatchMessage
-    {
-        protected DispatchMessage(ILogger logger)
-        {
-            Logger = logger;
-        }
-
-        protected ILogger Logger { get; }
-
-        public abstract Task InvokeAsync(IMessage message);
-    }
 }

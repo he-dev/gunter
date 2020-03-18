@@ -17,13 +17,20 @@ using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Translucent;
 using Reusable.Utilities.Mailr;
-using Email = Reusable.Utilities.Mailr.Models.Email;
 
 namespace Gunter.Services
 {
+    public class ThrowOperationCanceledException : IDispatchMessage
+    {
+        public Task InvokeAsync(IMessage message)
+        {
+            throw new OperationCanceledException();
+        }
+    }
+
     [Gunter]
     [PublicAPI]
-    public class DispatchEmail : DispatchMessage
+    public class DispatchEmail : IDispatchMessage
     {
         public DispatchEmail
         (
@@ -32,7 +39,7 @@ namespace Gunter.Services
             IComponentContext componentContext,
             Format format,
             Theory theory
-        ) : base(logger)
+        ) 
         {
             Logger = logger;
             Resource = resource;
@@ -51,7 +58,7 @@ namespace Gunter.Services
 
         private Theory Theory { get; }
 
-        public override async Task InvokeAsync(IMessage message)
+        public async Task InvokeAsync(IMessage message)
         {
             var report = Theory.Reports.Single(r => r.Name.Equals(message.ReportName));
 
@@ -62,11 +69,11 @@ namespace Gunter.Services
                 {
                     var modules =
                         from module in report.Modules
-                        let render = (IRenderReportModule)default(IComponentContext).Resolve(module.GetType().GetCustomAttribute<ServiceAttribute>())
+                        let render = (IRenderReportModule)ComponentContext.Resolve(module.GetType().GetCustomAttribute<ServiceAttribute>())
                         select render.Execute(module);
 
 
-                    await SendAsync((Data.Configuration.Email)message, report.Title, modules);
+                    await SendAsync((Email)message, report.Title, modules);
                     //Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Completed());
                 }
                 catch (Exception ex)
@@ -76,12 +83,12 @@ namespace Gunter.Services
             }
         }
 
-        private async Task SendAsync(Data.Configuration.Email email, string title, IEnumerable<IReportModuleDto> modules)
+        private async Task SendAsync(Email email, string title, IEnumerable<IReportModuleDto> modules)
         {
             var to = email.To.Select(x => x.Map(Format));
             var subject = title.Map(Format);
 
-            var htmlEmail = new Email.Html(to, subject)
+            var htmlEmail = new Reusable.Utilities.Mailr.Models.Email.Html(to, subject)
             {
                 //Theme = Theme,
                 //CC = CC,
