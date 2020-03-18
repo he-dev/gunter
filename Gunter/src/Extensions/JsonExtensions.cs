@@ -4,43 +4,43 @@
     {
         public static bool IsJson(this string value)
         {
-            return value.StartsWith(out var startsWith) && value.EndsWith(out var endsWith) && startsWith == endsWith;
+            return value.OpeningType() == value.ClosingType();
         }
 
-        private static bool StartsWith(this string value, out JsonType startsWith)
+        private static JsonType OpeningType(this string value)
         {
-            startsWith = JsonType.Invalid;
-
             for (var i = 0; i < value.Length; i++)
             {
                 switch (value[i])
                 {
+                    case '\r':
+                    case '\n':
                     case ' ': continue;
-                    case '[': startsWith = JsonType.Array; return true;
-                    case '{': startsWith = JsonType.Object; return true;
-                    default: return false;
+                    case '[': return JsonType.Array;
+                    case '{': return JsonType.Object;
+                    default: return JsonType.Invalid;
                 }
             }
 
-            return false;
+            return JsonType.Invalid;
         }
 
-        private static bool EndsWith(this string value, out JsonType endsWith)
+        private static JsonType ClosingType(this string value)
         {
-            endsWith = JsonType.Invalid;
-
             for (var i = value.Length - 1; i >= 0; i--)
             {
                 switch (value[i])
                 {
+                    case '\r':
+                    case '\n':
                     case ' ': continue;
-                    case ']': endsWith = JsonType.Array; return true;
-                    case '}': endsWith = JsonType.Object; return true;
-                    default: return false;
+                    case ']': return JsonType.Array;
+                    case '}': return JsonType.Object;
+                    default: return JsonType.Invalid;
                 }
             }
 
-            return false;
+            return JsonType.Invalid;
         }
 
         private enum JsonType
