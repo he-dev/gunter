@@ -5,6 +5,7 @@ using Gunter.Data.Configuration;
 using Gunter.Queries;
 using Gunter.Services;
 using Gunter.Services.Abstractions;
+using Gunter.Services.DispatchMessage;
 using Gunter.Services.Reporting;
 using Gunter.Workflow.Data;
 using Gunter.Workflow.Steps;
@@ -57,9 +58,14 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterInstance(new StaticProperty(() => ProgramInfo.FullName));
             builder.RegisterInstance(new StaticProperty(() => ProgramInfo.Version));
             builder.RegisterType<GetDataTableOrView>().As<IGetData>();
+            builder.RegisterType<ThrowOperationCanceledException>().As<IDispatchMessage>();
             builder.RegisterType<DispatchEmail>().As<IDispatchMessage>().InstancePerDependency();
-            builder.RegisterType<RenderDataSummary>();
+            
+            builder.RegisterType<RenderHeading>();
+            builder.RegisterType<RenderParagraph>();
             builder.RegisterType<RenderQuerySummary>();
+            builder.RegisterType<RenderDataSummary>();
+            builder.RegisterType<RenderTestSummary>();
 
             builder.Register(c => new Workflow<SessionContext>("session-workflow")
             {
@@ -78,14 +84,7 @@ namespace Gunter.DependencyInjection.Modules
                                 testCaseComponents.Resolve<GetData>(),
                                 testCaseComponents.Resolve<FilterData>(),
                                 testCaseComponents.Resolve<EvaluateData>(),
-                                testCaseComponents.Resolve<ProcessMessages>().Pipe(x =>
-                                {
-                                    x.ServiceMappings = new List<IServiceMapping>
-                                    {
-                                        Handle<Email>.With<DispatchEmail>(),
-                                        Handle<Halt>.With<ThrowOperationCanceledException>()
-                                    };
-                                }),
+                                testCaseComponents.Resolve<ProcessMessages>(),
                             };
                         })
                     };

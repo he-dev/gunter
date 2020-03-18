@@ -7,9 +7,9 @@ using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Services.Reporting
 {
-    public class RenderTestInfo : IRenderReportModule
+    public class RenderTestSummary : IRenderReportModule
     {
-        public RenderTestInfo(Format format, TestContext testContext)
+        public RenderTestSummary(Format format, TestContext testContext)
         {
             Format = format;
             TestContext = testContext;

@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Custom;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
@@ -8,8 +10,10 @@ using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Services;
 using Gunter.Services.Abstractions;
+using Gunter.Services.DispatchMessage;
 using Gunter.Workflow.Data;
 using Reusable.Extensions;
+using Reusable.Flexo;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
 
@@ -24,7 +28,11 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
         private IComponentContext ComponentContext { get; }
 
-        public List<IServiceMapping> ServiceMappings { get; set; } = new List<IServiceMapping>();
+        public List<IServiceMapping> ServiceMappings { get; set; } = new List<IServiceMapping>()
+        {
+            Handle<Email>.With<DispatchEmail>(),
+            Handle<Halt>.With<ThrowOperationCanceledException>()
+        };
 
         protected override async Task<Flow> ExecuteBody(TestContext context)
         {
@@ -42,7 +50,7 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
         }
     }
 
-    internal interface IServiceMapping
+    public interface IServiceMapping
     {
         Type HandleeType { get; }
 
@@ -55,5 +63,16 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
         public Type HandleeType => typeof(THandlee);
         public Type HandlerType { get; private set; }
+    }
+
+    public class ServiceMappingCollection : List<IServiceMapping>
+    {
+        public IEnumerable<Type> Map(object handlee)
+        {
+            return
+                from m in this
+                where m.HandleeType.IsInstanceOfType(handlee)
+                select m.HandlerType;
+        }
     }
 }

@@ -4,7 +4,6 @@ using Gunter.Services.Reporting;
 
 namespace Gunter.Data.Configuration.Reporting
 {
-    [Service(typeof(RenderDataSummary))]
     public class DataSummary : ReportModule, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Horizontal;

@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Gunter.Services;
+using Gunter.Services.DispatchMessage;
 
 namespace Gunter.DependencyInjection.Modules
 {
