@@ -1,18 +1,17 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using Gunter.Annotations;
+using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Abstractions;
-using Newtonsoft.Json;
-using Reusable;
 
 namespace Gunter.Data.Configuration
 {
     [Gunter]
     public class Email : IMessage, IMergeable
     {
-        public SoftString? Name { get; set; }
+        public string? Name { get; set; }
 
-        public TemplateSelector? TemplateSelector { get; set; }
+        public ModelSelector? ModelSelector { get; set; }
 
         public List<string> To { get; set; } = new List<string>();
 
@@ -27,7 +26,7 @@ namespace Gunter.Data.Configuration
     [Gunter]
     public class Halt : IMessage
     {
-        public SoftString? Name { get; set; }
+        public string? Name { get; set; }
 
         public string? ReportName { get; set; }
     }

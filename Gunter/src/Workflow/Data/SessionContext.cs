@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Gunter.Data;
 using Gunter.Data.Configuration;
-using Gunter.Data.Workflows;
 using Reusable;
 
 namespace Gunter.Workflow.Data

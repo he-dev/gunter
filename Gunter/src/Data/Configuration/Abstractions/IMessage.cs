@@ -1,3 +1,4 @@
+using Gunter.Data.Abstractions;
 using Newtonsoft.Json;
 
 namespace Gunter.Data.Configuration.Abstractions

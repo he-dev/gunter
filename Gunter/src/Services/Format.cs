@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Gunter.Data;
+using Gunter.Data.Abstractions;
 using Reusable.Extensions;
 
 namespace Gunter.Services

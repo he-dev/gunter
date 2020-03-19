@@ -1,6 +1,5 @@
 ﻿using System;
 using Autofac;
-using JetBrains.Annotations;
 using Reusable;
 using Reusable.Exceptionize;
 using Reusable.OmniLog;
@@ -19,15 +18,8 @@ namespace Gunter.DependencyInjection
             {
                 var builder = new ContainerBuilder();
 
-                builder
-                    .RegisterModule(new LoggerModule(loggerFactory));
-
-                // todo - this should be removed
-                builder
-                    .RegisterType<ProgramInfo>()
-                    .AsSelf();
-
-
+                builder.RegisterOmniLog(loggerFactory);
+                
                 builder.RegisterModule<Modules.Service>();
                 builder.RegisterModule<Modules.Data>();
                 builder.RegisterModule<Modules.Reporting>();

@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Sections;
 using Gunter.Services;
+using Gunter.Services.FilterData;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable;
 
 namespace Gunter.Data.Configuration
 {
@@ -22,8 +24,8 @@ namespace Gunter.Data.Configuration
         public static readonly IEnumerable<Type> DataTypes = new[]
         {
             typeof(TableOrView),
-            typeof(Gunter.Services.DataFilters.GetJsonValue),
-            typeof(Gunter.Services.DataFilters.GetFirstLine),
+            typeof(GetJsonValue),
+            typeof(GetFirstLine),
             typeof(Email),
             typeof(Halt),
             typeof(Level),
@@ -42,19 +44,19 @@ namespace Gunter.Data.Configuration
         public string DirectoryName => Path.GetDirectoryName(FileName);
 
         [JsonIgnore]
-        public SoftString Name
+        public string? Name
         {
             get => Path.GetFileNameWithoutExtension(FileName);
             set { }
         }
 
-        public TemplateSelector TemplateSelector { get; set; }
+        public ModelSelector ModelSelector { get; set; }
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public IEnumerable<ConstantPropertyCollection> Properties { get; set; }
+        public IEnumerable<PropertyCollection> Properties { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public IEnumerable<IQuery> Queries { get; set; } = new List<IQuery>();
@@ -69,7 +71,7 @@ namespace Gunter.Data.Configuration
         public TheoryType Type =>
             Name is null
                 ? TheoryType.Unknown
-                : Path.GetFileName(Name.ToString()).StartsWith(TemplatePrefix)
+                : Path.GetFileName(Name).StartsWith(TemplatePrefix)
                     ? TheoryType.Template
                     : TheoryType.Regular;
 

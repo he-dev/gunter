@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Gunter.Data.Abstractions;
 
 namespace Gunter.Data.Configuration.Abstractions
 {

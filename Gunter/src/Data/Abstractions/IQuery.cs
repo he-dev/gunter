@@ -1,22 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 using Gunter.Annotations;
-using Gunter.Services;
 using Gunter.Services.Abstractions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Reusable;
-using Reusable.Exceptionize;
-using Reusable.Extensions;
-using Reusable.OmniLog;
-using Reusable.OmniLog.Abstractions;
-using Reusable.OmniLog.Nodes;
-using Reusable.OmniLog.SemanticExtensions;
 
-namespace Gunter.Data
+namespace Gunter.Data.Abstractions
 {
     [UsedImplicitly]
     [PublicAPI]
@@ -26,10 +17,10 @@ namespace Gunter.Data
     }
 
     [Gunter]
-    public abstract class Query<T> : IQuery
+    public abstract class Query : IQuery
     {
         [JsonRequired]
-        public SoftString Name { get; set; }
+        public string? Name { get; set; }
 
         public List<IFilterData>? Filters { get; set; } = new List<IFilterData>();
     }

@@ -1,4 +1,5 @@
-using Gunter.Annotations;
+using Gunter.Data.Configuration.Abstractions;
+using Gunter.Data.Configuration.Sections;
 
 namespace Gunter.Data.Configuration.Reporting
 {

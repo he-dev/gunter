@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -9,7 +8,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Gunter.Services.DataFilters
+namespace Gunter.Services.FilterData
 {
     [Gunter]
     [UsedImplicitly]
@@ -49,6 +48,6 @@ namespace Gunter.Services.DataFilters
         /// <summary>
         /// Gets or sets the default value to use when nothing found.
         /// </summary>
-        public object Default { get; set; }
+        public object? Default { get; set; }
     }
 }

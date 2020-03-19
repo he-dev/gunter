@@ -1,15 +1,16 @@
 using Autofac;
 using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Sections;
 
 namespace Gunter.DependencyInjection.Modules
 {
-    internal class Data : Autofac.Module
+    internal class Data : Module
     {
-        protected override void Load(Autofac.ContainerBuilder builder)
+        protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<Theory>();
             builder.RegisterType<TestCase>();
-            builder.RegisterType<Gunter.Data.ConstantPropertyCollection>();
+            builder.RegisterType<PropertyCollection>();
             builder.RegisterType<TableOrView>();
         }
     }

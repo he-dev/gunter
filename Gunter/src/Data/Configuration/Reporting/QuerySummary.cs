@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
+using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting.Abstractions;
-using Gunter.Services.Reporting;
 
 namespace Gunter.Data.Configuration.Reporting
 {

@@ -1,6 +1,6 @@
 ﻿namespace Gunter.Data.Configuration.Reporting
 {
-    public enum ColumnAggregate
+    public enum ReduceType
     {
         First,
         Last,

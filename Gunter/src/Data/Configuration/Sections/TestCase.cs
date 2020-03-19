@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Gunter.Annotations;
+using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Abstractions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Reusable;
 using Reusable.OmniLog;
 
-namespace Gunter.Data.Configuration
+namespace Gunter.Data.Configuration.Sections
 {
     [Gunter]
     [PublicAPI]
@@ -23,9 +24,9 @@ namespace Gunter.Data.Configuration
 
         public Theory Parent { get; }
 
-        public SoftString Name { get; set; }
+        public string? Name { get; set; }
 
-        public TemplateSelector TemplateSelector { get; set; }
+        public ModelSelector ModelSelector { get; set; }
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }

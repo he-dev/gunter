@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Gunter.Annotations;
 using Reusable.Extensions;
 
-namespace Gunter.Data.Configuration
+namespace Gunter.Data.Configuration.Abstractions
 {
     [Gunter]
     public abstract class ReportModule

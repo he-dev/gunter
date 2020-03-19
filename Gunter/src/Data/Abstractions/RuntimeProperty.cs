@@ -1,13 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using Gunter.Services;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
 
-namespace Gunter.Data
+namespace Gunter.Data.Abstractions
 {
     [PublicAPI]
     [UsedImplicitly]
@@ -64,68 +62,16 @@ namespace Gunter.Data
         }
     }
 
-    internal class InstanceProperty<T> : RuntimeProperty
-    {
-        private readonly T _instance;
-        private readonly Func<T, object?> _getValue;
-
-        public delegate InstanceProperty<T> Factory(Expression<Func<T, object?>> selectorExpression);
-
-        public InstanceProperty(T instance, Expression<Func<T, object?>> selectorExpression) : base(CreateName(selectorExpression))
-        {
-            _instance = instance;
-            _getValue = selectorExpression.Compile();
-        }
-
-        public override object? GetValue() => _getValue(_instance);
-    }
-
-    [PublicAPI]
-    [UsedImplicitly]
-    public class StaticProperty : RuntimeProperty
-    {
-        private readonly object _value;
-
-        public StaticProperty(Expression<Func<object?>> selectorExpression) : base(CreateName(selectorExpression))
-        {
-            _value = selectorExpression.Compile()();
-        }
-
-        public override object? GetValue() => _value;
-
-        //public static implicit operator StaticProperty(KeyValuePair<string, object> kvp) => new StaticProperty(kvp.Key, kvp.Value);
-
-        //public static implicit operator KeyValuePair<SoftString, object>(StaticProperty tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
-    }
-    
-    [PublicAPI]
-    [UsedImplicitly]
-    public class ConstantProperty : RuntimeProperty
-    {
-        private readonly object _value;
-
-        public ConstantProperty(string name, object value) : base(name)
-        {
-            _value = value;
-        }
-
-        public override object? GetValue() => _value;
-
-        //public static implicit operator StaticProperty(KeyValuePair<string, object> kvp) => new StaticProperty(kvp.Key, kvp.Value);
-
-        //public static implicit operator KeyValuePair<SoftString, object>(StaticProperty tbv) => new KeyValuePair<SoftString, object>(tbv.Name, tbv.Value);
-    }
-
     internal static class PropertyExtensions
     {
         public static string ToFormatString(this IProperty property, string format)
         {
-            return $"{{{property.Name.ToString()}:{format}}}";
+            return $"{{{property.Name}:{format}}}";
         }
 
         public static string ToPlaceholder(this IProperty property)
         {
-            return "{" + property.Name.ToString() + "}";
+            return "{" + property.Name + "}";
         }
     }
 }

@@ -3,8 +3,10 @@ using System.Linq;
 using System.Linq.Custom;
 using System.Threading.Tasks;
 using Autofac;
-using Gunter.Data;
+using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Sections;
+using Gunter.Data.Properties;
 using Gunter.Services;
 using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
@@ -16,14 +18,14 @@ namespace Gunter.Workflow.Steps.TheorySteps
 {
     internal class ProcessTheory : Step<TheoryContext>
     {
-        public ProcessTheory(Merge merge, ILifetimeScope lifetimeScope, Theory theory)
+        public ProcessTheory(MergeProperty mergeProperty, ILifetimeScope lifetimeScope, Theory theory)
         {
-            Merge = merge;
+            MergeProperty = mergeProperty;
             LifetimeScope = lifetimeScope;
             Theory = theory;
         }
 
-        private Merge Merge { get; }
+        private MergeProperty MergeProperty { get; }
 
         private ILifetimeScope LifetimeScope { get; }
 
@@ -67,7 +69,7 @@ namespace Gunter.Workflow.Steps.TheorySteps
                 builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Message)).As<IProperty>();
                 builder.Register(c => c.Resolve<InstanceProperty<TestContext>.Factory>()(x => x.GetDataElapsed)).As<IProperty>();
 
-                var properties = Theory.Resolve(x => x.Properties).With(Merge).Flatten();
+                var properties = Theory.Resolve(x => x.Properties).With(MergeProperty).Flatten();
                 builder.RegisterEnumerable(properties, r => r.As<IProperty>());
             });
 

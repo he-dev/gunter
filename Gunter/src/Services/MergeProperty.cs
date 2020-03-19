@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Custom;
 using Gunter.Data;
+using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration;
 
 namespace Gunter.Services
 {
-    public class Merge
+    public class MergeProperty
     {
-        public Merge(Format format, IEnumerable<Theory> templates)
+        public MergeProperty(Format format, IEnumerable<Theory> templates)
         {
             Format = format;
             Templates = templates;
@@ -23,9 +23,8 @@ namespace Gunter.Services
         {
             var models =
                 from t in Templates
-                where t.Name.Equals(instance.TemplateSelector.TemplateName)
                 from m in t.OfType<T>()
-                where m.Name.Equals(instance.TemplateSelector.ModelName)
+                where ModelSelector.Comparer.Equals(new ModelSelector(t.Name, m.Name), instance.ModelSelector)
                 select m;
 
             var values = models.Select(getValue).Prepend(getValue(instance));
@@ -60,7 +59,7 @@ namespace Gunter.Services
 
     public interface IMerge<out TValue>
     {
-        TValue With(Merge merge);
+        TValue With(MergeProperty mergeProperty);
     }
 
     public class Merge<T, TValue> : IMerge<TValue> where T : IModel, IMergeable
@@ -69,6 +68,6 @@ namespace Gunter.Services
 
         public Func<T, TValue> GetValue { get; set; }
 
-        public TValue With(Merge merge) => merge.Execute(Instance, GetValue);
+        public TValue With(MergeProperty mergeProperty) => mergeProperty.Execute(Instance, GetValue);
     }
 }

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using Gunter.Annotations;
 using Gunter.Services.Abstractions;
 using Newtonsoft.Json;
-using Reusable.Exceptionize;
 using Reusable.Extensions;
 
-namespace Gunter.Services.DataFilters
+namespace Gunter.Services.FilterData
 {
     public class ValidateService
     {

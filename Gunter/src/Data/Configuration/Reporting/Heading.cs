@@ -1,4 +1,4 @@
-using System.Net.Mime;
+using Gunter.Data.Configuration.Abstractions;
 
 namespace Gunter.Data.Configuration.Reporting
 {

@@ -1,8 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Gunter.Data;
+using Autofac;
+using Gunter.Data.Abstractions;
+using Gunter.Data.Configuration.Sections;
+using Gunter.Services.Queries;
 using Gunter.Workflow.Data;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Exceptionize;
@@ -17,15 +19,20 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 {
     internal class GetData : Step<TestContext>
     {
-        public GetData(IMemoryCache cache, IEnumerable<IGetData> getDataCommands)
+        public GetData(IMemoryCache cache, IComponentContext componentContext)
         {
             Cache = cache;
-            GetDataCommands = getDataCommands;
+            ComponentContext = componentContext;
         }
-        
+
         private IMemoryCache Cache { get; }
 
-        private IEnumerable<IGetData> GetDataCommands { get; }
+        private IComponentContext ComponentContext { get; }
+
+        public ServiceMappingCollection QueryMappings { get; set; } = new ServiceMappingCollection
+        {
+            Handle<TableOrView>.With<GetDataFromTableOrView>()
+        };
 
         protected override async Task<Flow> ExecuteBody(TestContext context)
         {
@@ -35,12 +42,8 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
             {
                 (context.QueryCommand, context.Data) = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
                 {
-                    if (GetDataCommands.Single(o => o.QueryType.IsInstanceOfType(context.Query)) is {} getData)
-                    {
-                        return await getData.ExecuteAsync(context.Query);
-                    }
-
-                    return default;
+                    var getData = (IGetData)ComponentContext.Resolve(QueryMappings.Map(context.Query).Single());
+                    return await getData.ExecuteAsync(context.Query);
                 });
                 context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
                 Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.Data.Rows.Count, ColumnCount = context.Data.Columns.Count }));
@@ -50,8 +53,6 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
             {
                 throw DynamicException.Create(GetType().ToPrettyString(), $"Error getting or processing data for query '{context.Query.Name}'.", inner);
             }
-
-            return Flow.Break;
         }
     }
 }

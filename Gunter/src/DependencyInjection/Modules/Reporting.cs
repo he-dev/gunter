@@ -1,11 +1,11 @@
 ﻿using Autofac;
-using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Sections;
 
 namespace Gunter.DependencyInjection.Modules
 {
-    internal class Reporting : Autofac.Module
+    internal class Reporting : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

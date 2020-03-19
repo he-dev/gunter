@@ -4,44 +4,37 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Gunter.Data;
-using Gunter.Data.Configuration.Abstractions;
-using Gunter.Services;
+using Gunter.Data.Abstractions;
+using Gunter.Data.Configuration.Sections;
 using Reusable.Extensions;
 using Reusable.Translucent;
 
-namespace Gunter.Queries
+namespace Gunter.Services.Queries
 {
-    public class GetDataTableOrView : IGetData
+    public class GetDataFromTableOrView : IGetData
     {
-        public GetDataTableOrView(Merge merge, Format format, IResource resource)
+        public GetDataFromTableOrView(MergeProperty mergeProperty, Format format, IResource resource)
         {
-            Merge = merge;
+            MergeProperty = mergeProperty;
             Format = format;
             Resource = resource;
         }
 
-        private Merge Merge { get; }
+        private MergeProperty MergeProperty { get; }
 
-        public Format Format { get; }
+        private Format Format { get; }
 
         private IResource Resource { get; }
 
-        public Type QueryType => typeof(ITableOrView);
+        public Type QueryType => typeof(TableOrView);
 
-        public async Task<GetDataResult> ExecuteAsync(IQuery query)
-        {
-            return
-                query is ITableOrView tableOrView
-                    ? await ExecuteAsync(tableOrView)
-                    : default;
-        }
+        public Task<GetDataResult> ExecuteAsync(IQuery query) => ExecuteAsync(query as TableOrView);
 
-        private async Task<GetDataResult> ExecuteAsync(ITableOrView view)
+        private async Task<GetDataResult> ExecuteAsync(TableOrView view)
         {
             var commandText = await GetCommandTextAsync(view);
 
-            using var conn = new SqlConnection(view.Resolve(x => x.ConnectionString).With(Merge));
+            using var conn = new SqlConnection(view.Resolve(x => x.ConnectionString).With(MergeProperty));
 
             await conn.OpenAsync();
             using var cmd = conn.CreateCommand();
@@ -60,11 +53,11 @@ namespace Gunter.Queries
             };
         }
 
-        private async Task<string> GetCommandTextAsync(ITableOrView view)
+        private async Task<string> GetCommandTextAsync(TableOrView view)
         {
             // language=regexp
             const string fileSchemePattern = "^file:///";
-            var commandText = view.Resolve(x => x.Command).With(Merge);
+            var commandText = view.Resolve(x => x.Command).With(MergeProperty);
             if (Regex.IsMatch(commandText, fileSchemePattern))
             {
                 var path = Regex.Replace(commandText, fileSchemePattern, string.Empty);

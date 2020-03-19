@@ -25,9 +25,9 @@ namespace Gunter.Services
                 {
                     new StringEnumConverter(),
                     new SoftStringConverter(),
-                    new LambdaJsonConverter<TemplateSelector>
+                    new LambdaJsonConverter<ModelSelector>
                     {
-                        ReadJsonCallback = TemplateSelector.Parse
+                        ReadJsonCallback = ModelSelector.Parse
                     },
                     new TestFileConverter
                     {

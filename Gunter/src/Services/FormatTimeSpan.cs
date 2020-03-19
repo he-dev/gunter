@@ -16,7 +16,7 @@ namespace Gunter.Services
         [DefaultValue(Milliseconds)]
         public TimeSpanPrecision Precision { get; set; }
 
-        public string Apply(object? value)
+        public string Execute(object? value)
         {
             return value is {} ? TimeSpanFactory(Precision)(Convert.ToDouble(value)).ToString(Format) : default;
         }
@@ -41,6 +41,14 @@ namespace Gunter.Services
         Seconds,
         Minutes,
         Hours,
-        Days
+        Days,
+        
+        // ReSharper disable InconsistentNaming
+        ms = Milliseconds,
+        sec = Seconds,
+        min = Minutes,
+        h = Hours,
+        d = Days
+        // ReSharper restore InconsistentNaming
     }
 }

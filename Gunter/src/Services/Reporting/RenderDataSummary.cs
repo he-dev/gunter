@@ -3,42 +3,21 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Custom;
-using Gunter.Annotations;
-using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting;
 using Gunter.Extensions;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
 using JetBrains.Annotations;
-using Reusable.Collections;
 using Reusable.Exceptionize;
+using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
-using ReportModule = Gunter.Data.Configuration.ReportModule;
 
 namespace Gunter.Services.Reporting
 {
     [PublicAPI]
     public class RenderDataSummary : IRenderReportModule
     {
-        private static readonly IEqualityComparer<IEnumerable<object>> GroupKeyEqualityComparer = EqualityComparerFactory<IEnumerable<object>>.Create
-        (
-            (left, right) => left.SequenceEqual(right),
-            (keys) => keys.CalcHashCode()
-        );
-
-        private delegate object? AggregateCallback(IEnumerable<object?> values);
-
-        private static readonly Dictionary<ColumnAggregate, AggregateCallback> Aggregates = new Dictionary<ColumnAggregate, AggregateCallback>
-        {
-            [ColumnAggregate.First] = values => values.FirstOrDefault(),
-            [ColumnAggregate.Last] = values => values.LastOrDefault(),
-            [ColumnAggregate.Min] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Min, double.NaN),
-            [ColumnAggregate.Max] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Max, double.NaN),
-            [ColumnAggregate.Count] = values => values.Count(),
-            [ColumnAggregate.Sum] = values => values.Select(Convert.ToDouble).Sum(),
-            [ColumnAggregate.Average] = values => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
-        };
-
         public RenderDataSummary(Format format, TestContext testContext)
         {
             Format = format;
@@ -53,78 +32,71 @@ namespace Gunter.Services.Reporting
 
         private IReportModuleDto Execute(DataSummary model)
         {
-            // Materialize it because we'll be modifying it.
-            var columns = model.Columns.ToList();
+            // Use either custom columns or all by default.
+            var columns =
+                model.Columns.Any()
+                    ? model.Columns.ToList()
+                    : TestContext.Data.Columns.Cast<DataColumn>().Select(c => new DataColumnSetting { Select = c.ColumnName, ReduceType = ReduceType.Last }).ToList();
 
-            // Use all columns by default if none-specified.
-            if (!model.Columns.Any())
-            {
-                columns = TestContext.Data.Columns.Cast<DataColumn>().Select(c => new DataInfoColumn
-                {
-                    Select = c.ColumnName,
-                    Aggregate = ColumnAggregate.Last
-                }).ToList();
-            }
 
+            var table = new HtmlTable(columns.Select(column => (column.Display, typeof(string))));
 
             // Filter rows before processing them.
-            var filteredRows = TestContext.Data.Select(TestContext.TestCase.Filter);
+            var dataRows = TestContext.Data.Select(TestContext.TestCase.Filter);
 
             // We'll use it a lot so materialize it.
-            var groupColumns = columns.Where(x => x.IsKey).ToList();
-            var rowGroups = filteredRows.GroupBy(row => row.GroupKey(groupColumns), GroupKeyEqualityComparer);
+            var keyColumns = columns.Where(x => x.IsKey).ToList();
 
-            // Create aggregated rows and add them to the final data-table.            
-            var aggregatedRows =
-                from rowGroup in rowGroups
-                let aggregated = 
-                    from column in columns 
-                    select (column, value: Aggregate(column, rowGroup))
-                select aggregated;
+            var results =
+                from dataRow in dataRows
+                group dataRow by dataRow.CreateKey(keyColumns) into dataRowGroup
+                let result =
+                    from column in columns
+                    let aggregate = Aggregate(column, dataRowGroup)
+                    let formatted = column.Formatter?.Execute(aggregate) ?? aggregate
+                    select (column, value: formatted)
+                select result;
 
-            var table = new HtmlTable(columns.Select(column => ((column.Display ?? column.Select).ToString(), typeof(string))));
-
-            foreach (var row in aggregatedRows)
+            foreach (var row in results)
             {
                 var newRow = table.Body.AddRow();
                 foreach (var (column, value) in row)
                 {
-                    newRow.Set((column.Display ?? column.Select).ToString(), value, column.Styles);
+                    newRow.Column(column.Display).Pipe(c =>
+                    {
+                        c.Value = value;
+                        c.Tags.UnionWith(column.Tags);
+                    });
                 }
             }
 
             // Add the footer row with column options.
-            table.Foot.Add(columns.Select(column => string.Join(", ", StringifyColumnOption(column))).ToList());
+            table.Foot.Add(columns.Select(column => StringifyColumnOption(column).Join(", ")));
 
-            //return section;
-            return new ReportModuleDto<DataSummary>(model, dataSummary => new
-            {
-                Data = table
-            });
+            return new ReportModuleDto<DataSummary>(model, dataSummary => new { Data = table });
         }
 
-        private IEnumerable<string> StringifyColumnOption(DataInfoColumn column)
+        private IEnumerable<string> StringifyColumnOption(DataColumnSetting columnSetting)
         {
-            yield return column.IsKey ? "Key" : column.Aggregate.ToString();
+            yield return columnSetting.IsKey ? "Key" : columnSetting.ReduceType.ToString();
         }
 
-        private object Aggregate(DataInfoColumn column, IEnumerable<DataRow> rowGroup)
+        private object Aggregate(DataColumnSetting columnSetting, IEnumerable<DataRow> dataRows)
         {
             try
             {
-                var aggregate = Aggregates[column.Aggregate];
-                var values = rowGroup.Values((string)column.Select).NotDBNull();
-                if (aggregate(values) is {} value)
-                {
-                    return column.Formatter?.Apply(value) ?? value;
-                }
+                var values =
+                    from dataRow in dataRows
+                    let value = dataRow[columnSetting.Select]
+                    where value != DBNull.Value
+                    select value;
+
+                return values.Reduce(columnSetting.ReduceType);
             }
             catch (Exception inner)
             {
-                throw DynamicException.Create("Aggregate", $"Could not aggregate '{column.Select.ToString()}'.", inner);
+                throw DynamicException.Create("Aggregate", $"Could not aggregate column '{columnSetting.Select}'.", inner);
             }
-
-            return default;
         }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Gunter.Data;
-using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Sections;
 using Gunter.Workflow.Data;
 using Reusable.Exceptionize;
 using Reusable.Extensions;

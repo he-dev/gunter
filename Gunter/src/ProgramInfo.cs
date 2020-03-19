@@ -28,7 +28,7 @@ namespace Gunter
 
         public static string Name => "Gunter";
 
-        public static string Version => "10.0.0";
+        public static string Version => "11.0.0";
 
         public static string FullName => $"{Name}-v{Version}";
 

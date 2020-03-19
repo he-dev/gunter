@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using Gunter.Data.Configuration.Abstractions;
 using Newtonsoft.Json;
-using Reusable;
 
-namespace Gunter.Data.Configuration
+namespace Gunter.Data.Configuration.Sections
 {
     [JsonObject]
     public class Report : IReport, IEnumerable<ReportModule>
     {
         [JsonRequired]
-        public SoftString Name { get; set; }
+        public string? Name { get; set; }
 
-        public TemplateSelector TemplateSelector { get; set; }
+        public ModelSelector ModelSelector { get; set; }
 
         public string Title { get; set; }
 

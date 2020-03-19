@@ -153,11 +153,6 @@
     <RegFreeComManifest Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.X.manifest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="src\Data\Abstractions" />
-    <Folder Include="src\Queries\Abstractions" />
-  </ItemGroup>
-
 <!--  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">-->
 <!--    <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />-->
 <!--  </Target>-->

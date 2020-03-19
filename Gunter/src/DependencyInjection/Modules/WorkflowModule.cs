@@ -1,14 +1,12 @@
-using System.Collections.Generic;
 using Autofac;
-using Gunter.Data;
-using Gunter.Data.Configuration;
-using Gunter.Queries;
+using Gunter.Data.Abstractions;
+using Gunter.Data.Properties;
 using Gunter.Services;
 using Gunter.Services.Abstractions;
 using Gunter.Services.DispatchMessage;
+using Gunter.Services.Queries;
 using Gunter.Services.Reporting;
 using Gunter.Workflow.Data;
-using Gunter.Workflow.Steps;
 using Gunter.Workflow.Steps.SessionSteps;
 using Gunter.Workflow.Steps.TestCaseSteps;
 using Gunter.Workflow.Steps.TheorySteps;
@@ -54,10 +52,11 @@ namespace Gunter.DependencyInjection.Modules
             builder.Register(_ => new MemoryCache(new MemoryCacheOptions())).As<IMemoryCache>().InstancePerLifetimeScope();
 
             builder.RegisterType<Format>().InstancePerDependency();
-            builder.RegisterType<Merge>().InstancePerDependency();
-            builder.RegisterInstance(new StaticProperty(() => ProgramInfo.FullName));
-            builder.RegisterInstance(new StaticProperty(() => ProgramInfo.Version));
-            builder.RegisterType<GetDataTableOrView>().As<IGetData>();
+            builder.RegisterType<MergeProperty>().InstancePerDependency();
+            builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.Name));
+            builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.Version));
+            builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.FullName));
+            builder.RegisterType<GetDataFromTableOrView>().As<IGetData>();
             builder.RegisterType<ThrowOperationCanceledException>().As<IDispatchMessage>();
             builder.RegisterType<DispatchEmail>().As<IDispatchMessage>().InstancePerDependency();
             

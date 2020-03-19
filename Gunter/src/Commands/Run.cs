@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Gunter.Data.Workflows;
-using Gunter.Services;
+using Gunter.Data;
 using Gunter.Workflow.Data;
 using JetBrains.Annotations;
 using Reusable.Commander;
@@ -18,6 +16,7 @@ namespace Gunter.Commands
     [Tags("b")]
     internal class Run : Command<Run.Parameter>
     {
+        private readonly ILogger<Run> _logger;
         private readonly IResource _resource;
         private readonly Workflow<SessionContext> _sessionWorkflow;
 
@@ -28,6 +27,7 @@ namespace Gunter.Commands
             Workflow<SessionContext> sessionWorkflow
         )
         {
+            _logger = logger;
             _resource = resource;
             _sessionWorkflow = sessionWorkflow;
         }

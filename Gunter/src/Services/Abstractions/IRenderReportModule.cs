@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Abstractions;
 
 namespace Gunter.Services.Abstractions
 {

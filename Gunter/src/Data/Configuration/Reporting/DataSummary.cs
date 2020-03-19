@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting.Abstractions;
-using Gunter.Services.Reporting;
 
 namespace Gunter.Data.Configuration.Reporting
 {
@@ -10,6 +10,6 @@ namespace Gunter.Data.Configuration.Reporting
 
         public bool HasFoot => true;
 
-        public List<DataInfoColumn?> Columns { get; set; } = new List<DataInfoColumn?>();
+        public List<DataColumnSetting?> Columns { get; set; } = new List<DataColumnSetting?>();
     }
 }
