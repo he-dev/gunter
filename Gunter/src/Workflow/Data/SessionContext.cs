@@ -9,7 +9,7 @@ namespace Gunter.Workflow.Data
     {
         public string TheoryDirectoryName { get; set; }
 
-        public TheoryFilter TheoryFilter { get; set; }
+        public TestFilter TestFilter { get; set; } = new TestFilter();
 
         public HashSet<string> TheoryNames { get; set; } = new HashSet<string>(SoftString.Comparer);
 

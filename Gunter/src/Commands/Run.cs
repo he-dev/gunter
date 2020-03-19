@@ -37,21 +37,15 @@ namespace Gunter.Commands
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             var defaultPath = Path.Combine(currentDirectory, _resource.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
-            //var bundles = await _testLoader.LoadTestsAsync(parameter.Path ?? defaultPath, parameter.Files).ToListAsync(cancellationToken);
-            var testFilter = new TheoryFilter
-            {
-                //DirectoryNamePatterns = parameter.Path ?? defaultPath,
-                //Files = commandLine.Files,
-                //Tags = parameter.Tests,
-                Tags = parameter.Tags
-            };
-            //var compositions = _testComposer.ComposeTests(bundles, testFilter);
-            //await _testRunner.RunAsync(compositions);
-
             await _sessionWorkflow.ExecuteAsync(new SessionContext
             {
                 TheoryDirectoryName = defaultPath,
-                TheoryFilter = testFilter
+                TestFilter =
+                {
+                    FileNamePatterns = parameter.Files,
+                    TestNamePatterns = parameter.Tests,
+                    Tags = parameter.Tags
+                }
             });
         }
 

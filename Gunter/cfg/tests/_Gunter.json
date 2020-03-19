@@ -3,7 +3,7 @@
     {
       "Name": "defaults",
       "Items": {
-        "TestDb": "Data Source=(local);Initial Catalog=TestDb;Integrated Security=SSPI;",
+        "TestDb": "Data Source=localhost;Initial Catalog=TestDb;User Id=SA;Password=ABC123!!!;",
         "Greeting": "Hi there!"
       }
     }

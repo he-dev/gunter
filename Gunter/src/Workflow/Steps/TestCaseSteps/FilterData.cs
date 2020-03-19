@@ -1,3 +1,4 @@
+using System.Data;
 using System.Threading.Tasks;
 using Gunter.Workflow.Data;
 using Reusable.Extensions;
@@ -14,9 +15,13 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
             if (context.Query.Filters is {} filters)
             {
                 using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(FilterData)).UseStopwatch();
-                foreach (var dataFilter in filters)
+
+                foreach (var dataRow in context.Data.AsEnumerable())
                 {
-                    dataFilter.Execute(context.Data);
+                    foreach (var dataFilter in filters)
+                    {
+                        dataFilter.Execute(context.Data, dataRow);
+                    }
                 }
 
                 context.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
@@ -24,6 +29,5 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
             return Flow.Continue.ToTask();
         }
-
     }
 }
