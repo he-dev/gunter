@@ -8,6 +8,7 @@ using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting;
 using Gunter.Data.Configuration.Sections;
+using Gunter.Data.Configuration.Tasks;
 using Gunter.Services;
 using Gunter.Services.FilterData;
 using JetBrains.Annotations;
@@ -17,7 +18,7 @@ namespace Gunter.Data.Configuration
 {
     [PublicAPI]
     [JsonObject]
-    public class Theory : IModel, IMergeable, IEnumerable<IModel>
+    public class Theory : IModel, IEnumerable<IModel>
     {
         public const string TemplatePrefix = "_";
 
@@ -50,13 +51,11 @@ namespace Gunter.Data.Configuration
             set { }
         }
 
-        public ModelSelector ModelSelector { get; set; }
-
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public IEnumerable<PropertyCollection> Properties { get; set; }
+        public PropertyCollection Properties { get; set; }
 
         [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         public IEnumerable<IQuery> Queries { get; set; } = new List<IQuery>();
@@ -77,7 +76,7 @@ namespace Gunter.Data.Configuration
 
         public IEnumerator<IModel> GetEnumerator()
         {
-            return Properties.Cast<IModel>().Concat(Queries).Concat(Tests).Concat(Reports).GetEnumerator();
+            return new[] { Properties }.Cast<IModel>().Concat(Queries).Concat(Tests).Concat(Reports).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

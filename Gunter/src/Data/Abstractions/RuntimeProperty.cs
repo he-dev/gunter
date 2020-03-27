@@ -1,9 +1,11 @@
 using System;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Reusable;
 using Reusable.Collections;
+using Reusable.Diagnostics;
 
 namespace Gunter.Data.Abstractions
 {
@@ -17,9 +19,16 @@ namespace Gunter.Data.Abstractions
         object? GetValue();
     }
 
+    [DebuggerDisplay(DebuggerDisplayString.DefaultNoQuotes)]
     public abstract class RuntimeProperty : IProperty
     {
         protected RuntimeProperty(string name) => Name = name;
+
+        private string DebuggerDisplay => this.ToDebuggerDisplayString(builder =>
+        {
+            builder.DisplaySingle(x => x.Name);
+            builder.DisplaySingle(x => x.GetValue());
+        });
 
         public SoftString Name { get; }
 
@@ -34,6 +43,8 @@ namespace Gunter.Data.Abstractions
         public override int GetHashCode() => AutoEquality<IProperty>.Comparer.GetHashCode(this);
 
         #endregion
+
+        public override string ToString() => DebuggerDisplay;
 
         protected static string CreateName(Expression expression)
         {

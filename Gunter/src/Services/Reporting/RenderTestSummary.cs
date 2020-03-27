@@ -10,13 +10,13 @@ namespace Gunter.Services.Reporting
 {
     public class RenderTestSummary : IRenderReportModule
     {
-        public RenderTestSummary(Format format, TestContext testContext)
+        public RenderTestSummary(ITryGetFormatValue tryGetFormatValue, TestContext testContext)
         {
-            Format = format;
+            TryGetFormatValue = tryGetFormatValue;
             TestContext = testContext;
         }
 
-        private Format Format { get; }
+        private ITryGetFormatValue TryGetFormatValue { get; }
 
         private TestContext TestContext { get; }
 
@@ -41,13 +41,13 @@ namespace Gunter.Services.Reporting
                 .Set(Columns.Value, TestContext.Result.ToString(), TestContext.Result.ToString().ToLower());
             table.Body.AddRow()
                 .Set(Columns.Property, "Then")
-                .Set(Columns.Value, TestContext.TestCase.Messages[TestContext.Result]);
+                .Set(Columns.Value, TestContext.TestCase.When[TestContext.Result]);
             table.Body.AddRow()
                 .Set(Columns.Property, nameof(TestCase.Tags))
                 .Set(Columns.Value, TestContext.TestCase.Tags);
             table.Body.AddRow()
                 .Set(Columns.Property, "Elapsed")
-                .Set(Columns.Value, $"{{{nameof(TestContext)}.{nameof(TestContext.EvaluateDataElapsed)}:{model.TimespanFormat}}}".Map(Format));
+                .Set(Columns.Value, $"{{{nameof(TestContext)}.{nameof(TestContext.EvaluateDataElapsed)}:{model.TimespanFormat}}}".Format(TryGetFormatValue));
 
             return new ReportModuleDto<TestSummary>(model, testInfo => new
             {

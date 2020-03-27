@@ -1,14 +1,12 @@
 {
-  "Properties": [
-    {
-      "Name": "locals",
-      "Merge": "_Gunter#defaults",
-      "Items": {
-        "ProductName": "Gunter",
-        "Greeting-1": "Hi there!"
-      }
+  "Properties": {
+    "Name": "locals",
+    "Merge": "_Gunter#defaults",
+    "Items": {
+      "ProductName": "Gunter",
+      "Greeting-1": "Hi there!"
     }
-  ],
+  },
   "Queries": [
     {
       "$g": "TableOrView",
@@ -89,8 +87,17 @@
       "Assert": "Count([_id]) = 0",
       "When": {
         "Failed": [
-          "send -report full -channel email",
-          "halt"
+          {
+            "$g": "Email",
+            "Merge": "_Gunter#email",
+            "To": [
+              "gunter@test.com"
+            ],
+            "Report": "full"
+          },
+          {
+            "$g": "Halt"
+          }
         ]
       },
       "Tags": []

@@ -11,9 +11,8 @@ using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
-using Reusable.OmniLog;
 using Reusable.OmniLog.Nodes;
-using Reusable.OmniLog.SemanticExtensions;
+using Reusable.OmniLog.Extensions;
 
 namespace Gunter.Workflow.Steps.TestCaseSteps
 {
@@ -36,8 +35,7 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
         protected override async Task<Flow> ExecuteBody(TestContext context)
         {
-            using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(GetData)).UseStopwatch();
-            Logger.Log(Abstraction.Layer.Service().Subject(new { QueryId = context.Query.Name }));
+            Logger.Log(Telemetry.Collect.Application().WorkItem("Query", new { context.Query.Name }));
             try
             {
                 (context.QueryCommand, context.Data) = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
@@ -46,12 +44,12 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
                     return await getData.ExecuteAsync(context.Query);
                 });
                 context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
-                Logger.Log(Abstraction.Layer.Database().Counter(new { RowCount = context.Data.Rows.Count, ColumnCount = context.Data.Columns.Count }));
+                Logger.Log(Telemetry.Collect.Dependency().Database().Metric("RowCount", context.Data.Rows.Count));
                 return Flow.Continue;
             }
             catch (Exception inner)
             {
-                throw DynamicException.Create(GetType().ToPrettyString(), $"Error getting or processing data for query '{context.Query.Name}'.", inner);
+                throw DynamicException.Create(GetType().ToPrettyString(), $"Error executing query '{context.Query.Name}'.", inner);
             }
         }
     }

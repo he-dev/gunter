@@ -11,7 +11,6 @@ using Reusable.Flowingo.Data;
 using Reusable.Flowingo.Steps;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Nodes;
-using Reusable.OmniLog.SemanticExtensions;
 
 namespace Gunter.Workflow.Steps.SessionSteps
 {
@@ -41,14 +40,20 @@ namespace Gunter.Workflow.Steps.SessionSteps
 
         private async Task ProcessTheory(Theory theory, IEnumerable<Theory> templates)
         {
-            using var loggerScope = Logger.BeginScope().WithCorrelationHandle("ProcessTheory").UseStopwatch();
+            using var loggerScope = Logger.BeginScope("ProcessTheory", new { theory.Name });
             using var lifetimeScope = LifetimeScope.BeginLifetimeScope(builder =>
             {
                 builder.RegisterInstance(theory);
                 builder.RegisterInstance(templates);
             });
-            Logger.Log(Abstraction.Layer.Service().Meta(new { theory = theory.Name }));
-            await ForEachTheory(lifetimeScope).ExecuteAsync(lifetimeScope.Resolve<TheoryContext>());
+            try
+            {
+                await ForEachTheory(lifetimeScope).ExecuteAsync(lifetimeScope.Resolve<TheoryContext>());
+            }
+            catch (Exception inner)
+            {
+                Logger.Scope().Exceptions.Push(inner);
+            }
         }
     }
 }

@@ -1,13 +1,11 @@
 {
-  "Properties": [
-    {
-      "Name": "defaults",
-      "Items": {
-        "TestDb": "Data Source=localhost;Initial Catalog=TestDb;User Id=SA;Password=ABC123!!!;",
-        "Greeting": "Hi there!"
-      }
+  "Properties": {
+    "Name": "defaults",
+    "Items": {
+      "TestDb": "Data Source=localhost;Initial Catalog=TestDb;User Id=SA;Password=ABC123!!!;",
+      "Greeting": "Hi there!"
     }
-  ],
+  },
   "Queries": [
     {
       "$g": "TableOrView",
@@ -17,23 +15,15 @@
       "Filters": [
         {
           "$g": "GetJsonValue",
-          "Columns": [
-            {
-              "From": "_string_json",
-              "Select": "$.Name",
-              "Attach": "_string_json_name",
-              "Default": "Unknown"
-            }
-          ]
+          "From": "_string_json",
+          "Select": "$.Name",
+          "Attach": "_string_json_name",
+          "Default": "Unknown"
         },
         {
           "$g": "GetFirstLine",
-          "Columns": [
-            {
-              "From": "_string_text",
-              "Attach": "_string_text_first_line"
-            }
-          ]
+          "From": "_string_text",
+          "Attach": "_string_text_first_line"
         }
       ]
     },
@@ -122,7 +112,7 @@
           "Columns": [
             {
               "Select": "_string_text",
-              "Display": "_string_text_renamed",
+              "Display": "_string_text_renamed"
             },
             {
               "Select": "_string_text_first_line",

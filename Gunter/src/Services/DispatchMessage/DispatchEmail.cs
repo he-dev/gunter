@@ -8,6 +8,7 @@ using Gunter.Annotations;
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Tasks;
 using Gunter.Services.Abstractions;
 using Gunter.Services.Reporting;
 using Gunter.Workflow.Steps.TestCaseSteps;
@@ -15,8 +16,8 @@ using JetBrains.Annotations;
 using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
+using Reusable.OmniLog.Extensions;
 using Reusable.OmniLog.Nodes;
-using Reusable.OmniLog.SemanticExtensions;
 using Reusable.Translucent;
 using Reusable.Utilities.Mailr;
 
@@ -31,14 +32,14 @@ namespace Gunter.Services.DispatchMessage
             ILogger<DispatchEmail> logger,
             IResource resource,
             IComponentContext componentContext,
-            Format format,
+            ITryGetFormatValue tryGetFormatValue,
             Theory theory
         )
         {
             Logger = logger;
             Resource = resource;
             ComponentContext = componentContext;
-            Format = format;
+            TryGetFormatValue = tryGetFormatValue;
             Theory = theory;
         }
 
@@ -48,7 +49,7 @@ namespace Gunter.Services.DispatchMessage
 
         private IComponentContext ComponentContext { get; }
 
-        private Format Format { get; }
+        private ITryGetFormatValue TryGetFormatValue { get; }
 
         private Theory Theory { get; }
 
@@ -61,13 +62,14 @@ namespace Gunter.Services.DispatchMessage
             Handle<TestSummary>.With<RenderTestSummary>(),
         };
 
-        public async Task InvokeAsync(IMessage message)
+        public async Task InvokeAsync(ITask task) => await InvokeAsync(task as Email);
+        
+        public async Task InvokeAsync(Email email)
         {
-            var report = Theory.Reports.Single(r => r.Name.Equals(message.ReportName));
+            var report = Theory.Reports.Single(r => r.Name.Equals(email.ReportName));
 
-            using var loggerScope = Logger.BeginScope().WithCorrelationHandle(nameof(DispatchEmail)).UseStopwatch();
-            Logger.Log(Abstraction.Layer.Service().Meta(new { reportName = report.Name }));
-            
+            using var emailScope = Logger.BeginScope(nameof(DispatchEmail), new { reportName = report.Name });
+
             try
             {
                 var modules =
@@ -76,20 +78,18 @@ namespace Gunter.Services.DispatchMessage
                     let render = (IRenderReportModule)ComponentContext.Resolve(handlerType)
                     select render.Execute(module);
 
-
-                await SendAsync((Email)message, report.Title, modules);
-                Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Completed());
+                await SendAsync(email, report.Title, modules);
             }
             catch (Exception ex)
             {
-                Logger.Log(Abstraction.Layer.Network().Routine(Logger.Scope().CorrelationHandle.ToString()).Faulted(ex));
+                Logger.Scope().Exceptions.Push(ex);
             }
         }
 
         private async Task SendAsync(Email email, string title, IEnumerable<IReportModuleDto> modules)
         {
-            var to = email.To.Select(x => x.Map(Format));
-            var subject = title.Map(Format);
+            var to = email.To.Select(x => x.Format(TryGetFormatValue));
+            var subject = title.Format(TryGetFormatValue);
 
             var htmlEmail = new Reusable.Utilities.Mailr.Models.Email.Html(to, subject)
             {
@@ -101,13 +101,13 @@ namespace Gunter.Services.DispatchMessage
                 },
             };
 
-            Logger.Log(Abstraction.Layer.Service().Meta(new { email = new { htmlEmail.To, htmlEmail.CC, htmlEmail.Subject } }));
+            Logger.Log(Telemetry.Collect.Application().Metadata("Email", new { htmlEmail.To, htmlEmail.CC, htmlEmail.Subject }));
 
             var testResultPath = await Resource.ReadSettingAsync(MailrConfig.TestResultPath);
             await Resource.SendEmailAsync(testResultPath, htmlEmail, http =>
             {
                 http.UserAgent = new ProductInfoHeaderValue(ProgramInfo.Name, ProgramInfo.Version);
-                http.ControllerTags.Add("Mailr");
+                http.ControllerName = "Mailr";
             });
         }
     }

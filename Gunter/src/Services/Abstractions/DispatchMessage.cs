@@ -5,6 +5,6 @@ namespace Gunter.Services.Abstractions
 {
     public interface IDispatchMessage
     {
-        Task InvokeAsync(IMessage message);
+        Task InvokeAsync(ITask task);
     }
 }

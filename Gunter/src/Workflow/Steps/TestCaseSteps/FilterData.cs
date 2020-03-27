@@ -4,6 +4,7 @@ using Gunter.Workflow.Data;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
+using Reusable.OmniLog.Extensions;
 using Reusable.OmniLog.Nodes;
 
 namespace Gunter.Workflow.Steps.TestCaseSteps
@@ -14,8 +15,6 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
         {
             if (context.Query.Filters is {} filters)
             {
-                using var scope = Logger.BeginScope().WithCorrelationHandle(nameof(FilterData)).UseStopwatch();
-
                 foreach (var dataRow in context.Data.AsEnumerable())
                 {
                     foreach (var dataFilter in filters)

@@ -1,15 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using Gunter.Data;
-using Gunter.Data.Configuration.Sections;
 using Gunter.Workflow.Data;
 using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
-using Reusable.OmniLog;
 using Reusable.OmniLog.Nodes;
-using Reusable.OmniLog.SemanticExtensions;
+using Reusable.OmniLog.Extensions;
 
 namespace Gunter.Workflow.Steps.TestCaseSteps
 {
@@ -26,11 +24,11 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
                     false => TestResult.Failed
                 };
 
-                Logger?.Log(Abstraction.Layer.Service().Meta(new { TestResult = context.Result }));
+                Logger?.Log(Telemetry.Collect.Business().Metadata("TestResult", context.Result));
             }
             else
             {
-                throw DynamicException.Create("Assert", $"'{nameof(TestCase.Assert)}' must evaluate to '{nameof(Boolean)}'.");
+                throw DynamicException.Create("Assert", $"Could not evaluate test '{context.TestCase.Name}' because it's condition does not yield a '{nameof(Boolean)}'.");
             }
 
             return Flow.Continue.ToTask();

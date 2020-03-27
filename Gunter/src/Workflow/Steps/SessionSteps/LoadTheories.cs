@@ -5,7 +5,7 @@ using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
 using Reusable.OmniLog;
-using Reusable.OmniLog.SemanticExtensions;
+using Reusable.OmniLog.Nodes;
 using Reusable.Translucent;
 
 namespace Gunter.Workflow.Steps.SessionSteps
@@ -30,7 +30,7 @@ namespace Gunter.Workflow.Steps.SessionSteps
         {
             foreach (var theoryFileName in context.TheoryNames)
             {
-                Logger.Log(Abstraction.Layer.IO().Meta(new { theoryFileName }));
+                using var scope = Logger.BeginScope("LoadTheory", new { theoryFileName });
                 try
                 {
                     var prettyJson = await Resource.ReadTextFileAsync(theoryFileName);
@@ -39,7 +39,7 @@ namespace Gunter.Workflow.Steps.SessionSteps
                 }
                 catch (Exception inner)
                 {
-                    Logger.Log(Abstraction.Layer.IO().Routine(nameof(DeserializeTheory)).Faulted(inner));
+                    Logger.Scope().Exceptions.Push(inner);
                 }
             }
 

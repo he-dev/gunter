@@ -43,7 +43,7 @@ namespace Gunter.Data.Configuration.Sections
         public string Assert { get; set; }
 
         // Gets or sets commands that should be executed upon the specified test-result.
-        public Dictionary<TestResult, List<IMessage>> Messages { get; set; } = new Dictionary<TestResult, List<IMessage>>();
+        public Dictionary<TestResult, List<ITask>> When { get; set; } = new Dictionary<TestResult, List<ITask>>();
 
         //[JsonProperty("Profiles", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public HashSet<SoftString> Tags { get; set; } = new HashSet<SoftString>();

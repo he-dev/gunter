@@ -7,7 +7,7 @@ namespace Gunter.Services.DispatchMessage
 {
     public class ThrowOperationCanceledException : IDispatchMessage
     {
-        public Task InvokeAsync(IMessage message)
+        public Task InvokeAsync(ITask task)
         {
             throw new OperationCanceledException();
         }

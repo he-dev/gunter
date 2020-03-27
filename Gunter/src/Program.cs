@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 using Autofac;
 using Gunter.DependencyInjection;
 using Reusable.Commander;
-using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
-using Reusable.OmniLog.SemanticExtensions;
+using Reusable.OmniLog.Extensions;
 using Reusable.Translucent;
 
 namespace Gunter
@@ -60,9 +59,9 @@ namespace Gunter
             }
         }
 
-        private void LogHallo() => _logger.Log(Abstraction.Layer.Service().Routine(nameof(Main)).Running(), l => l.Message("G’day!"));
+        private void LogHallo() => _logger.Log(Telemetry.Collect.Application().Metadata("Greeting", "G’day!"));
 
-        private void LogGoodBye() => _logger.Log(Abstraction.Layer.Service().Routine(nameof(Main)).Completed(), l => l.Message("See ya!"));
+        private void LogGoodBye() => _logger.Log(Telemetry.Collect.Application().Metadata("Farewell", "See ya!"));
 
 //        public async Task RunAsync()
 //        {

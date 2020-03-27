@@ -3,11 +3,12 @@ using System.ComponentModel;
 using Gunter.Annotations;
 using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Abstractions;
+using Newtonsoft.Json;
 
-namespace Gunter.Data.Configuration
+namespace Gunter.Data.Configuration.Tasks
 {
     [Gunter]
-    public class Email : IMessage, IMergeable
+    public class Email : ITask, IMergeable
     {
         public string? Name { get; set; }
 
@@ -18,16 +19,9 @@ namespace Gunter.Data.Configuration
         public List<string> CC { get; set; } = new List<string>();
 
         [DefaultValue("default")]
-        public string Theme { get; set; }
-        
-        public string? ReportName { get; set; }
-    }
+        public string Theme { get; set; } = default!;
 
-    [Gunter]
-    public class Halt : IMessage
-    {
-        public string? Name { get; set; }
-
-        public string? ReportName { get; set; }
+        [JsonProperty("Report")]
+        public string ReportName { get; set; } = default!;
     }
 }

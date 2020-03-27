@@ -18,13 +18,13 @@ namespace Gunter.Services.Reporting
     [PublicAPI]
     public class RenderDataSummary : IRenderReportModule
     {
-        public RenderDataSummary(Format format, TestContext testContext)
+        public RenderDataSummary(ITryGetFormatValue tryGetFormatValue, TestContext testContext)
         {
-            Format = format;
+            TryGetFormatValue = tryGetFormatValue;
             TestContext = testContext;
         }
 
-        private Format Format { get; }
+        private ITryGetFormatValue TryGetFormatValue { get; }
 
         private TestContext TestContext { get; }
 

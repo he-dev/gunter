@@ -5,8 +5,7 @@ using Gunter.Workflow.Data;
 using Reusable.Extensions;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
-using Reusable.OmniLog;
-using Reusable.OmniLog.SemanticExtensions;
+using Reusable.OmniLog.Extensions;
 
 namespace Gunter.Workflow.Steps.TheorySteps
 {
@@ -29,8 +28,8 @@ namespace Gunter.Workflow.Steps.TheorySteps
 
             if (duplicateModelNames.ToList() is var x && x.Any())
             {
-                Logger.Log(Abstraction.Layer.IO().Flow().Decision("Ignore theory.").Because("It contains duplicate model names.").Warning());
-                Logger.Log(Abstraction.Layer.IO().Meta(new { theoryName = Theory.Name, duplicateModelNames = x }, "DuplicateModelNames").Warning());
+                Logger.Log(Telemetry.Collect.Application().Logic().Decision("Skip theory.").Because("It contains duplicate model names.").Warning());
+                Logger.Log(Telemetry.Collect.Dependency().File().Metadata("duplicateModelNames", x).Warning());
                 return Flow.Break.ToTask();
             }
             else

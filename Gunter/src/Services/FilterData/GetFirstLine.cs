@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using Gunter.Annotations;
-using Newtonsoft.Json;
 using Reusable.Extensions;
 
 namespace Gunter.Services.FilterData

@@ -46,12 +46,13 @@ namespace Gunter.DependencyInjection.Modules
                             new PhysicalFileResourceController(),
                             new JsonFileController(ProgramInfo.CurrentDirectory, "appsettings.json"),
                             new HttpController
-                            (
-                                new HttpClient(new HttpClientHandler { UseProxy = false })
+                            {
+                                CreateHttpClient = () => new HttpClient(new HttpClientHandler { UseProxy = false })
                                 {
                                     BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
-                                }
-                            ).Pipe(x => x.Tags.Add("Mailr")),
+                                },
+                                Name = "Mailr"
+                            },
                         }),
                     });
                 })

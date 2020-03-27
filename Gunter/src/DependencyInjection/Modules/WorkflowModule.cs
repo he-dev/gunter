@@ -47,18 +47,20 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterType<TestContext>();
 
             // Services
-
+            
+            builder.RegisterType<GetDataFromTableOrView>();
             builder.RegisterType<DeserializeTheory>();
             builder.Register(_ => new MemoryCache(new MemoryCacheOptions())).As<IMemoryCache>().InstancePerLifetimeScope();
 
-            builder.RegisterType<Format>().InstancePerDependency();
-            builder.RegisterType<MergeProperty>().InstancePerDependency();
+            builder.RegisterType<TryGetPropertyValue>().As<ITryGetFormatValue>().InstancePerDependency();
+            builder.RegisterType<MergeScalar>().As<IMergeScalar>().InstancePerDependency();
+            builder.RegisterType<MergeCollection>().As<IMergeCollection>().InstancePerDependency();
             builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.Name));
             builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.Version));
             builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.FullName));
             builder.RegisterType<GetDataFromTableOrView>().As<IGetData>();
-            builder.RegisterType<ThrowOperationCanceledException>().As<IDispatchMessage>();
-            builder.RegisterType<DispatchEmail>().As<IDispatchMessage>().InstancePerDependency();
+            builder.RegisterType<DispatchEmail>().InstancePerDependency();
+            builder.RegisterType<ThrowOperationCanceledException>().InstancePerDependency();
             
             builder.RegisterType<RenderHeading>();
             builder.RegisterType<RenderParagraph>();
@@ -75,7 +77,7 @@ namespace Gunter.DependencyInjection.Modules
                 {
                     processTheories.ForEachTheory = theoryComponents => new Workflow<TheoryContext>("theory-workflow")
                     {
-                        c.Resolve<IgnoreTheoryWithDuplicateModelNames>(),
+                        theoryComponents.Resolve<IgnoreTheoryWithDuplicateModelNames>(),
                         theoryComponents.Resolve<ProcessTheory>().Pipe(processTheory =>
                         {
                             processTheory.ForEachTestCase = testCaseComponents => new Workflow<TestContext>("test-case-workflow")

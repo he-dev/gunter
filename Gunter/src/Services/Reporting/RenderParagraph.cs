@@ -7,18 +7,18 @@ namespace Gunter.Services.Reporting
 {
     public class RenderParagraph : IRenderReportModule
     {
-        public RenderParagraph(Format format)
+        public RenderParagraph(ITryGetFormatValue tryGetFormatValue)
         {
-            Format = format;
+            TryGetFormatValue = tryGetFormatValue;
         }
 
-        private Format Format { get; }
+        private ITryGetFormatValue TryGetFormatValue { get; }
 
         public IReportModuleDto Execute(ReportModule module)
         {
             return new ReportModuleDto<Paragraph>(module, heading => new
             {
-                text = heading.Text.Map(Format),
+                text = heading.Text.Format(TryGetFormatValue),
             });
         }
     }

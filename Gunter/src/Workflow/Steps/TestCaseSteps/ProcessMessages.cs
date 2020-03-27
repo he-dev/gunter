@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Tasks;
 using Gunter.Services.Abstractions;
 using Gunter.Services.DispatchMessage;
 using Gunter.Workflow.Data;
@@ -29,7 +30,7 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
         protected override async Task<Flow> ExecuteBody(TestContext context)
         {
-            if (context.TestCase.Messages.TryGetValue(context.Result, out var messages))
+            if (context.TestCase.When.TryGetValue(context.Result, out var messages))
             {
                 foreach (var message in messages)
                 {

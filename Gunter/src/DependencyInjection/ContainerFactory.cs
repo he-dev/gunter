@@ -1,10 +1,12 @@
 ﻿using System;
 using Autofac;
-using Reusable;
 using Reusable.Exceptionize;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
-using Reusable.OmniLog.Services;
+using Reusable.OmniLog.Connectors;
+using Reusable.OmniLog.Extensions;
+using Reusable.OmniLog.Nodes;
+using Reusable.OmniLog.Properties;
 
 namespace Gunter.DependencyInjection
 {
@@ -19,7 +21,7 @@ namespace Gunter.DependencyInjection
                 var builder = new ContainerBuilder();
 
                 builder.RegisterOmniLog(loggerFactory);
-                
+
                 builder.RegisterModule<Modules.Service>();
                 builder.RegisterModule<Modules.Data>();
                 builder.RegisterModule<Modules.Reporting>();
@@ -44,40 +46,28 @@ namespace Gunter.DependencyInjection
                 Reusable.Utilities.NLog.LayoutRenderers.SmartPropertiesLayoutRenderer.Register();
 
                 return
-                    LoggerFactory
-                        .Builder()
-                        .UseService
-                        (
-                            new Constant("Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"]),
-                            new Constant("Product", ProgramInfo.FullName),
-                            new Timestamp<DateTimeUtc>()
-                        )
-                        .UseDelegate()
-                        .UseScope()
-                        .UseBuilder()
-                        .UseDestructure()
-                        //.UseObjectMapper()
-                        .UseSerializer()
-                        .UsePropertyMapper
-                        (
-                            (LogProperty.Names.Scope, "Scope"),
-                            (LogProperty.Names.SnapshotName, "Identifier"),
-                            (LogProperty.Names.Snapshot, "Snapshot")
-                        )
-                        .UseFallback
-                        (
-                            (LogProperty.Names.Level, LogLevel.Information)
-                        )
-                        .UseCamelCase()
-                        .UseEcho
-                        (
-                            new NLogRx(),
-                            new SimpleConsoleRx
+                    LoggerPipelines
+                        .Complete
+                        .Configure<AttachProperty>(node =>
+                        {
+                            node.Properties.Add(new Constant("Environment", System.Configuration.ConfigurationManager.AppSettings["app:Environment"]));
+                            node.Properties.Add(new Constant("Product", ProgramInfo.FullName));
+                        })
+                        .Configure<RenameProperty>(node =>
+                        {
+                            node.Mappings.Add(Names.Properties.Correlation, "Scope");
+                            node.Mappings.Add(Names.Properties.Unit, "Identifier");
+                            node.Mappings.Add(Names.Properties.Snapshot, "Snapshot");
+                        })
+                        .Configure<Echo>(node =>
+                        {
+                            node.Connectors.Add(new NLogConnector());
+                            node.Connectors.Add(new SimpleConsoleRx
                             {
                                 Template = @"[{Timestamp:HH:mm:ss:fff}] [{Level}] {Layer} | {Category} | {Identifier}: {Snapshot} {Elapsed}ms | {Message} {Exception}"
-                            }
-                        )
-                        .Build();
+                            });
+                        })
+                        .ToLoggerFactory();
             }
             catch (Exception inner)
             {

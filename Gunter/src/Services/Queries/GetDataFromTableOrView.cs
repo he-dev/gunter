@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Sections;
+using Gunter.Services.Abstractions;
 using Reusable.Extensions;
 using Reusable.Translucent;
 
@@ -13,16 +14,16 @@ namespace Gunter.Services.Queries
 {
     public class GetDataFromTableOrView : IGetData
     {
-        public GetDataFromTableOrView(MergeProperty mergeProperty, Format format, IResource resource)
+        public GetDataFromTableOrView(IMergeScalar mergeScalar, ITryGetFormatValue tryGetFormatValue, IResource resource)
         {
-            MergeProperty = mergeProperty;
-            Format = format;
+            MergeScalar = mergeScalar;
+            TryGetFormatValue = tryGetFormatValue;
             Resource = resource;
         }
 
-        private MergeProperty MergeProperty { get; }
+        private IMergeScalar MergeScalar { get; }
 
-        private Format Format { get; }
+        private ITryGetFormatValue TryGetFormatValue { get; }
 
         private IResource Resource { get; }
 
@@ -34,7 +35,7 @@ namespace Gunter.Services.Queries
         {
             var commandText = await GetCommandTextAsync(view);
 
-            using var conn = new SqlConnection(view.Resolve(x => x.ConnectionString).With(MergeProperty));
+            using var conn = new SqlConnection(view.Resolve(x => x.ConnectionString, MergeScalar).Format(TryGetFormatValue));
 
             await conn.OpenAsync();
             using var cmd = conn.CreateCommand();
@@ -57,20 +58,22 @@ namespace Gunter.Services.Queries
         {
             // language=regexp
             const string fileSchemePattern = "^file:///";
-            var commandText = view.Resolve(x => x.Command).With(MergeProperty);
-            if (Regex.IsMatch(commandText, fileSchemePattern))
+
+            var commandText = view.Resolve(x => x.Command, MergeScalar).Format(TryGetFormatValue);
+
+            if (Regex.Replace(commandText, fileSchemePattern, string.Empty) is var path && path.Length < commandText.Length)
             {
-                var path = Regex.Replace(commandText, fileSchemePattern, string.Empty);
                 if (!Path.IsPathRooted(path))
                 {
                     var defaultTestsDirectoryName = await Resource.ReadSettingAsync(ProgramConfig.DefaultTestsDirectoryName);
                     path = Path.Combine(ProgramInfo.CurrentDirectory, defaultTestsDirectoryName, path);
                 }
 
-                commandText = (await Resource.ReadTextFileAsync(path.Map(Format))).Map(Format);
+                commandText = (await Resource.ReadTextFileAsync(path.Format(TryGetFormatValue)));
             }
 
-            return commandText;
+
+            return commandText.Format(TryGetFormatValue);
         }
     }
 }

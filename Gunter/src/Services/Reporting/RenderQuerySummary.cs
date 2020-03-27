@@ -15,13 +15,13 @@ namespace Gunter.Services.Reporting
     using static RenderQuerySummary.Columns;
     public class RenderQuerySummary : IRenderReportModule
     {
-        public RenderQuerySummary(Format format, TestContext context)
+        public RenderQuerySummary(ITryGetFormatValue tryGetFormatValue, TestContext context)
         {
-            Format = format;
+            TryGetFormatValue = tryGetFormatValue;
             Context = context;
         }
 
-        private Format Format { get; }
+        private ITryGetFormatValue TryGetFormatValue { get; }
 
         private TestContext Context { get; }
 
@@ -38,7 +38,7 @@ namespace Gunter.Services.Reporting
             table.Body.Add("Type", Context.Query.GetType().Name);
             table.Body.AddRow().Set(Property, "Command").Set(Value, Context.Query, "query");
             table.Body.Add("Results", Context.Data.Rows.Count.ToString());
-            table.Body.Add("Elapsed", $"{{{nameof(TestContext)}.{nameof(TestContext.GetDataElapsed)}:{model.TimespanFormat}}}".Map(Format));
+            table.Body.Add("Elapsed", $"{{{nameof(TestContext)}.{nameof(TestContext.GetDataElapsed)}:{model.TimespanFormat}}}".Format(TryGetFormatValue));
 
             var hasTimestampColumn = Context.Data.Columns.Contains(model.TimestampColumn);
             var hasRows = Context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
