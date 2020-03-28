@@ -37,6 +37,7 @@
   "Tests": [],
   "Reports": [
     {
+      "$g": "Custom",
       "Name": "mssql",
       "Title": "Glitch alert [{TestCase.Level}]",
       "Modules": [

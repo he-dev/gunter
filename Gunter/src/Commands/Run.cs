@@ -33,7 +33,7 @@ namespace Gunter.Commands
 
         protected override async Task ExecuteAsync(Parameter parameter, CancellationToken cancellationToken)
         {
-            var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+            var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
             var defaultPath = Path.Combine(currentDirectory, _resource.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
             await _sessionWorkflow.ExecuteAsync(new SessionContext

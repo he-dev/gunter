@@ -24,9 +24,9 @@ namespace Gunter.Data.Configuration.Sections
 
         public Theory Parent { get; }
 
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
-        public ModelSelector ModelSelector { get; set; }
+        public ModelSelector? ModelSelector { get; set; }
 
         [DefaultValue(true)]
         public bool Enabled { get; set; }

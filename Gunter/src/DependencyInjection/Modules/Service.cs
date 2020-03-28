@@ -2,7 +2,6 @@ using System;
 using System.Net.Http;
 using Autofac;
 using Reusable.Commander.DependencyInjection;
-using Reusable.Extensions;
 using Reusable.IO;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Translucent;

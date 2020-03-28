@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Custom;
-using Gunter.Data.Configuration.Abstractions;
+using Gunter.Data;
 using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Reports.CustomSections;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Extensions;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
@@ -13,7 +15,7 @@ using Reusable.Exceptionize;
 using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Services.Reporting
+namespace Gunter.Services.Reporting.Tables
 {
     [PublicAPI]
     public class RenderDataSummary : IRenderReportModule
@@ -28,7 +30,7 @@ namespace Gunter.Services.Reporting
 
         private TestContext TestContext { get; }
 
-        public IReportModuleDto Execute(ReportModule module) => Execute(module as DataSummary);
+        public IReportModuleDto Execute(CustomSection section) => Execute(section as DataSummary);
 
         private IReportModuleDto Execute(DataSummary model)
         {

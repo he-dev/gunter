@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using Gunter.Data.Configuration.Reporting.Abstractions;
+using Gunter.Data.Abstractions;
 using Newtonsoft.Json;
 using Reusable.Diagnostics;
 

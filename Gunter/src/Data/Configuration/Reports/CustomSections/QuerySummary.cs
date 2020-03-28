@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel;
-using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Configuration.Reporting.Abstractions;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 
-namespace Gunter.Data.Configuration.Reporting
+namespace Gunter.Data.Configuration.Reports.CustomSections
 {
-    public class QuerySummary : ReportModule, ITabular
+    public class QuerySummary : CustomSection, ITabular
     {
         [DefaultValue("Timestamp")]
         public string TimestampColumn { get; set; }

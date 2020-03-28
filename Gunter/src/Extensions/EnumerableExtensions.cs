@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Gunter.Data.Configuration.Reporting;
+using Gunter.Data;
 
 namespace Gunter.Extensions
 {

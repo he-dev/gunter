@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Gunter.Data.Configuration;
+using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Tasks;
+using Gunter.Services;
 using Gunter.Services.Abstractions;
 using Gunter.Services.DispatchMessage;
 using Gunter.Workflow.Data;
@@ -13,9 +13,9 @@ using Reusable.Flowingo.Data;
 
 namespace Gunter.Workflow.Steps.TestCaseSteps
 {
-    internal class ProcessMessages : Step<TestContext>
+    internal class ProcessTasks : Step<TestContext>
     {
-        public ProcessMessages(IComponentContext componentContext)
+        public ProcessTasks(IComponentContext componentContext)
         {
             ComponentContext = componentContext;
         }
@@ -41,32 +41,6 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
             }
 
             return Flow.Continue;
-        }
-    }
-
-    public interface IServiceMapping
-    {
-        Type HandleeType { get; }
-
-        Type HandlerType { get; }
-    }
-
-    internal class Handle<THandlee> : IServiceMapping
-    {
-        public static IServiceMapping With<THandler>() => new Handle<THandlee> { HandlerType = typeof(THandler) };
-
-        public Type HandleeType => typeof(THandlee);
-        public Type HandlerType { get; private set; }
-    }
-
-    public class ServiceMappingCollection : List<IServiceMapping>
-    {
-        public IEnumerable<Type> Map(object handlee)
-        {
-            return
-                from m in this
-                where m.HandleeType.IsInstanceOfType(handlee)
-                select m.HandlerType;
         }
     }
 }

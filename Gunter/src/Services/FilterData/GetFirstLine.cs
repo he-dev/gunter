@@ -3,11 +3,10 @@ using System.Data;
 using System.Linq;
 using Gunter.Annotations;
 using Reusable.Extensions;
+using Gunter.Services.Abstractions;
 
 namespace Gunter.Services.FilterData
 {
-    using Gunter.Services.Abstractions;
-
     public class ValidateService
     {
         public void Execute(object service)

@@ -1,9 +1,9 @@
-using Gunter.Data.Configuration.Abstractions;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Data.Configuration.Sections;
 
-namespace Gunter.Data.Configuration.Reporting
+namespace Gunter.Data.Configuration.Reports.CustomSections
 {
-    public class Paragraph : ReportModule
+    public class Paragraph : CustomSection
     {
         public string Text { get; set; }
     }

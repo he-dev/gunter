@@ -3,7 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.Data.Abstractions;
-using Gunter.Data.Configuration.Sections;
+using Gunter.Data.Configuration.Queries;
+using Gunter.Services;
 using Gunter.Services.Queries;
 using Gunter.Workflow.Data;
 using Microsoft.Extensions.Caching.Memory;
@@ -28,23 +29,23 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
         private IComponentContext ComponentContext { get; }
 
-        public ServiceMappingCollection QueryMappings { get; set; } = new ServiceMappingCollection
+        public GetHandlers QueryMappings { get; set; } = new GetHandlers
         {
             Handle<TableOrView>.With<GetDataFromTableOrView>()
         };
 
         protected override async Task<Flow> ExecuteBody(TestContext context)
         {
-            Logger.Log(Telemetry.Collect.Application().WorkItem("Query", new { context.Query.Name }));
+            Logger?.Log(Telemetry.Collect.Application().WorkItem("Query", new { context.Query.Name }));
             try
             {
                 (context.QueryCommand, context.Data) = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
                 {
-                    var getData = (IGetData)ComponentContext.Resolve(QueryMappings.Map(context.Query).Single());
+                    var getData = (IGetData)ComponentContext.Resolve(QueryMappings.For(context.Query).Single());
                     return await getData.ExecuteAsync(context.Query);
                 });
-                context.GetDataElapsed = Logger.Scope().Stopwatch().Elapsed;
-                Logger.Log(Telemetry.Collect.Dependency().Database().Metric("RowCount", context.Data.Rows.Count));
+                context.GetDataElapsed = Logger?.Scope().Stopwatch().Elapsed ?? TimeSpan.Zero;
+                Logger?.Log(Telemetry.Collect.Dependency().Database().Metric("RowCount", context.Data.Rows.Count));
                 return Flow.Continue;
             }
             catch (Exception inner)

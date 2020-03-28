@@ -1,5 +1,6 @@
 using Autofac;
 using Gunter.Data.Configuration;
+using Gunter.Data.Configuration.Queries;
 using Gunter.Data.Configuration.Sections;
 
 namespace Gunter.DependencyInjection.Modules

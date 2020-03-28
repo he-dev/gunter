@@ -6,7 +6,8 @@ namespace Gunter.Data.Abstractions
     [Gunter]
     public interface IModel
     {
-        string? Name { get; set; }
+        [JsonRequired]
+        string Name { get; set; }
     }
 
     public interface IMergeable

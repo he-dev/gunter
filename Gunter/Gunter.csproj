@@ -3,15 +3,18 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!--<TargetFramework>net47</TargetFramework>-->
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Gunter</AssemblyName>
     <RootNamespace>Gunter</RootNamespace>
     <Configurations>Debug;Release</Configurations>
-    <Optimize>false</Optimize>
+<!--    <Optimize>false</Optimize>-->
     <LangVersion>latest</LangVersion>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+<!--    <RuntimeIdentifier>win-x64</RuntimeIdentifier>-->
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <Nullable>enable</Nullable>
+<!--    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>-->
+<!--    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>-->
+    <CodeAnalysisRuleSet>..\Custom.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -105,51 +108,7 @@
       <LastGenOutput>NLog.config</LastGenOutput>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_UnmanagedRegistrationCache Remove="obj\Gunter.csproj.UnmanagedRegistration.cache" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_ResolveComReferenceCache Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.csproj.ResolveComReference.cache" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <IntermediateAssembly Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_DebugSymbolsIntermediatePath Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.pdb" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_DeploymentManifestEntryPoint Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ApplicationManifest Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.dll.manifest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <DeployManifest Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.application" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Clean Remove="obj\Debug\netcoreapp2.2\win-x64\\TempCA\Gunter.pdb" />
-    <Clean Remove="obj\Debug\netcoreapp2.2\win-x64\\TempCA\Gunter.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ClsidMap Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.clsidmap" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <RegFreeComManifest Remove="obj\Debug\netcoreapp2.2\win-x64\Gunter.X.manifest" />
-  </ItemGroup>
+  
 
 <!--  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="$(TargetFramework) == 'net47'">-->
 <!--    <Exec Command="xcopy &quot;$(ProjectDir)cfg\app\$(ConfigurationName).App.config&quot; &quot;$(TargetDir)$(TargetFileName).config&quot; /Y" />-->

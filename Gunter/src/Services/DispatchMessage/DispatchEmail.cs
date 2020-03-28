@@ -7,11 +7,12 @@ using Autofac;
 using Gunter.Annotations;
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Reports.CustomSections;
 using Gunter.Data.Configuration.Tasks;
+using Gunter.Helpers;
 using Gunter.Services.Abstractions;
 using Gunter.Services.Reporting;
-using Gunter.Workflow.Steps.TestCaseSteps;
+using Gunter.Services.Reporting.Tables;
 using JetBrains.Annotations;
 using Reusable.Extensions;
 using Reusable.OmniLog;
@@ -32,6 +33,8 @@ namespace Gunter.Services.DispatchMessage
             ILogger<DispatchEmail> logger,
             IResource resource,
             IComponentContext componentContext,
+            IMergeScalar mergeScalar,
+            IMergeCollection mergeCollection,
             ITryGetFormatValue tryGetFormatValue,
             Theory theory
         )
@@ -39,6 +42,8 @@ namespace Gunter.Services.DispatchMessage
             Logger = logger;
             Resource = resource;
             ComponentContext = componentContext;
+            MergeScalar = mergeScalar;
+            MergeCollection = mergeCollection;
             TryGetFormatValue = tryGetFormatValue;
             Theory = theory;
         }
@@ -49,11 +54,15 @@ namespace Gunter.Services.DispatchMessage
 
         private IComponentContext ComponentContext { get; }
 
+        private IMergeScalar MergeScalar { get; }
+
+        private IMergeCollection MergeCollection { get; }
+
         private ITryGetFormatValue TryGetFormatValue { get; }
 
         private Theory Theory { get; }
 
-        public ServiceMappingCollection ServiceMappings { get; set; } = new ServiceMappingCollection
+        public GetHandlers GetHandlers { get; set; } = new GetHandlers
         {
             Handle<Heading>.With<RenderHeading>(),
             Handle<Paragraph>.With<RenderParagraph>(),
@@ -63,7 +72,7 @@ namespace Gunter.Services.DispatchMessage
         };
 
         public async Task InvokeAsync(ITask task) => await InvokeAsync(task as Email);
-        
+
         public async Task InvokeAsync(Email email)
         {
             var report = Theory.Reports.Single(r => r.Name.Equals(email.ReportName));
@@ -73,10 +82,12 @@ namespace Gunter.Services.DispatchMessage
             try
             {
                 var modules =
-                    from module in report.Modules
-                    let handlerType = ServiceMappings.Map(module).Single()
+                    from module in report.Resolve(x => x.Modules, MergeScalar, modules => modules.Any())
+                    let handlerType = GetHandlers.For(module).Single()
                     let render = (IRenderReportModule)ComponentContext.Resolve(handlerType)
                     select render.Execute(module);
+
+                modules = modules.ToList();
 
                 await SendAsync(email, report.Title, modules);
             }

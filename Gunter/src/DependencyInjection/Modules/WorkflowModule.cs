@@ -4,8 +4,10 @@ using Gunter.Data.Properties;
 using Gunter.Services;
 using Gunter.Services.Abstractions;
 using Gunter.Services.DispatchMessage;
+using Gunter.Services.Merging;
 using Gunter.Services.Queries;
 using Gunter.Services.Reporting;
+using Gunter.Services.Reporting.Tables;
 using Gunter.Workflow.Data;
 using Gunter.Workflow.Steps.SessionSteps;
 using Gunter.Workflow.Steps.TestCaseSteps;
@@ -26,11 +28,13 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterGeneric(typeof(InitializeLogger<>));
 
             // Session steps.
+            
             builder.RegisterType<FindTheories>();
             builder.RegisterType<LoadTheories>();
             builder.RegisterType<ProcessTheories>();
 
             // Theory steps.
+            
             builder.RegisterType<IgnoreTheoryWithDuplicateModelNames>();
             builder.RegisterType<ProcessTheory>();
 
@@ -38,7 +42,7 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterType<GetData>();
             builder.RegisterType<FilterData>();
             builder.RegisterType<EvaluateData>();
-            builder.RegisterType<ProcessMessages>();
+            builder.RegisterType<ProcessTasks>();
 
             // Contexts
 
@@ -85,7 +89,7 @@ namespace Gunter.DependencyInjection.Modules
                                 testCaseComponents.Resolve<GetData>(),
                                 testCaseComponents.Resolve<FilterData>(),
                                 testCaseComponents.Resolve<EvaluateData>(),
-                                testCaseComponents.Resolve<ProcessMessages>(),
+                                testCaseComponents.Resolve<ProcessTasks>(),
                             };
                         })
                     };

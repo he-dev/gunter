@@ -6,6 +6,6 @@ namespace Gunter.Data.Configuration.Tasks
     [Gunter]
     public class Halt : ITask
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
     }
 }

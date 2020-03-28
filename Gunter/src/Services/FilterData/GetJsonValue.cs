@@ -4,11 +4,10 @@ using Gunter.Extensions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Gunter.Services.Abstractions;
 
 namespace Gunter.Services.FilterData
 {
-    using Gunter.Services.Abstractions;
-
     [Gunter]
     [UsedImplicitly]
     public class GetJsonValue : FilterDataBase

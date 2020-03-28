@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using Gunter.Annotations;
-using Gunter.Data.Configuration.Reporting.Abstractions;
+using Gunter.Data.Abstractions;
 
 namespace Gunter.Services
 {

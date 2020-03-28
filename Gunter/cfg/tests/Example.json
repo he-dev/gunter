@@ -105,6 +105,7 @@
   ],
   "Reports": [
     {
+      "$g": "Custom",
       "Name": "full",
       "Merge": "_Gunter#mssql"
     }

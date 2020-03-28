@@ -19,8 +19,7 @@ namespace Gunter.Data.Abstractions
     [Gunter]
     public abstract class Query : IQuery
     {
-        [JsonRequired]
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         public List<IFilterData>? Filters { get; set; } = new List<IFilterData>();
     }

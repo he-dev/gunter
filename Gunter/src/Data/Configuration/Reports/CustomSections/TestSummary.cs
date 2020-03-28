@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel;
-using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Configuration.Reporting.Abstractions;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 
-namespace Gunter.Data.Configuration.Reporting
+namespace Gunter.Data.Configuration.Reports.CustomSections
 {
-    public class TestSummary : ReportModule, ITabular
+    public class TestSummary : CustomSection, ITabular
     {
         public TableOrientation Orientation => TableOrientation.Vertical;
 

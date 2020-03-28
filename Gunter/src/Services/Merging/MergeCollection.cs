@@ -5,7 +5,7 @@ using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration;
 using Gunter.Services.Abstractions;
 
-namespace Gunter.Services
+namespace Gunter.Services.Merging
 {
     public class MergeCollection : Merge, IMergeCollection
     {

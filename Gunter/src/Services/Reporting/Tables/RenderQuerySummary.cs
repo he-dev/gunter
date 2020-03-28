@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
-using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Reports.CustomSections;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
 using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Services.Reporting
+namespace Gunter.Services.Reporting.Tables
 {
     using static RenderQuerySummary.Columns;
     public class RenderQuerySummary : IRenderReportModule
@@ -25,7 +25,7 @@ namespace Gunter.Services.Reporting
 
         private TestContext Context { get; }
 
-        public IReportModuleDto Execute(ReportModule model) => Execute(model as QuerySummary);
+        public IReportModuleDto Execute(CustomSection section) => Execute(section as QuerySummary);
 
         private IReportModuleDto Execute(QuerySummary model)
         {

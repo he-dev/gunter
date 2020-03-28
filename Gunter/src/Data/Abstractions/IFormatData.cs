@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 
-namespace Gunter.Data.Configuration.Reporting.Abstractions
+namespace Gunter.Data.Abstractions
 {
     [UsedImplicitly, PublicAPI]
     public interface IFormatData

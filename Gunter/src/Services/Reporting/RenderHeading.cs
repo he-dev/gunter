@@ -1,5 +1,5 @@
-using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Reports.CustomSections;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Services.Abstractions;
 using Reusable.Extensions;
 
@@ -15,9 +15,9 @@ namespace Gunter.Services.Reporting
 
         private ITryGetFormatValue TryGetFormatValue { get; }
 
-        public IReportModuleDto Execute(ReportModule module)
+        public IReportModuleDto Execute(CustomSection section)
         {
-            return new ReportModuleDto<Heading>(module, heading => new
+            return new ReportModuleDto<Heading>(section, heading => new
             {
                 text = heading.Text.Format(TryGetFormatValue),
                 level = heading.Level

@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using System.Threading.Tasks;
 using Gunter.Workflow.Data;
@@ -23,7 +24,7 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
                     }
                 }
 
-                context.FilterDataElapsed = Logger.Scope().Stopwatch().Elapsed;
+                context.FilterDataElapsed = Logger?.Scope().Stopwatch().Elapsed ?? TimeSpan.Zero;
             }
 
             return Flow.Continue.ToTask();

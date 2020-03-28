@@ -9,7 +9,7 @@ namespace Gunter.Services.Abstractions
 {
     public interface IMergeScalar
     {
-        TValue Execute<T, TValue>(T mergeable, Func<T, TValue> getValue) where T : IModel, IMergeable;
+        TValue Execute<T, TValue>(T mergeable, Func<T, TValue> getValue, Func<TValue, bool> isValid) where T : IModel, IMergeable;
     }
 
     public interface IMergeCollection
@@ -31,7 +31,7 @@ namespace Gunter.Services.Abstractions
             return
                 from t in Templates
                 from m in t.OfType<T>()
-                where ModelSelector.Comparer.Equals(new ModelSelector(t.Name, m.Name), mergeable.ModelSelector)
+                where mergeable.ModelSelector is {} modelSelector && ModelSelector.Comparer.Equals(new ModelSelector(t.Name, m.Name), modelSelector)
                 select m;
         }
     }

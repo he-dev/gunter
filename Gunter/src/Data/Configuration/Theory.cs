@@ -6,7 +6,9 @@ using System.IO;
 using System.Linq;
 using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Queries;
+using Gunter.Data.Configuration.Reports;
+using Gunter.Data.Configuration.Reports.CustomSections;
 using Gunter.Data.Configuration.Sections;
 using Gunter.Data.Configuration.Tasks;
 using Gunter.Services;
@@ -29,6 +31,7 @@ namespace Gunter.Data.Configuration
             typeof(GetFirstLine),
             typeof(Email),
             typeof(Halt),
+            typeof(Custom),
             typeof(Level),
             typeof(Heading),
             typeof(Paragraph),
@@ -45,7 +48,7 @@ namespace Gunter.Data.Configuration
         public string DirectoryName => Path.GetDirectoryName(FileName);
 
         [JsonIgnore]
-        public string? Name
+        public string Name
         {
             get => Path.GetFileNameWithoutExtension(FileName);
             set { }

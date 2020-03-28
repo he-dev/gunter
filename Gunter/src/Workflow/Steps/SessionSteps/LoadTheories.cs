@@ -30,7 +30,7 @@ namespace Gunter.Workflow.Steps.SessionSteps
         {
             foreach (var theoryFileName in context.TheoryNames)
             {
-                using var scope = Logger.BeginScope("LoadTheory", new { theoryFileName });
+                using var scope = Logger?.BeginScope("LoadTheory", new { theoryFileName });
                 try
                 {
                     var prettyJson = await Resource.ReadTextFileAsync(theoryFileName);
@@ -39,7 +39,7 @@ namespace Gunter.Workflow.Steps.SessionSteps
                 }
                 catch (Exception inner)
                 {
-                    Logger.Scope().Exceptions.Push(inner);
+                    Logger?.Scope().Exceptions.Push(inner);
                 }
             }
 

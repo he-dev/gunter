@@ -10,7 +10,7 @@ namespace Gunter.Data.Configuration.Tasks
     [Gunter]
     public class Email : ITask, IMergeable
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         public ModelSelector? ModelSelector { get; set; }
 

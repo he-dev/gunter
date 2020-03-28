@@ -52,7 +52,7 @@ namespace Gunter.Workflow.Steps.SessionSteps
             }
             catch (Exception inner)
             {
-                Logger.Scope().Exceptions.Push(inner);
+                Logger?.Scope().Exceptions.Push(inner);
             }
         }
     }

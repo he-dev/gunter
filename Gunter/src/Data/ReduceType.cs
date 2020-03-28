@@ -1,4 +1,4 @@
-﻿namespace Gunter.Data.Configuration.Reporting
+﻿namespace Gunter.Data
 {
     public enum ReduceType
     {

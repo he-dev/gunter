@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Gunter.Data.Abstractions;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 
 namespace Gunter.Data.Configuration.Abstractions
 {
@@ -7,6 +8,6 @@ namespace Gunter.Data.Configuration.Abstractions
     {
         string Title { get; }
 
-        List<ReportModule> Modules { get; }
+        List<CustomSection> Modules { get; }
     }
 }

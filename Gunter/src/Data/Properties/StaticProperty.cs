@@ -9,9 +9,9 @@ namespace Gunter.Data.Properties
     [UsedImplicitly]
     public class StaticProperty : RuntimeProperty
     {
-        private readonly object _value;
+        private readonly object? _value;
 
-        public StaticProperty(string name, object value) : base(name) => _value = value;
+        public StaticProperty(string name, object? value) : base(name) => _value = value;
 
         public static IProperty For(Expression<Func<object?>> selectorExpression) => new StaticProperty
         (

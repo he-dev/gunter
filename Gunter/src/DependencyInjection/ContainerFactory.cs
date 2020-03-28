@@ -1,6 +1,7 @@
 ﻿using System;
 using Autofac;
 using Reusable.Exceptionize;
+using Reusable.Extensions;
 using Reusable.OmniLog;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Connectors;
@@ -14,7 +15,7 @@ namespace Gunter.DependencyInjection
     {
         public static IContainer CreateContainer() => CreateContainer(InitializeLogging());
 
-        public static IContainer CreateContainer(ILoggerFactory loggerFactory, Action<ContainerBuilder> configureContainer = default)
+        public static IContainer CreateContainer(ILoggerFactory loggerFactory, Action<ContainerBuilder>? configure = default)
         {
             try
             {
@@ -29,9 +30,7 @@ namespace Gunter.DependencyInjection
                 builder.RegisterModule<Modules.Mailr>();
                 builder.RegisterModule<Modules.WorkflowModule>();
 
-                configureContainer?.Invoke(builder);
-
-                return builder.Build();
+                return builder.Pipe(configure).Build();
             }
             catch (Exception inner)
             {

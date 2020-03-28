@@ -17,7 +17,7 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
         {
             if (context.Data.Compute(context.TestCase.Assert, context.TestCase.Filter) is bool success)
             {
-                context.EvaluateDataElapsed = Logger.Scope().Stopwatch().Elapsed;
+                context.EvaluateDataElapsed = Logger?.Scope().Stopwatch().Elapsed ?? TimeSpan.Zero;
                 context.Result = success switch
                 {
                     true => TestResult.Passed,

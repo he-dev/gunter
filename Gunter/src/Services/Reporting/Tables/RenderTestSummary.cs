@@ -1,12 +1,12 @@
-using Gunter.Data.Configuration.Abstractions;
-using Gunter.Data.Configuration.Reporting;
+using Gunter.Data.Configuration.Reports.CustomSections;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Data.Configuration.Sections;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
 using Reusable.Extensions;
 using Reusable.Utilities.Mailr.Models;
 
-namespace Gunter.Services.Reporting
+namespace Gunter.Services.Reporting.Tables
 {
     public class RenderTestSummary : IRenderReportModule
     {
@@ -20,7 +20,7 @@ namespace Gunter.Services.Reporting
 
         private TestContext TestContext { get; }
 
-        public IReportModuleDto Execute(ReportModule model) => Execute(model as TestSummary);
+        public IReportModuleDto Execute(CustomSection section) => Execute(section as TestSummary);
 
         private IReportModuleDto Execute(TestSummary model)
         {
@@ -41,7 +41,7 @@ namespace Gunter.Services.Reporting
                 .Set(Columns.Value, TestContext.Result.ToString(), TestContext.Result.ToString().ToLower());
             table.Body.AddRow()
                 .Set(Columns.Property, "Then")
-                .Set(Columns.Value, TestContext.TestCase.When[TestContext.Result]);
+                .Set(Columns.Value, TestContext.TestCase.When.TryGetValue(TestContext.Result, out var tasks) ? tasks : (object)string.Empty);
             table.Body.AddRow()
                 .Set(Columns.Property, nameof(TestCase.Tags))
                 .Set(Columns.Value, TestContext.TestCase.Tags);

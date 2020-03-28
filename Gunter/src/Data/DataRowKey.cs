@@ -13,12 +13,12 @@ namespace Gunter.Data
 
         public override bool Equals(object obj) => Equals(obj as DataRowKey);
 
-        public bool Equals(DataRowKey other) => Comparer.Equals(this, other);
+        public bool Equals(DataRowKey? other) => Comparer.Equals(this, other);
 
         private static readonly IEqualityComparer<DataRowKey> Comparer = EqualityComparerFactory<DataRowKey>.Create
         (
             getHashCode: (obj) => 0,
-            @equals: (left, right) => left.SequenceEqual(right)
+            equals: (left, right) => left.SequenceEqual(right)
         );
     }
 }

@@ -10,9 +10,9 @@ namespace Gunter.Data.Configuration.Sections
     [JsonObject]
     public class PropertyCollection : IEnumerable<IProperty>, IModel, IMergeable
     {
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
-        public ModelSelector ModelSelector { get; set; }
+        public ModelSelector? ModelSelector { get; set; }
 
         public IDictionary<string, object> Items { get; set; }
 

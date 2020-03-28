@@ -28,8 +28,8 @@ namespace Gunter.Workflow.Steps.TheorySteps
 
             if (duplicateModelNames.ToList() is var x && x.Any())
             {
-                Logger.Log(Telemetry.Collect.Application().Logic().Decision("Skip theory.").Because("It contains duplicate model names.").Warning());
-                Logger.Log(Telemetry.Collect.Dependency().File().Metadata("duplicateModelNames", x).Warning());
+                Logger?.Log(Telemetry.Collect.Application().Logic().Decision("Skip theory.").Because("It contains duplicate model names.").Warning());
+                Logger?.Log(Telemetry.Collect.Dependency().File().Metadata("duplicateModelNames", x).Warning());
                 return Flow.Break.ToTask();
             }
             else

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Gunter.Data.Configuration.Abstractions;
+using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 
 namespace Gunter.Services.Abstractions
 {
     public interface IRenderReportModule
     {
-        IReportModuleDto Execute(ReportModule module);
+        IReportModuleDto Execute(CustomSection section);
     }
 
     public interface IReportModuleDto
@@ -18,9 +18,9 @@ namespace Gunter.Services.Abstractions
         object Body { get; }
     }
 
-    public class ReportModuleDto<T> : IReportModuleDto where T : ReportModule
+    public class ReportModuleDto<T> : IReportModuleDto where T : CustomSection
     {
-        public ReportModuleDto(ReportModule model, Func<T, object> createBody)
+        public ReportModuleDto(CustomSection model, Func<T, object> createBody)
         {
             Name = model.Name;
             Tags = model.Tags;
