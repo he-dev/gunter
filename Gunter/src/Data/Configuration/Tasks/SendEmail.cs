@@ -8,20 +8,23 @@ using Newtonsoft.Json;
 namespace Gunter.Data.Configuration.Tasks
 {
     [Gunter]
-    public class Email : ITask, IMergeable
+    public class SendEmail : ITask, IMergeable
     {
-        public string Name { get; set; }
-
+        [JsonRequired]
+        public string Name { get; set; } = default!;
+        
         public ModelSelector? ModelSelector { get; set; }
 
         public List<string> To { get; set; } = new List<string>();
 
         public List<string> CC { get; set; } = new List<string>();
+        
+        public string Subject { get; set; } = $"{{Report.Title}}";
 
-        [DefaultValue("default")]
-        public string Theme { get; set; } = default!;
+        public string Theme { get; set; } = "default";
 
         [JsonProperty("Report")]
         public string ReportName { get; set; } = default!;
+
     }
 }

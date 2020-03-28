@@ -11,7 +11,7 @@ namespace Gunter.Data.Configuration.Reports
     [JsonObject]
     public class Custom : IReport, IEnumerable<CustomSection>
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = default!;
 
         public ModelSelector? ModelSelector { get; set; }
 

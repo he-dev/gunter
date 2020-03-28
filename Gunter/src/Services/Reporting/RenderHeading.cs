@@ -1,11 +1,10 @@
 using Gunter.Data.Configuration.Reports.CustomSections;
-using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Services.Abstractions;
 using Reusable.Extensions;
 
 namespace Gunter.Services.Reporting
 {
-    public class RenderHeading : IRenderReportModule
+    public class RenderHeading : IRenderReportSection<Heading>
     {
         public RenderHeading(ITryGetFormatValue tryGetFormatValue)
         {
@@ -15,9 +14,9 @@ namespace Gunter.Services.Reporting
 
         private ITryGetFormatValue TryGetFormatValue { get; }
 
-        public IReportModuleDto Execute(CustomSection section)
+        public IReportSectionDto Execute(Heading section)
         {
-            return new ReportModuleDto<Heading>(section, heading => new
+            return ReportSectionDto.Create(section, heading => new
             {
                 text = heading.Text.Format(TryGetFormatValue),
                 level = heading.Level

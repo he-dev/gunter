@@ -9,9 +9,11 @@ namespace Gunter.Data.Configuration.Queries
     {
         public ModelSelector? ModelSelector { get; set; }
 
-        public string ConnectionString { get; set; }
+        //[JsonRequired]
+        public string? ConnectionString { get; set; }
 
-        public string Command { get; set; }
+        //[JsonRequired]
+        public string? Command { get; set; }
 
         public int Timeout { get; set; }
     }

@@ -6,7 +6,6 @@ using System.Linq.Custom;
 using Gunter.Data;
 using Gunter.Data.Configuration.Reporting;
 using Gunter.Data.Configuration.Reports.CustomSections;
-using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Extensions;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
@@ -18,7 +17,7 @@ using Reusable.Utilities.Mailr.Models;
 namespace Gunter.Services.Reporting.Tables
 {
     [PublicAPI]
-    public class RenderDataSummary : IRenderReportModule
+    public class RenderDataSummary : IRenderReportSection<DataSummary>
     {
         public RenderDataSummary(ITryGetFormatValue tryGetFormatValue, TestContext testContext)
         {
@@ -30,9 +29,7 @@ namespace Gunter.Services.Reporting.Tables
 
         private TestContext TestContext { get; }
 
-        public IReportModuleDto Execute(CustomSection section) => Execute(section as DataSummary);
-
-        private IReportModuleDto Execute(DataSummary model)
+        public IReportSectionDto Execute(DataSummary model)
         {
             // Use either custom columns or all by default.
             var columns =
@@ -75,7 +72,7 @@ namespace Gunter.Services.Reporting.Tables
             // Add the footer row with column options.
             table.Foot.Add(columns.Select(column => StringifyColumnOption(column).Join(", ")));
 
-            return new ReportModuleDto<DataSummary>(model, dataSummary => new { Data = table });
+            return ReportSectionDto.Create(model, dataSummary => new { Data = table });
         }
 
         private IEnumerable<string> StringifyColumnOption(DataColumnSetting columnSetting)

@@ -1,5 +1,4 @@
 using Gunter.Data.Configuration.Reports.CustomSections;
-using Gunter.Data.Configuration.Reports.CustomSections.Abstractions;
 using Gunter.Data.Configuration.Sections;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
@@ -8,7 +7,7 @@ using Reusable.Utilities.Mailr.Models;
 
 namespace Gunter.Services.Reporting.Tables
 {
-    public class RenderTestSummary : IRenderReportModule
+    public class RenderTestSummary : IRenderReportSection<TestSummary>
     {
         public RenderTestSummary(ITryGetFormatValue tryGetFormatValue, TestContext testContext)
         {
@@ -20,9 +19,7 @@ namespace Gunter.Services.Reporting.Tables
 
         private TestContext TestContext { get; }
 
-        public IReportModuleDto Execute(CustomSection section) => Execute(section as TestSummary);
-
-        private IReportModuleDto Execute(TestSummary model)
+        public IReportSectionDto Execute(TestSummary model)
         {
             var table = new HtmlTable
             (
@@ -49,7 +46,7 @@ namespace Gunter.Services.Reporting.Tables
                 .Set(Columns.Property, "Elapsed")
                 .Set(Columns.Value, $"{{{nameof(TestContext)}.{nameof(TestContext.EvaluateDataElapsed)}:{model.TimespanFormat}}}".Format(TryGetFormatValue));
 
-            return new ReportModuleDto<TestSummary>(model, testInfo => new
+            return ReportSectionDto.Create(model, testInfo => new
             {
                 Data = table
             });

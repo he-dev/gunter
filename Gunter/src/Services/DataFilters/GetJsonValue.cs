@@ -1,12 +1,12 @@
 using System.Data;
 using Gunter.Annotations;
 using Gunter.Extensions;
+using Gunter.Services.Abstractions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Gunter.Services.Abstractions;
 
-namespace Gunter.Services.FilterData
+namespace Gunter.Services.DataFilters
 {
     [Gunter]
     [UsedImplicitly]

@@ -7,10 +7,10 @@ namespace Gunter.Data.Abstractions
     public interface IModel
     {
         [JsonRequired]
-        string Name { get; set; }
+        string Name { get; }
     }
 
-    public interface IMergeable
+    public interface IMergeable : IModel
     {
         [JsonProperty("Merge")]
         ModelSelector? ModelSelector { get; set; }

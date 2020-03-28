@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Gunter.Data.Abstractions;
-using Gunter.Data.Configuration.Tasks;
-using Gunter.Services;
+using Gunter.Helpers;
 using Gunter.Services.Abstractions;
-using Gunter.Services.DispatchMessage;
 using Gunter.Workflow.Data;
 using Reusable.Flowingo.Abstractions;
 using Reusable.Flowingo.Data;
@@ -22,21 +17,13 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
         private IComponentContext ComponentContext { get; }
 
-        public List<IServiceMapping> ServiceMappings { get; set; } = new List<IServiceMapping>()
-        {
-            Handle<Email>.With<DispatchEmail>(),
-            Handle<Halt>.With<ThrowOperationCanceledException>()
-        };
-
         protected override async Task<Flow> ExecuteBody(TestContext context)
         {
-            if (context.TestCase.When.TryGetValue(context.Result, out var messages))
+            if (context.TestCase.When.TryGetValue(context.Result, out var tasks))
             {
-                foreach (var message in messages)
+                foreach (var task in tasks)
                 {
-                    var dispatchType = ServiceMappings.Single(m => m.HandleeType.IsInstanceOfType(message)).HandlerType;
-                    var dispatchMessage = (IDispatchMessage)ComponentContext.Resolve(dispatchType);
-                    await dispatchMessage.InvokeAsync(message);
+                    await ComponentContext.ExecuteAsync(typeof(IExecuteTask<>), task);
                 }
             }
 

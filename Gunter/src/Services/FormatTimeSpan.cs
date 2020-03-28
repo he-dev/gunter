@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using Gunter.Annotations;
 using Gunter.Data.Abstractions;
+using Newtonsoft.Json;
 
 namespace Gunter.Services
 {
@@ -11,9 +12,11 @@ namespace Gunter.Services
     public class FormatTimeSpan : IFormatData
     {
         [DefaultValue(@"mm\:ss\.fff")]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public string Format { get; set; }
 
         [DefaultValue(Milliseconds)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public TimeSpanPrecision Precision { get; set; }
 
         public string Execute(object? value)

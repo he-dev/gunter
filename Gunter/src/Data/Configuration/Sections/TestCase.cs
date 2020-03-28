@@ -22,9 +22,7 @@ namespace Gunter.Data.Configuration.Sections
 
         public TestCase(Factory factory) => _factory = factory;
 
-        public Theory Parent { get; }
-
-        public string Name { get; set; }
+        public string Name { get; set; } = default!;
 
         public ModelSelector? ModelSelector { get; set; }
 
@@ -33,14 +31,14 @@ namespace Gunter.Data.Configuration.Sections
 
         public LogLevel Level { get; set; } = LogLevel.Warning;
 
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
-        [JsonProperty("Check", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty("Check")]
         public HashSet<SoftString> QueryNames { get; set; } = new HashSet<SoftString>();
 
-        public string Filter { get; set; }
+        public string? Filter { get; set; }
 
-        public string Assert { get; set; }
+        public string? Assert { get; set; }
 
         // Gets or sets commands that should be executed upon the specified test-result.
         public Dictionary<TestResult, List<ITask>> When { get; set; } = new Dictionary<TestResult, List<ITask>>();
@@ -69,7 +67,7 @@ namespace Gunter.Data.Configuration.Sections
 
     public class TestWhen
     {
-        [JsonProperty("Send", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonProperty("Send")]
         public IEnumerable<SoftString>? MessengerIds { get; set; }
     }
 }

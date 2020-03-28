@@ -33,10 +33,12 @@
         "Failed": [
           {
             "$g": "Email",
+            "Name": "Default",
             "Merge": "_Gunter#email",
             "To": [
               "gunter@test.com"
             ],
+            "Subject": "{Report.Title}",
             "Report": "full"
           },
           {
@@ -61,10 +63,12 @@
         "Passed": [
           {
             "$g": "Email",
+            "Name": "Default",
             "Merge": "_Gunter#email",
             "To": [
               "gunter@test.com"
             ],
+            "Subject": "{Report.Title}",
             "Report": "full"
           },
           {
@@ -89,10 +93,12 @@
         "Failed": [
           {
             "$g": "Email",
+            "Name": "Default",
             "Merge": "_Gunter#email",
             "To": [
               "gunter@test.com"
             ],
+            "Subject": "{Report.Title}",
             "Report": "full"
           },
           {

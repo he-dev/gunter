@@ -22,9 +22,9 @@ namespace Gunter.Workflow.Data
 
         public IQuery Query { get; }
 
-        public string QueryCommand { get; set; }
+        public string QueryCommand { get; set; } = default!;
 
-        public DataTable? Data { get; set; }
+        public DataTable Data { get; set; } = default!;
 
         public TimeSpan GetDataElapsed { get; set; }
 

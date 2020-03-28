@@ -19,7 +19,7 @@ namespace Gunter.Services
                 NullValueHandling = NullValueHandling.Ignore,
                 TypeNameHandling = TypeNameHandling.Auto,
                 ObjectCreationHandling = ObjectCreationHandling.Replace,
-                DefaultValueHandling = DefaultValueHandling.Populate,
+                DefaultValueHandling = DefaultValueHandling.Include,
                 ContractResolver = contractResolver,
                 Converters =
                 {

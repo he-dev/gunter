@@ -38,7 +38,7 @@ namespace Gunter.Data.Abstractions
 
         public bool Equals(IProperty other) => AutoEquality<IProperty>.Comparer.Equals(this, other);
 
-        public override bool Equals(object other) => other is IProperty runtimeVariable && Equals(runtimeVariable);
+        public override bool Equals(object? other) => other is IProperty runtimeVariable && Equals(runtimeVariable);
 
         public override int GetHashCode() => AutoEquality<IProperty>.Comparer.GetHashCode(this);
 

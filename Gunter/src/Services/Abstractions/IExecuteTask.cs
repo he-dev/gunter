@@ -3,8 +3,8 @@ using Gunter.Data.Configuration.Abstractions;
 
 namespace Gunter.Services.Abstractions
 {
-    public interface IDispatchMessage
+    public interface IExecuteTask<in T> where T : ITask
     {
-        Task InvokeAsync(ITask task);
+        Task InvokeAsync(T task);
     }
 }

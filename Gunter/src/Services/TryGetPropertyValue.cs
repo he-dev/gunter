@@ -8,7 +8,10 @@ namespace Gunter.Services
 {
     public class TryGetPropertyValue : ITryGetFormatValue
     {
-        public TryGetPropertyValue(IEnumerable<IProperty> properties) => Properties = properties.ToDictionary(x => x.Name);
+        public TryGetPropertyValue(IEnumerable<IProperty> properties)
+        {
+            Properties = properties.ToDictionary(x => x.Name);
+        }
 
         private IDictionary<SoftString, IProperty> Properties { get; }
 

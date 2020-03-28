@@ -5,7 +5,7 @@ namespace Gunter.Data.Configuration.Reports.CustomSections
 {
     public class Paragraph : CustomSection
     {
-        public string Text { get; set; }
+        public string Text { get; set; } = default!;
     }
 
     public class Level : Paragraph
@@ -16,7 +16,7 @@ namespace Gunter.Data.Configuration.Reports.CustomSections
             Tags.Add("level");
         }
     }
-    
+
     public class Signature : Paragraph
     {
         public Signature()

@@ -1,11 +1,8 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.Data.Abstractions;
-using Gunter.Data.Configuration.Queries;
-using Gunter.Services;
-using Gunter.Services.Queries;
+using Gunter.Helpers;
 using Gunter.Workflow.Data;
 using Microsoft.Extensions.Caching.Memory;
 using Reusable.Exceptionize;
@@ -29,29 +26,28 @@ namespace Gunter.Workflow.Steps.TestCaseSteps
 
         private IComponentContext ComponentContext { get; }
 
-        public GetHandlers QueryMappings { get; set; } = new GetHandlers
-        {
-            Handle<TableOrView>.With<GetDataFromTableOrView>()
-        };
-
         protected override async Task<Flow> ExecuteBody(TestContext context)
         {
             Logger?.Log(Telemetry.Collect.Application().WorkItem("Query", new { context.Query.Name }));
             try
             {
-                (context.QueryCommand, context.Data) = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", async entry =>
-                {
-                    var getData = (IGetData)ComponentContext.Resolve(QueryMappings.For(context.Query).Single());
-                    return await getData.ExecuteAsync(context.Query);
-                });
+                var (command, data) = await Cache.GetOrCreateAsync($"{context.Theory.Name}.{context.Query.Name}", GetEntryData(context.Query));
+                context.QueryCommand = command;
+                context.Data = data;
                 context.GetDataElapsed = Logger?.Scope().Stopwatch().Elapsed ?? TimeSpan.Zero;
                 Logger?.Log(Telemetry.Collect.Dependency().Database().Metric("RowCount", context.Data.Rows.Count));
-                return Flow.Continue;
             }
             catch (Exception inner)
             {
                 throw DynamicException.Create(GetType().ToPrettyString(), $"Error executing query '{context.Query.Name}'.", inner);
             }
+
+            return Flow.Continue;
+        }
+
+        private Func<ICacheEntry, Task<GetDataResult>> GetEntryData(IQuery query)
+        {
+            return async _ => await ComponentContext.ExecuteAsync<GetDataResult>(typeof(IGetData<>), query);
         }
     }
 }

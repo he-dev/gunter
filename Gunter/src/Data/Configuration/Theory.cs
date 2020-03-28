@@ -12,7 +12,7 @@ using Gunter.Data.Configuration.Reports.CustomSections;
 using Gunter.Data.Configuration.Sections;
 using Gunter.Data.Configuration.Tasks;
 using Gunter.Services;
-using Gunter.Services.FilterData;
+using Gunter.Services.DataFilters;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -29,12 +29,13 @@ namespace Gunter.Data.Configuration
             typeof(TableOrView),
             typeof(GetJsonValue),
             typeof(GetFirstLine),
-            typeof(Email),
+            typeof(SendEmail),
             typeof(Halt),
             typeof(Custom),
-            typeof(Level),
             typeof(Heading),
             typeof(Paragraph),
+            typeof(Level),
+            typeof(Signature),
             typeof(TestSummary),
             typeof(QuerySummary),
             typeof(DataSummary),
@@ -57,16 +58,16 @@ namespace Gunter.Data.Configuration
         [DefaultValue(true)]
         public bool Enabled { get; set; }
 
-        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonRequired]
         public PropertyCollection Properties { get; set; }
 
-        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonRequired]
         public IEnumerable<IQuery> Queries { get; set; } = new List<IQuery>();
 
-        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonRequired]
         public IEnumerable<TestCase> Tests { get; set; } = new List<TestCase>();
 
-        [JsonRequired, JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+        [JsonRequired]
         public IEnumerable<IReport> Reports { get; set; } = new List<IReport>();
 
         [JsonIgnore]

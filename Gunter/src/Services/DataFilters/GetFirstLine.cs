@@ -2,10 +2,10 @@
 using System.Data;
 using System.Linq;
 using Gunter.Annotations;
-using Reusable.Extensions;
 using Gunter.Services.Abstractions;
+using Reusable.Extensions;
 
-namespace Gunter.Services.FilterData
+namespace Gunter.Services.DataFilters
 {
     public class ValidateService
     {

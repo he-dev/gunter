@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using Gunter.Services.DispatchMessage;
+using Gunter.Services.Tasks;
 
 namespace Gunter.DependencyInjection.Modules
 {
@@ -7,7 +7,7 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<DispatchEmail>();
+            builder.RegisterType<ExecuteSendEmail>();
         }
     }
 }

@@ -19,26 +19,30 @@ namespace Gunter.Data.Abstractions
     [Gunter]
     public abstract class Query : IQuery
     {
-        public string Name { get; set; }
+        [JsonRequired]
+        public string Name { get; set; } = default!;
 
         public List<IFilterData>? Filters { get; set; } = new List<IFilterData>();
     }
 
-    public interface IGetData
+    public interface IService<in T, TResult>
     {
-        Type QueryType { get; }
+        Task<TResult> ExecuteAsync(T parameter);
+    }
 
-        Task<GetDataResult> ExecuteAsync(IQuery query);
+    public interface IGetData<in T> where T : IQuery
+    {
+        Task<GetDataResult> ExecuteAsync(T query);
     }
 
     public class GetDataResult : IDisposable
     {
-        public string Command { get; set; }
+        public string Command { get; set; } = default!;
 
-        public DataTable? Data { get; set; }
+        public DataTable Data { get; set; } = default!;
 
         public void Deconstruct(out string command, out DataTable? data) => (command, data) = (Command, Data);
 
-        public void Dispose() => Data?.Dispose();
+        public void Dispose() => Data.Dispose();
     }
 }

@@ -7,6 +7,13 @@ using Gunter.Data.Configuration;
 
 namespace Gunter.Services.Abstractions
 {
+    public interface IMergeProvider
+    {
+        IMergeScalar Scalar { get; }
+        
+        IMergeCollection Collection { get; }
+    }
+    
     public interface IMergeScalar
     {
         TValue Execute<T, TValue>(T mergeable, Func<T, TValue> getValue, Func<TValue, bool> isValid) where T : IModel, IMergeable;

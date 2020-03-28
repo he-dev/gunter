@@ -2,12 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!--<TargetFramework>net47</TargetFramework>-->
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Gunter</AssemblyName>
     <RootNamespace>Gunter</RootNamespace>
     <Configurations>Debug;Release</Configurations>
-<!--    <Optimize>false</Optimize>-->
     <LangVersion>latest</LangVersion>
 <!--    <RuntimeIdentifier>win-x64</RuntimeIdentifier>-->
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
@@ -45,16 +43,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="noop" />
-    <Compile Remove="src\Annotations\MergeableAttribute.cs" />
-    <Compile Remove="src\Services\TestComposer.cs" />
-    <Compile Remove="src\Services\TestRunner.cs" />
-    <Compile Remove="src\Services\TestLoader.cs" />
-    <Compile Remove="src\Data\TestCounter.cs" />
-    <Compile Remove="src\Data\TestContext.cs" />
-    <Compile Remove="src\Commands\Send.cs" />
-    <Compile Remove="src\Data\Abstractions\Union.cs" />
-    <Compile Remove="src\Services\RuntimePropertyProvider.cs" />
     <Compile Remove="src\Services\RuntimePropertyFactory.cs" />
     <Compile Remove="src\Services\VariableNameValidator.cs" />
   </ItemGroup>
@@ -85,9 +73,9 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.6.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.Linq.Async" Version="4.0.0" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Data.DataSetExtensions" />
   </ItemGroup>
 
   <ItemGroup>

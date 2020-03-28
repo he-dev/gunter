@@ -1,13 +1,13 @@
 using Autofac;
-using Gunter.Data.Abstractions;
+using Gunter.Data.Configuration.Tasks;
 using Gunter.Data.Properties;
 using Gunter.Services;
 using Gunter.Services.Abstractions;
-using Gunter.Services.DispatchMessage;
 using Gunter.Services.Merging;
 using Gunter.Services.Queries;
 using Gunter.Services.Reporting;
 using Gunter.Services.Reporting.Tables;
+using Gunter.Services.Tasks;
 using Gunter.Workflow.Data;
 using Gunter.Workflow.Steps.SessionSteps;
 using Gunter.Workflow.Steps.TestCaseSteps;
@@ -22,7 +22,7 @@ namespace Gunter.DependencyInjection.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterGeneric(typeof(InstanceProperty<>));
+            builder.RegisterGeneric(typeof(InstanceProperty<>)).InstancePerDependency();
             builder.RegisterGeneric(typeof(Workflow<>)).InstancePerDependency();
 
             builder.RegisterGeneric(typeof(InitializeLogger<>));
@@ -46,31 +46,39 @@ namespace Gunter.DependencyInjection.Modules
 
             // Contexts
 
-            builder.RegisterType<SessionContext>();
-            builder.RegisterType<TheoryContext>();
-            builder.RegisterType<TestContext>();
+            builder.RegisterType<SessionContext>().InstancePerLifetimeScope();
+            builder.RegisterType<TheoryContext>().InstancePerLifetimeScope();
+            builder.RegisterType<TestContext>().InstancePerLifetimeScope();
+            
+            // Tasks
+
+            builder.RegisterType<ExecuteSendEmail>().AsImplementedInterfaces();
+            builder.RegisterType<Halt>().AsImplementedInterfaces();
+            
+            // Renderers
+            
+            builder.RegisterType<RenderHeading>().AsImplementedInterfaces();
+            builder.RegisterGeneric(typeof(RenderParagraph<>)).AsImplementedInterfaces();
+            builder.RegisterType<RenderDataSummary>().AsImplementedInterfaces();
+            builder.RegisterType<RenderQuerySummary>().AsImplementedInterfaces();
+            builder.RegisterType<RenderTestSummary>().AsImplementedInterfaces();
 
             // Services
             
             builder.RegisterType<GetDataFromTableOrView>();
             builder.RegisterType<DeserializeTheory>();
             builder.Register(_ => new MemoryCache(new MemoryCacheOptions())).As<IMemoryCache>().InstancePerLifetimeScope();
+            builder.RegisterType<SendEmailWithMailr>().InstancePerLifetimeScope();
 
-            builder.RegisterType<TryGetPropertyValue>().As<ITryGetFormatValue>().InstancePerDependency();
-            builder.RegisterType<MergeScalar>().As<IMergeScalar>().InstancePerDependency();
-            builder.RegisterType<MergeCollection>().As<IMergeCollection>().InstancePerDependency();
+            builder.RegisterType<TryGetPropertyValue>().As<ITryGetFormatValue>().InstancePerLifetimeScope();
+            builder.RegisterType<MergeScalar>().As<IMergeScalar>().InstancePerLifetimeScope();
+            builder.RegisterType<MergeCollection>().As<IMergeCollection>().InstancePerLifetimeScope();
             builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.Name));
             builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.Version));
             builder.RegisterInstance(StaticProperty.For(() => ProgramInfo.FullName));
-            builder.RegisterType<GetDataFromTableOrView>().As<IGetData>();
-            builder.RegisterType<DispatchEmail>().InstancePerDependency();
-            builder.RegisterType<ThrowOperationCanceledException>().InstancePerDependency();
-            
-            builder.RegisterType<RenderHeading>();
-            builder.RegisterType<RenderParagraph>();
-            builder.RegisterType<RenderQuerySummary>();
-            builder.RegisterType<RenderDataSummary>();
-            builder.RegisterType<RenderTestSummary>();
+            builder.RegisterType<GetDataFromTableOrView>().AsImplementedInterfaces();
+            builder.RegisterType<ExecuteSendEmail>().InstancePerDependency();
+            builder.RegisterType<ExecuteHalt>().InstancePerDependency();
 
             builder.Register(c => new Workflow<SessionContext>("session-workflow")
             {

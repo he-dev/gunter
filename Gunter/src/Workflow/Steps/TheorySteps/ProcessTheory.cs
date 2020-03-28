@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -30,7 +31,7 @@ namespace Gunter.Workflow.Steps.TheorySteps
         private ILifetimeScope LifetimeScope { get; }
 
         private Theory Theory { get; }
-        
+
         public Func<IComponentContext, Workflow<TestContext>> ForEachTestCase { get; set; }
 
         protected override async Task<Flow> ExecuteBody(TheoryContext context)
@@ -62,7 +63,7 @@ namespace Gunter.Workflow.Steps.TheorySteps
             {
                 builder.RegisterInstance(testCase);
                 builder.RegisterInstance(query);
-
+                
                 builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.FileName)).As<IProperty>();
                 builder.Register(c => c.Resolve<InstanceProperty<Theory>.Factory>()(x => x.Name)).As<IProperty>();
                 builder.Register(c => c.Resolve<InstanceProperty<TestCase>.Factory>()(x => x.Level)).As<IProperty>();
@@ -70,7 +71,7 @@ namespace Gunter.Workflow.Steps.TheorySteps
                 builder.Register(c => c.Resolve<InstanceProperty<TestContext>.Factory>()(x => x.GetDataElapsed)).As<IProperty>();
 
                 var properties = Theory.Properties.Resolve(x => x.AsEnumerable(), MergeCollection, x => x.Name);
-                builder.RegisterEnumerable(properties, r => r.As<IProperty>());
+                builder.RegisterEnumerable(properties);
             });
 
             await ForEachTestCase(scope).ExecuteAsync(scope.Resolve<TestContext>());

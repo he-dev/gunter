@@ -11,7 +11,7 @@ namespace Gunter.Data.Configuration.Reporting
         private string? _display;
 
         [JsonRequired]
-        public string Select { get; set; }
+        public string Select { get; set; } = default!;
 
         public string Display
         {

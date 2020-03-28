@@ -11,7 +11,7 @@ namespace Gunter.Data
 
         public override int GetHashCode() => 0;
 
-        public override bool Equals(object obj) => Equals(obj as DataRowKey);
+        public override bool Equals(object? obj) => Equals(obj as DataRowKey);
 
         public bool Equals(DataRowKey? other) => Comparer.Equals(this, other);
 
