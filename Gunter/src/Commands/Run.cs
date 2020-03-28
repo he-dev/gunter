@@ -15,17 +15,20 @@ namespace Gunter.Commands
     [Tags("b")]
     internal class Run : Command<Run.Parameter>
     {
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<Run> _logger;
         private readonly IResource _resource;
         private readonly Workflow<SessionContext> _sessionWorkflow;
 
         public Run
         (
+            ILoggerFactory loggerFactory,
             ILogger<Run> logger,
             IResource resource,
             Workflow<SessionContext> sessionWorkflow
         )
         {
+            _loggerFactory = loggerFactory;
             _logger = logger;
             _resource = resource;
             _sessionWorkflow = sessionWorkflow;
@@ -36,6 +39,7 @@ namespace Gunter.Commands
             var currentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
             var defaultPath = Path.Combine(currentDirectory, _resource.ReadSetting(ProgramConfig.DefaultTestsDirectoryName));
 
+            Reusable.Flowingo.Steps.Workflow.InitializeLogging(_loggerFactory);
             await _sessionWorkflow.ExecuteAsync(new SessionContext
             {
                 TheoryDirectoryName = defaultPath,
@@ -51,7 +55,7 @@ namespace Gunter.Commands
         [UsedImplicitly]
         public class Parameter : CommandParameter
         {
-            public string Path { get; set; }
+            public string? Path { get; set; }
             public List<string> Files { get; set; } = new List<string>();
             public List<string> Tests { get; set; } = new List<string>();
             public List<string> Tags { get; set; } = new List<string>();

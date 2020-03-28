@@ -34,8 +34,10 @@ namespace Gunter.Workflow.Steps.SessionSteps
                 try
                 {
                     var prettyJson = await Resource.ReadTextFileAsync(theoryFileName);
-                    var theory = DeserializeTheory.Invoke(theoryFileName, prettyJson);
-                    context.Theories.Add(theory);
+                    if (DeserializeTheory.Invoke(theoryFileName, prettyJson) is {} theory)
+                    {
+                        context.Theories.Add(theory);
+                    }
                 }
                 catch (Exception inner)
                 {

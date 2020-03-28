@@ -13,6 +13,6 @@ namespace Gunter.Data.Configuration.Reports.CustomSections
         //[DefaultValue(@"dd\.hh\:mm\:ss")]
         [DefaultValue(@"mm\:ss\.fff")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public string TimespanFormat { get; set; }
+        public string TimespanFormat { get; set; } = default!;
     }
 }

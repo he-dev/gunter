@@ -61,14 +61,14 @@ namespace Gunter.Data.Abstractions
 
         private static string CreateName(MemberExpression memberExpression)
         {
-            // ReSharper disable once PossibleNullReferenceException - For member expression the DeclaringType cannot be null.
-            var typeName = memberExpression.Member.ReflectedType.Name;
-            if (memberExpression.Member.ReflectedType.IsInterface)
+            var typeName = memberExpression.Member.ReflectedType switch
             {
                 // Remove the leading "I" from an interface name.
-                typeName = Regex.Replace(typeName, "^I", string.Empty);
-            }
-
+                {IsInterface: true} t => Regex.Replace(t.Name, "^I", string.Empty),
+                {} t => t.Name,
+                _ => "Unknown"
+            };
+            
             return $"{typeName}.{memberExpression.Member.Name}";
         }
     }

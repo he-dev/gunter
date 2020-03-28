@@ -32,7 +32,7 @@ namespace Gunter.Workflow.Steps.TheorySteps
 
         private Theory Theory { get; }
 
-        public Func<IComponentContext, Workflow<TestContext>> ForEachTestCase { get; set; }
+        public Func<IComponentContext, Workflow<TestContext>>? ForEachTestCase { get; set; } 
 
         protected override async Task<Flow> ExecuteBody(TheoryContext context)
         {
@@ -74,7 +74,7 @@ namespace Gunter.Workflow.Steps.TheorySteps
                 builder.RegisterEnumerable(properties);
             });
 
-            await ForEachTestCase(scope).ExecuteAsync(scope.Resolve<TestContext>());
+            await ForEachTestCase!(scope).ExecuteAsync(scope.Resolve<TestContext>());
         }
     }
 }

@@ -9,9 +9,9 @@ using Reusable.OmniLog.Extensions;
 
 namespace Gunter.Workflow.Steps.TheorySteps
 {
-    internal class IgnoreTheoryWithDuplicateModelNames : Step<TheoryContext>
+    internal class IgnoreTheoryWithDuplicateModels : Step<TheoryContext>
     {
-        public IgnoreTheoryWithDuplicateModelNames(Theory theory)
+        public IgnoreTheoryWithDuplicateModels(Theory theory)
         {
             Theory = theory;
         }

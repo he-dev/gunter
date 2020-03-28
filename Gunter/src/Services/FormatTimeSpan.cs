@@ -13,13 +13,13 @@ namespace Gunter.Services
     {
         [DefaultValue(@"mm\:ss\.fff")]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public string Format { get; set; }
+        public string Format { get; set; } = default!;
 
         [DefaultValue(Milliseconds)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public TimeSpanPrecision Precision { get; set; }
 
-        public string Execute(object? value)
+        public string? Execute(object? value)
         {
             return value is {} ? TimeSpanFactory(Precision)(Convert.ToDouble(value)).ToString(Format) : default;
         }

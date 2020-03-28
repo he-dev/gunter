@@ -43,10 +43,10 @@ namespace Gunter.Data.Configuration
         };
 
         [JsonIgnore]
-        public string FileName { get; set; }
+        public string FileName { get; set; } = default!;
 
         [JsonIgnore]
-        public string DirectoryName => Path.GetDirectoryName(FileName);
+        public string? DirectoryName => Path.GetDirectoryName(FileName);
 
         [JsonIgnore]
         public string Name
@@ -59,7 +59,7 @@ namespace Gunter.Data.Configuration
         public bool Enabled { get; set; }
 
         [JsonRequired]
-        public PropertyCollection Properties { get; set; }
+        public PropertyCollection Properties { get; set; } = new PropertyCollection();
 
         [JsonRequired]
         public IEnumerable<IQuery> Queries { get; set; } = new List<IQuery>();

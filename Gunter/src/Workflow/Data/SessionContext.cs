@@ -7,7 +7,7 @@ namespace Gunter.Workflow.Data
 {
     internal class SessionContext
     {
-        public string TheoryDirectoryName { get; set; }
+        public string TheoryDirectoryName { get; set; } = default!;
 
         public TestFilter TestFilter { get; set; } = new TestFilter();
 

@@ -32,7 +32,7 @@ namespace Gunter
 
         public static string FullName => $"{Name}-v{Version}";
 
-        public static string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location);
+        public static string CurrentDirectory => Path.GetDirectoryName(typeof(Program).Assembly.Location)!;
 
         public string Environment => _resource.ReadSetting(() => Environment);
     }

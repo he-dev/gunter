@@ -10,6 +10,6 @@ namespace Gunter.Data.Configuration.Reports.CustomSections
 
         public bool HasFoot => true;
 
-        public List<DataColumnSetting?> Columns { get; set; } = new List<DataColumnSetting?>();
+        public List<DataColumnSetting> Columns { get; set; } = new List<DataColumnSetting>();
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Gunter.Helpers
             var service = componentContext.GetService(serviceType, arguments);
             var execute = service.GetType().GetExecuteMethod(arguments);
 
-            return await (Task<T>)execute.Invoke(service, arguments);
+            return await (Task<T>)execute.Invoke(service, arguments)!;
         }
         
         public static async Task ExecuteAsync(this IComponentContext componentContext, Type serviceType, params object[] arguments)
@@ -22,7 +23,7 @@ namespace Gunter.Helpers
             var service = componentContext.GetService(serviceType, arguments);
             var execute = service.GetType().GetExecuteMethod(arguments);
 
-            await (Task)execute.Invoke(service, arguments);
+            await (Task)execute.Invoke(service, arguments)!;
         }
 
         public static T Execute<T>(this IComponentContext componentContext, Type serviceType, params object[] arguments)
@@ -30,7 +31,7 @@ namespace Gunter.Helpers
             var service = componentContext.GetService(serviceType, arguments);
             var execute = service.GetType().GetExecuteMethod(arguments);
 
-            return (T)execute.Invoke(service, arguments);
+            return (T)execute.Invoke(service, arguments)!;
         }
 
         private static object GetService(this IComponentContext componentContext, Type serviceType, IEnumerable<object> arguments)

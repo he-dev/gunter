@@ -80,14 +80,14 @@ namespace Gunter.Services.Reporting.Tables
             yield return columnSetting.IsKey ? "Key" : columnSetting.ReduceType.ToString();
         }
 
-        private object Aggregate(DataColumnSetting columnSetting, IEnumerable<DataRow> dataRows)
+        private object? Aggregate(DataColumnSetting columnSetting, IEnumerable<DataRow> dataRows)
         {
             try
             {
                 var values =
                     from dataRow in dataRows
                     let value = dataRow[columnSetting.Select]
-                    where value != DBNull.Value
+                    where value != DBNull.Value && value is {}
                     select value;
 
                 return values.Reduce(columnSetting.ReduceType);

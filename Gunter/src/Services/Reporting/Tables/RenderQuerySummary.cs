@@ -36,9 +36,9 @@ namespace Gunter.Services.Reporting.Tables
             table.Body.AddRow().Set(Property, "Command").Set(Value, Context.Query, "query");
             table.Body.Add("Results", Context.Data?.Rows.Count ?? 0);
             table.Body.Add("Elapsed", $"{{{nameof(TestContext)}.{nameof(TestContext.GetDataElapsed)}:{model.TimespanFormat}}}".Format(TryGetFormatValue));
-
-            var hasTimestampColumn = Context.Data.Columns.Contains(model.TimestampColumn);
-            var hasRows = Context.Data.Rows.Count > 0; // If there are no rows Min/Max will throw.
+            
+            var hasTimestampColumn = Context.Data?.Columns.Contains(model.TimestampColumn) == true;
+            var hasRows = (Context.Data?.Rows.Count ?? 0) > 0; // If there are no rows Min/Max will throw.
 
             if (hasTimestampColumn && hasRows)
             {

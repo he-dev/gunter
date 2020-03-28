@@ -16,7 +16,7 @@ namespace Gunter.Services.DataFilters
         /// Gets or sets JsonPath for extracting the value.
         /// </summary>
         [JsonProperty(Required = Required.Always)]
-        public string Select { get; set; }
+        public string Select { get; set; } = default!;
 
         /// <summary>
         /// Gets or sets the default value to use when nothing found.

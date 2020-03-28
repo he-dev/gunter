@@ -10,13 +10,13 @@ namespace Gunter.Services.Abstractions
     
     public abstract class FilterDataBase : IFilterData
     {
-        private string _into;
+        private string? _into;
 
         /// <summary>
         /// Gets or sets the data-table column containing json.
         /// </summary>
         [JsonProperty(Required = Required.Always)]
-        public string From { get; set; }
+        public string From { get; set; } = default!;
 
         /// <summary>
         /// Gets or sets the name of the column to attach.

@@ -5,6 +5,7 @@ using System.Linq.Custom;
 using System.Threading.Tasks;
 using Autofac;
 using Gunter.DependencyInjection;
+using Gunter.Helpers;
 using Reusable.Commander;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Extensions;
@@ -36,7 +37,7 @@ namespace Gunter
 
         public static Program Create(ILoggerFactory loggerFactory, Action<ContainerBuilder> configureBuilder)
         {
-            return new Program(CreateContainer(loggerFactory ?? InitializeLogging(), configureBuilder));
+            return new Program(CreateContainer(loggerFactory ?? LoggerHelper.InitializeLoggerFactory(), configureBuilder));
         }
 
         internal static async Task<int> Main(string[] args)
@@ -59,9 +60,9 @@ namespace Gunter
             }
         }
 
-        private void LogHallo() => _logger.Log(Telemetry.Collect.Application().Metadata("Greeting", "G’day!"));
+        private void LogHallo() => _logger.Log(Telemetry.Collect.Application().Metadata("Greeting", new { ProgramInfo.Name, ProgramInfo.Version }).Message("G’day!"));
 
-        private void LogGoodBye() => _logger.Log(Telemetry.Collect.Application().Metadata("Farewell", "See ya!"));
+        private void LogGoodBye() => _logger.Log(Telemetry.Collect.Application().Metadata("Farewell", new { }).Message("See ya!"));
 
 //        public async Task RunAsync()
 //        {

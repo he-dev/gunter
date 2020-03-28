@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Gunter.Annotations;
 using Gunter.Services.Abstractions;
@@ -38,10 +39,10 @@ namespace Gunter.Data.Abstractions
     public class GetDataResult : IDisposable
     {
         public string Command { get; set; } = default!;
-
+        
         public DataTable Data { get; set; } = default!;
 
-        public void Deconstruct(out string command, out DataTable? data) => (command, data) = (Command, Data);
+        public void Deconstruct(out string command, out DataTable data) => (command, data) = (Command, Data);
 
         public void Dispose() => Data.Dispose();
     }

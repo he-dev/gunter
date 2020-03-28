@@ -29,17 +29,14 @@ namespace Gunter.Services
                     {
                         ReadJsonCallback = ModelSelector.Parse
                     },
-                    new TestFileConverter
-                    {
-                        FileName = fileName
-                    }
+                    new TestFileConverter(fileName) { }
                 }
             };
         }
 
         private Func<string, JsonSerializer> CreateJsonSerializer { get; }
 
-        public Theory Invoke(string fileName, string prettyJson)
+        public Theory? Invoke(string fileName, string prettyJson)
         {
             var jsonVisitor = new CompositeJsonVisitor
             {
@@ -51,7 +48,12 @@ namespace Gunter.Services
 
         private class TestFileConverter : CustomCreationConverter<Theory>
         {
-            public string FileName { get; set; }
+            public TestFileConverter(string fileName)
+            {
+                FileName = fileName;
+            }
+
+            private string FileName { get; }
 
             public override Theory Create(Type objectType)
             {

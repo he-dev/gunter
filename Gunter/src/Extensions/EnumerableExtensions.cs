@@ -6,7 +6,7 @@ using Gunter.Data;
 namespace Gunter.Extensions
 {
     using static ReduceType;
-    
+
     internal static class EnumerableExtensions
     {
         /// <summary>
@@ -17,12 +17,10 @@ namespace Gunter.Extensions
             // ReSharper disable PossibleMultipleEnumeration 
             return values.Any() ? aggregate(values) : defaultValue;
             // ReSharper restore PossibleMultipleEnumeration 
-        }      
-        
-        public static object? Reduce(this IEnumerable<object?> values,  ReduceType reduceType)
+        }
+
+        public static object? Reduce(this IEnumerable<object> values, ReduceType reduceType)
         {
-            values = values.Where(x => x is {});
-            
             return reduceType switch
             {
                 First => values.FirstOrDefault(),
@@ -32,6 +30,7 @@ namespace Gunter.Extensions
                 Count => values.Count(),
                 Sum => values.Select(Convert.ToDouble).Sum(),
                 Average => values.Select(Convert.ToDouble).AggregateOrDefault(Enumerable.Average, double.NaN),
+                _ => throw new ArgumentOutOfRangeException($"{reduceType} not supported.")
             };
         }
     }

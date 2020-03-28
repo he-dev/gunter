@@ -15,7 +15,7 @@ namespace Gunter.Data.Configuration.Reports
 
         public ModelSelector? ModelSelector { get; set; }
 
-        public string Title { get; set; }
+        public string Title { get; set; } = default!;
 
         public List<CustomSection> Modules { get; set; } = new List<CustomSection>();
 

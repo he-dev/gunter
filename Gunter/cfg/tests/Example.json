@@ -32,7 +32,7 @@
       "When": {
         "Failed": [
           {
-            "$g": "Email",
+            "$g": "SendEmail",
             "Name": "Default",
             "Merge": "_Gunter#email",
             "To": [
@@ -62,7 +62,7 @@
       "When": {
         "Passed": [
           {
-            "$g": "Email",
+            "$g": "SendEmail",
             "Name": "Default",
             "Merge": "_Gunter#email",
             "To": [
@@ -92,7 +92,7 @@
       "When": {
         "Failed": [
           {
-            "$g": "Email",
+            "$g": "SendEmail",
             "Name": "Default",
             "Merge": "_Gunter#email",
             "To": [
