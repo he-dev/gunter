@@ -12,7 +12,7 @@ namespace Gunter.Data.Abstractions
 {
     [UsedImplicitly]
     [PublicAPI]
-    public interface IQuery : IModel
+    public interface IQuery : IMergeable
     {
         List<IFilterData>? Filters { get; }
     }
@@ -22,7 +22,9 @@ namespace Gunter.Data.Abstractions
     {
         [JsonRequired]
         public string Name { get; set; } = default!;
-
+        
+        public ModelSelector? ModelSelector { get; set; }
+        
         public List<IFilterData>? Filters { get; set; } = new List<IFilterData>();
     }
 

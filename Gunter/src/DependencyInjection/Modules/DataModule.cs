@@ -31,8 +31,8 @@ namespace Gunter.DependencyInjection.Modules
 
             // Tasks
 
-            builder.RegisterType<ExecuteSendEmail>().AsImplementedInterfaces();
-            builder.RegisterType<Halt>().AsImplementedInterfaces();
+            builder.RegisterType<Halt>();
+            builder.RegisterType<SendEmail>();
             
             // Other
 

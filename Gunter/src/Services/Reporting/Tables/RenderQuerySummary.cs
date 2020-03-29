@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using Gunter.Data;
 using Gunter.Data.Configuration.Reports.CustomSections;
+using Gunter.Data.ReportSections;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
 using Reusable.Extensions;
@@ -12,6 +14,7 @@ using Reusable.Utilities.Mailr.Models;
 namespace Gunter.Services.Reporting.Tables
 {
     using static RenderQuerySummary.Columns;
+
     public class RenderQuerySummary : IRenderReportSection<QuerySummary>
     {
         public RenderQuerySummary(ITryGetFormatValue tryGetFormatValue, TestContext context)
@@ -24,7 +27,7 @@ namespace Gunter.Services.Reporting.Tables
 
         private TestContext Context { get; }
 
-        public IReportSectionDto Execute(QuerySummary model)
+        public ReportSectionDto Execute(QuerySummary model)
         {
             var table = new HtmlTable
             (
@@ -33,10 +36,10 @@ namespace Gunter.Services.Reporting.Tables
             );
 
             table.Body.Add("Type", Context.Query.GetType().Name);
-            table.Body.AddRow().Set(Property, "Command").Set(Value, Context.Query, "query");
+            table.Body.AddRow().Set(Property, "Command").Set(Value, Context.QueryCommand, "query");
             table.Body.Add("Results", Context.Data?.Rows.Count ?? 0);
             table.Body.Add("Elapsed", $"{{{nameof(TestContext)}.{nameof(TestContext.GetDataElapsed)}:{model.TimespanFormat}}}".Format(TryGetFormatValue));
-            
+
             var hasTimestampColumn = Context.Data?.Columns.Contains(model.TimestampColumn) == true;
             var hasRows = (Context.Data?.Rows.Count ?? 0) > 0; // If there are no rows Min/Max will throw.
 
@@ -52,10 +55,14 @@ namespace Gunter.Services.Reporting.Tables
                 table.Body.Add(new List<string> { "Timespan", timespan.ToString(model.TimespanFormat, CultureInfo.InvariantCulture) });
             }
 
-            return ReportSectionDto.Create(model, _ => new
+            return new TableDto(model)
             {
-                Data = table
-            });
+                Data = table,
+                Tags =
+                {
+                    "table-query-summary"
+                }
+            };
         }
 
         public static class Columns

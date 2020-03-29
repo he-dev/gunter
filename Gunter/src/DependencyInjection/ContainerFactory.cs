@@ -1,6 +1,8 @@
 ﻿using System;
 using Autofac;
+using Autofac.Extras.AggregateService;
 using Gunter.Helpers;
+using Gunter.Services.Abstractions;
 using Reusable.Commander.DependencyInjection;
 using Reusable.Extensions;
 using Reusable.IO;
@@ -23,6 +25,8 @@ namespace Gunter.DependencyInjection
                 var builder = new ContainerBuilder();
 
                 builder.RegisterOmniLog(loggerFactory);
+
+                builder.RegisterAggregateService<IMergeProvider>();
 
                 builder
                     .RegisterType<PhysicalDirectoryTree>()

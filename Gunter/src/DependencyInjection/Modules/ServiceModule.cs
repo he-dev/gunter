@@ -35,8 +35,8 @@ namespace Gunter.DependencyInjection.Modules
             builder.RegisterType<MergeCollection>().As<IMergeCollection>().InstancePerLifetimeScope();
             
             builder.RegisterType<GetDataFromTableOrView>().AsImplementedInterfaces();
-            builder.RegisterType<ExecuteSendEmail>().InstancePerDependency();
-            builder.RegisterType<ExecuteHalt>().InstancePerDependency();
+            builder.RegisterType<ExecuteSendEmail>().AsImplementedInterfaces().InstancePerDependency();
+            builder.RegisterType<ExecuteHalt>().AsImplementedInterfaces().InstancePerDependency();
         }
     }
 }

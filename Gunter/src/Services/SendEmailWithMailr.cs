@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Gunter.Data;
 using Gunter.Data.Configuration.Tasks;
-using Gunter.Services.Abstractions;
+using Gunter.Data.ReportSections;
 using Reusable.Extensions;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Extensions;
@@ -27,7 +28,7 @@ namespace Gunter.Services
 
         private ITryGetFormatValue TryGetFormatValue { get; }
 
-        public async Task ExecuteAsync(SendEmail sendEmail, IEnumerable<IReportSectionDto> modules)
+        public async Task ExecuteAsync(SendEmail sendEmail, IEnumerable<ReportSectionDto> sections)
         {
             var to = sendEmail.To.Select(x => x.Format(TryGetFormatValue));
             var subject = sendEmail.Subject.Format(TryGetFormatValue);
@@ -37,10 +38,7 @@ namespace Gunter.Services
                 //Theme = Theme,
                 //CC = CC,
                 Subject = subject,
-                Body = new
-                {
-                    Modules = modules
-                },
+                Body = new { sections },
             };
 
             Logger.Log(Telemetry.Collect.Application().Metadata("Email", new { htmlEmail.To, htmlEmail.CC, htmlEmail.Subject }));

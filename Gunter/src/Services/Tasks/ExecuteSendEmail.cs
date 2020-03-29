@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using Gunter.Data;
 using Gunter.Data.Abstractions;
 using Gunter.Data.Configuration;
 using Gunter.Data.Configuration.Abstractions;
 using Gunter.Data.Configuration.Tasks;
 using Gunter.Data.Properties;
+using Gunter.Data.ReportSections;
 using Gunter.Helpers;
 using Gunter.Services.Abstractions;
 using JetBrains.Annotations;
@@ -78,12 +80,12 @@ namespace Gunter.Services.Tasks
             }
         }
 
-        private IEnumerable<IReportSectionDto> RenderSections(IReport report)
+        private IEnumerable<ReportSectionDto> RenderSections(IReport report)
         {
             var sections = report.Resolve(x => x.Modules, MergeScalar, modules => modules.Any());
             foreach (var section in sections)
             {
-                yield return LifetimeScope.Execute<IReportSectionDto>(typeof(IRenderReportSection<>), section);
+                yield return LifetimeScope.Execute<ReportSectionDto>(typeof(IRenderReportSection<>), section);
             }
         }
     }

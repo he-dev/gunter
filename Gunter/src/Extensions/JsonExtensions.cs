@@ -1,10 +1,15 @@
-﻿namespace Gunter.Extensions
+﻿using System.Linq;
+using System.Linq.Custom;
+
+namespace Gunter.Extensions
 {
     internal static class JsonExtensions
     {
         public static bool IsJson(this string value)
         {
-            return value.OpeningType() == value.ClosingType();
+            var openingType = value.OpeningType();
+            var closingType = value.ClosingType();
+            return (openingType == closingType) && new[] { openingType, closingType }.All(t => t.In(JsonType.Object, JsonType.Array));
         }
 
         private static JsonType OpeningType(this string value)
@@ -18,11 +23,11 @@
                     case ' ': continue;
                     case '[': return JsonType.Array;
                     case '{': return JsonType.Object;
-                    default: return JsonType.Invalid;
+                    default: return JsonType.Unknown;
                 }
             }
 
-            return JsonType.Invalid;
+            return JsonType.Unknown;
         }
 
         private static JsonType ClosingType(this string value)
@@ -36,16 +41,16 @@
                     case ' ': continue;
                     case ']': return JsonType.Array;
                     case '}': return JsonType.Object;
-                    default: return JsonType.Invalid;
+                    default: return JsonType.Unknown;
                 }
             }
 
-            return JsonType.Invalid;
+            return JsonType.Unknown;
         }
 
         private enum JsonType
         {
-            Invalid,
+            Unknown,
             Array,
             Object
         }

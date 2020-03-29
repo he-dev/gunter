@@ -1,6 +1,8 @@
 using System;
 using System.Net.Http;
 using Autofac;
+using Gunter.Data.ReportSections;
+using Newtonsoft.Json.Serialization;
 using Reusable.OmniLog.Abstractions;
 using Reusable.Translucent;
 using Reusable.Translucent.Abstractions;
@@ -33,6 +35,17 @@ namespace Gunter.DependencyInjection.Modules
                             CreateHttpClient = () => new HttpClient(new HttpClientHandler { UseProxy = false })
                             {
                                 BaseAddress = new Uri(ProgramInfo.Configuration["mailr:BaseUri"])
+                            },
+                            Serializer =
+                            {
+                                ContractResolver = new DefaultContractResolver
+                                {
+                                    NamingStrategy = new CamelCaseNamingStrategy()
+                                },
+                                Converters =
+                                {
+                                    new PrettyJsonConverter()
+                                }
                             },
                             Name = "Mailr"
                         },

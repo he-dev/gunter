@@ -31,15 +31,15 @@ namespace Gunter.Services.Queries
         {
             var commandText = await GetCommandTextAsync(view);
 
-            await using var conn = new SqlConnection(view.Resolve(x => x.ConnectionString, MergeScalar).Format(TryGetFormatValue));
+            using var conn = new SqlConnection(view.Resolve(x => x.ConnectionString, MergeScalar).Format(TryGetFormatValue));
 
             await conn.OpenAsync();
-            await using var cmd = conn.CreateCommand();
+            using var cmd = conn.CreateCommand();
             cmd.CommandText = commandText;
             cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = view.Timeout > 0 ? view.Timeout : cmd.CommandTimeout;
 
-            await using var dataReader = await cmd.ExecuteReaderAsync();
+            using var dataReader = await cmd.ExecuteReaderAsync();
             var dataTable = new DataTable();
             dataTable.Load(dataReader);
 

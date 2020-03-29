@@ -17,13 +17,13 @@
           "$g": "GetJsonValue",
           "From": "_string_json",
           "Select": "$.Name",
-          "Attach": "_string_json_name",
+          "Into": "_string_json_name",
           "Default": "Unknown"
         },
         {
           "$g": "GetFirstLine",
           "From": "_string_text",
-          "Attach": "_string_text_first_line"
+          "Into": "_string_text_first_line"
         }
       ]
     },

@@ -1,5 +1,8 @@
+using System.Linq;
+using Gunter.Data;
 using Gunter.Data.Configuration.Reports.CustomSections;
 using Gunter.Data.Configuration.Sections;
+using Gunter.Data.ReportSections;
 using Gunter.Services.Abstractions;
 using Gunter.Workflow.Data;
 using Reusable.Extensions;
@@ -19,7 +22,7 @@ namespace Gunter.Services.Reporting.Tables
 
         private TestContext TestContext { get; }
 
-        public IReportSectionDto Execute(TestSummary model)
+        public ReportSectionDto Execute(TestSummary model)
         {
             var table = new HtmlTable
             (
@@ -38,7 +41,7 @@ namespace Gunter.Services.Reporting.Tables
                 .Set(Columns.Value, TestContext.Result.ToString(), TestContext.Result.ToString().ToLower());
             table.Body.AddRow()
                 .Set(Columns.Property, "Then")
-                .Set(Columns.Value, TestContext.TestCase.When.TryGetValue(TestContext.Result, out var tasks) ? tasks : (object)string.Empty);
+                .Set(Columns.Value, TestContext.TestCase.When.TryGetValue(TestContext.Result, out var tasks) ? tasks.Select(t => t.Name) : (object)string.Empty);
             table.Body.AddRow()
                 .Set(Columns.Property, nameof(TestCase.Tags))
                 .Set(Columns.Value, TestContext.TestCase.Tags);
@@ -46,10 +49,14 @@ namespace Gunter.Services.Reporting.Tables
                 .Set(Columns.Property, "Elapsed")
                 .Set(Columns.Value, $"{{{nameof(TestContext)}.{nameof(TestContext.EvaluateDataElapsed)}:{model.TimespanFormat}}}".Format(TryGetFormatValue));
 
-            return ReportSectionDto.Create(model, testInfo => new
+            return new TableDto(model)
             {
-                Data = table
-            });
+                Data = table,
+                Tags =
+                {
+                    "table-query-summary"
+                }
+            };
         }
 
         private static class Columns

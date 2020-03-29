@@ -1,4 +1,6 @@
+using Gunter.Data;
 using Gunter.Data.Configuration.Reports.CustomSections;
+using Gunter.Data.ReportSections;
 using Gunter.Services.Abstractions;
 using Reusable.Extensions;
 
@@ -14,13 +16,17 @@ namespace Gunter.Services.Reporting
 
         private ITryGetFormatValue TryGetFormatValue { get; }
 
-        public IReportSectionDto Execute(Heading section)
+        public ReportSectionDto Execute(Heading section)
         {
-            return ReportSectionDto.Create(section, heading => new
+            return new HeadingDto(section)
             {
-                text = heading.Text.Format(TryGetFormatValue),
-                level = heading.Level
-            });
+                Text = section.Text.Format(TryGetFormatValue),
+                Level = section.Level,
+                Tags =
+                {
+                    "section-heading"
+                }
+            };
         }
     }
 }
