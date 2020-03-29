@@ -41,7 +41,7 @@ namespace Gunter.Services
             var jsonVisitor = new CompositeJsonVisitor
             {
                 new TrimPropertyName(),
-                new NormalizePrettyTypeProperty(PrettyTypeDictionary.From(Theory.DataTypes))
+                new NormalizeTypeProperty(PrettyTypeDictionary.From(Theory.DataTypes))
             };
             return jsonVisitor.Visit(prettyJson).ToObject<Theory>(CreateJsonSerializer(fileName));
         }

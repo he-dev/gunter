@@ -8,7 +8,9 @@ using Gunter.Data.ReportSections;
 using Reusable.Extensions;
 using Reusable.OmniLog.Abstractions;
 using Reusable.OmniLog.Extensions;
+using Reusable.OmniLog.Nodes;
 using Reusable.Translucent;
+using Reusable.Translucent.Data;
 using Reusable.Utilities.Mailr;
 
 namespace Gunter.Services
@@ -48,6 +50,7 @@ namespace Gunter.Services
             {
                 http.UserAgent = new ProductInfoHeaderValue(ProgramInfo.Name, ProgramInfo.Version);
                 http.ControllerName = "Mailr";
+                http.CorrelationId(Logger.Scope().Correlation().CorrelationId.ToString());
             });
         }
     }
