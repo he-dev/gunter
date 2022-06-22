@@ -42,7 +42,7 @@
 
   <ItemGroup Condition="'False'">
     <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Reusable.Core" Version="8.2.0" />
     <PackageReference Include="Reusable.Commander" Version="8.2.0" />
     <PackageReference Include="Reusable.IOnymous" Version="8.2.0" />
